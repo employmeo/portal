@@ -12,9 +12,9 @@ import javax.ws.rs.core.MediaType;
 
 import org.json.JSONObject;
 
-import com.employmeo.objects.User;
-import com.employmeo.util.SecurityUtil;
+import com.employmeo.data.model.User;
 import com.talytica.portal.PortalAutoLoginFilter;
+import com.talytica.portal.util.SecurityUtil;
 
 import io.swagger.annotations.Api;
 
@@ -43,12 +43,12 @@ public class ChangePassword {
 			}
 	
 			if (user != null) {
-				user.refreshMe();
+
 				String pass = jUser.getString("newpass");
-				user.setUserPassword(SecurityUtil.hashPassword(pass));
-				user.mergeMe();
+				user.setPassword(SecurityUtil.hashPassword(pass));
+
 				PortalAutoLoginFilter.login(user, reqt);
-				json = user.getJSONString();
+				json = null;
 			}
 		} catch (Exception e) {
 			log.warn("Failed to reset password: " + e.getMessage());

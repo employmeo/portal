@@ -8,8 +8,8 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.*;
 
-import com.employmeo.objects.User;
-import com.employmeo.util.SecurityUtil;
+import com.employmeo.data.model.User;
+import com.talytica.portal.util.SecurityUtil;
 
 import java.util.*;
 
@@ -76,10 +76,10 @@ public class PortalAutoLoginFilter implements Filter {
 					if (hashword != null) {
 
 						User user = SecurityUtil.loginHashword(email, hashword);
-						if (user.getUserId() != null) {
+						if (user.getId() != null) {
 							login(user, request);
-							if (user.getUserFname() != null) {
-								Cookie cookie = new Cookie("user_fname", user.getUserFname());
+							if (user.getFirstName() != null) {
+								Cookie cookie = new Cookie("user_fname", user.getFirstName());
 								response.addCookie(cookie);
 							}
 							loggedIn = (Boolean) session.getAttribute("LoggedIn");
@@ -117,10 +117,10 @@ public class PortalAutoLoginFilter implements Filter {
 	}
 
 	public static void setLoginCookies(HttpServletResponse res, User user) {
-		if (user.getUserPassword() == null)
+		if (user.getPassword() == null)
 			return;
-		String hashword = user.getUserPassword();
-		Cookie cookie = new Cookie("email", user.getUserEmail());
+		String hashword = user.getPassword();
+		Cookie cookie = new Cookie("email", user.getEmail());
 		cookie.setMaxAge(60 * 60 * 24 * 90);
 		res.addCookie(cookie);
 		cookie = new Cookie("hashword", hashword);

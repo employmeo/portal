@@ -19,9 +19,9 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import com.employmeo.objects.User;
-import com.employmeo.util.SecurityUtil;
+import com.employmeo.data.model.User;
 import com.talytica.portal.PortalAutoLoginFilter;
+import com.talytica.portal.util.SecurityUtil;
 
 import io.swagger.annotations.Api;
 
@@ -43,17 +43,17 @@ public class Login {
 
 		// Execute business logic (lookup the user by email and password)
 		User user = SecurityUtil.login(email, password);
-		if (user.getUserId() != null) {
+		if (user.getId() != null) {
 
 			PortalAutoLoginFilter.login(user, reqt);
-			ResponseBuilder rb = Response.status(Response.Status.ACCEPTED).entity(user.getJSONString());
+			ResponseBuilder rb = Response.status(Response.Status.ACCEPTED).entity(user);
 
 			if (persistLogin) {
-				String hashword = user.getUserPassword();
+				String hashword = user.getPassword();
 				String encodedHash = hashword;
 				String encodedEmail = email;
 				try {
-					encodedEmail = URLEncoder.encode(user.getUserEmail(), "UTF-8");
+					encodedEmail = URLEncoder.encode(user.getEmail(), "UTF-8");
 					encodedHash = URLEncoder.encode(hashword, "UTF-8");
 				} catch (UnsupportedEncodingException e) {
 					log.warn("UTF-8 unsupported");
@@ -69,7 +69,7 @@ public class Login {
 				rb.cookie(new NewCookie(pCookie, "hashword", 0, false));
 			}
 
-			Cookie nCookie = new Cookie("user_fname", user.getUserFname(), "/", reqt.getServerName());
+			Cookie nCookie = new Cookie("user_fname", user.getFirstName(), "/", reqt.getServerName());
 			rb.cookie(new NewCookie(nCookie, "user_fname", 60 * 60 * 24 * 90, false));
 log.debug("Put Cookies under: " + reqt.getServerName());
 			return rb.build();

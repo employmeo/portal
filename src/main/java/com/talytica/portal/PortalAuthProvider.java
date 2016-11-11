@@ -15,9 +15,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
+import com.employmeo.data.model.User;
+
 import java.lang.reflect.Method;
 
-import com.employmeo.objects.User;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)

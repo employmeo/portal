@@ -23,11 +23,6 @@ import javax.ws.rs.core.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.employmeo.objects.PositionProfile;
-import com.employmeo.objects.Respondant;
-import com.employmeo.objects.User;
-import com.employmeo.util.DBUtil;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -70,7 +65,7 @@ public class Dashboard {
 		if (positionId > -1)
 			positionSQL = "AND r.respondantPositionId = :positionId ";
 		String dateSQL = "AND r.respondantCreatedDate >= :fromDate AND r.respondantCreatedDate < :toDate ";
-
+/*
 		EntityManager em = DBUtil.getEntityManager();
 		String sql = "SELECT r.respondantStatus, r.respondantProfile, COUNT(r) from Respondant r WHERE r.respondantAccountId = :accountId "
 				+ locationSQL + positionSQL + dateSQL + "GROUP BY r.respondantStatus, r.respondantProfile";
@@ -163,6 +158,7 @@ public class Dashboard {
 		response.put("totalcompleted", totalCompleted);
 		response.put("totalscored", totalScored);
 		response.put("totalhired", totalHired);
+*/
 		return response.toString();
 	}
 

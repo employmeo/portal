@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
-@SpringBootApplication(scanBasePackages = {"com.employmeo.data", "com.talytica.services"})
+@SpringBootApplication(scanBasePackages = {"com.employmeo.data", "com.talytica.portal"})
 public class PortalApplication {
 
 	public static void main(String[] args) {
