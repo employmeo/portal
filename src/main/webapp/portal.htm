@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Employmeo</title>
+<title>Talytica</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, width=device-width"/>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,10 +35,11 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/2.1.19/daterangepicker.min.js"></script>
 <script type="text/javascript" src='/js/stub_scripts.js'></script>
 <script type="text/javascript" src='/js/custom.js'></script>
+<script type="text/javascript" src='/js/portal_api.js'></script>
 <script type="text/javascript" src='/js/portal.js'></script>
 
 </head>
-<body class="nav-md">
+<body class="nav-md" id='mainbody'>
   <div id='wait' class="text-center" style='position:absolute;width:100%;position: absolute;background: black;opacity: .75;padding: 35%;height: 100%;z-index: 99;'>
     <i class="fa fa-spinner fa-5x fa-spin"></i>
   </div>
@@ -59,6 +60,9 @@
 
 <script>
 var portal = new clientPortal();
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();   
+});
 </script>
 
 </html>

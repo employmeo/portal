@@ -56,8 +56,8 @@ public class DashboardResource {
 	public Iterable<ApplicantDataPoint> getDashboardUpdate (
 			@ApiParam(value = "Search Params") DashboardParams params) {
 		
-		Timestamp from = new Timestamp(params.fromDate.getTime());
-		Timestamp to = new Timestamp(params.toDate.getTime() + ONE_DAY);
+		Timestamp from = new Timestamp(params.fromdate.getTime());
+		Timestamp to = new Timestamp(params.todate.getTime() + ONE_DAY);
 		Long locationId = null;
 		if (params.locationId >= 1) locationId = params.locationId;
 		Long positionId = null;

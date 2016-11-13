@@ -10,9 +10,9 @@ public class DashboardParams {
 
 	public Long positionId;
 
-	public Date fromDate;
+	public Date fromdate;
 
-	public Date toDate;
+	public Date todate;
 	
 
 }

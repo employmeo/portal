@@ -23,6 +23,7 @@ clientPortal = function() {
 	this.locationList = {};
 	this.user = {};
 	this.respondant = {};
+	this.dashParams = {};
 	this.historyChart = null;
 	this.dashApplicants = null;
 	this.dashHires = null;
@@ -51,255 +52,86 @@ clientPortal.prototype.init = function() {
 		this.loginUser();
 	} else {
 		$('#wait').toggleClass('hidden');			
-		$('#login').load('/components/login.htm');		
+		$('#login').load('/components/login.htm');
+      	var imagenum = Math.floor(Math.random()*12+1);
+      	$('#mainbody').addClass('coverpage');
+    	$('#mainbody').css('background-image',"url('/images/background-" + imagenum + ".jpg')");
 	}
 }
 
-clientPortal.prototype.loginUser = function() {
-	$('#portal').toggleClass('hidden');	
+clientPortal.prototype.login = function () {
+	$("#wait").removeClass('hidden');			
+	$('#loginresponse').text('');
+	$('#login').toggleClass('hidden');
+	var thePortal = this;
+	postLogin($('#loginform').serialize(), this);
+}
+
+clientPortal.prototype.loginSuccess = function(data) {
+	this.user = data;
+	var thePortal = this;
+	$('#portal').toggleClass('hidden');
+  	$('#mainbody').removeClass('coverpage');
+	$('#mainbody').css('background-image','');
 	$('#leftnav').load('/components/left.htm');
-	$('#topnav').load('/components/top.htm');
+	$('#topnav').load('/components/top.htm', function() {$('#user_fname').text(data.firstName);});
 	if (!this.urlParams.component) this.urlParams.component = 'dash';
-	$('#user_fname').text(getUserFname());
-	this.getLocations();
-	this.getPositions();
-	this.getAssessments();
-	this.showComponent(this.urlParams.component);
-	$('#wait').toggleClass('hidden');
+	$('#user_fname').text(this.user.firstName);
+	$.when (getLocations(thePortal), getPositions(thePortal), getAssessments(thePortal)).done(
+			function () {
+				thePortal.showComponent(thePortal.urlParams.component);
+				$('#wait').toggleClass('hidden');
+			}
+	);	
+}
+
+clientPortal.prototype.loginFail = function(data) {
+	$("#wait").removeClass('hidden');
+	$('#loginresponse').text('');
+	$('#login').toggleClass('hidden');
 }
 
 clientPortal.prototype.showComponent = function(component) {
 	$('#mainpanel').load('/components/'+component+'.htm');
 }
 
-
-clientPortal.prototype.getLocations = function () {
-	var thisPortal = this;
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/getlocations",
-		success: function(data)
-		{
-			thisPortal.locationList = data;
-		}
+clientPortal.prototype.updateLocationSelect = function (detail) {
+	$.each(this.locationList, function (index, value) {
+		$('#locationId').append($('<option/>', { 
+			value: this.id,
+			text : this.locationName 
+		}));
 	});
+	if (detail) this.changeLocationTo($('#locationId').val());
 }
 
-clientPortal.prototype.getAssessments = function () {
-	var thisPortal = this;
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/getassessments",
-		success: function(data)
-		{
-			thisPortal.surveyList = data;
-		}
+clientPortal.prototype.updateAssessmentSelect = function (detail) {
+	$.each(this.surveyList, function (index, value) {
+		$('#asid').append($('<option />', { 
+			value: this.id,
+			text : this.surveyName 
+		}));
 	});
+	if (detail) this.changeAssessmentTo($('#asid').val());
 }
 
-clientPortal.prototype.getPositions = function (list) {
-	var thisPortal = this;
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/getpositions",
-		success: function(data)
-		{
-			thisPortal.positionList = data;
-		}
+clientPortal.prototype.updatePositionSelect = function (detail) {
+	$.each(	this.positionList, function (index, value) {
+		$('#positionId').append($('<option/>', { 
+			value: this.id,
+			text : this.positionName
+		}));
 	});
+	if (detail) this.changePositionTo($('#positionId').val());
 }
 
-//basic user / account functions (login/logout/etc)
-function login() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		data : $('#loginform').serialize(),
-		url: "/login",
-		xhrFields: {
-			withCredentials: true
-		},
-		beforeSend : function() {
-			$("#wait").removeClass('hidden');			
-			$('#loginresponse').text('');
-			$('#login').toggleClass('hidden');
-		},
-		success: function(data) {
-			console.log(data);
-		},
-		statusCode: {
-		      401: function(){
-					$('#loginresponse').text('Login failed');
-					$("#wait").addClass('hidden');
-		      }
-		},
-		error: function(data) {
-			$('#loginresponse').text('Login failed');
-			$("#wait").addClass('hidden');
-		}		
-	});	
-}
-
-function logout() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/logout",
-		xhrFields: {
-			withCredentials: true
-		},
-		success: function(data) {
-			window.location.assign('/login.jsp');
-		}
-	});	
-}
-
-function forgotPass() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		data : $('#forgotpassform').serialize(),
-		url: "/portal/forgotpassword",
-		success: function(data) {
-			// disable forms
-			$('#forgotpassform :submit').text('Request Sent');
-			$('#forgotpassform :input').prop('disabled', true);
-			$('#emailtoyou').text('An password reset request has been submitted. Please check your email for instructions to reset your password.');	
-		},
-		error: function(data) {
-			console.log(data);			
-		}
-	});	
-}
-
-function resetPassword() {
-	$.ajax({
-		type: "POST",
-		url: "/portal/changepass",
-		async: true,
-	    headers: { 
-	        'Accept': 'application/json',
-	        'Content-Type': 'application/json' 
-	    },
-	    dataType: 'json',
-		data : JSON.stringify({
-			'email' : email,
-			'hash' : hash,
-			'newpass' : $('input[name=newpass]').val()
-		}),
-		success: function(data) {
-			if (data.user_fname != null) {
-				// drop a cookie
-				document.cookie = "user_fname=" + data.user_fname;
-				window.location.assign('/index.jsp');
-			} else {
-				$('#errormsg').text('Unable to change your password. Please request another password reset.');
-			}
-		},
-		error: function(data) {
-			console.log(data);			
-		}
-	});	
-}
-
-function getUserFname() {
-	var name = "user_fname=";
-	var ca = document.cookie.split(';');
-	for(var i=0; i<ca.length; i++) {
-		var c = ca[i];
-		while (c.charAt(0)==' ') c = c.substring(1);
-		if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
-	}
-	return "";
-}
-
-//section for updating selectors
-function updatePositionsSelect(detail) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/getpositions",
-		success: function(data)
-		{
-			positionList = data;
-			$.each(data, function (index, value) {
-				$('#position_id').append($('<option/>', { 
-					value: this.position_id,
-					text : this.position_name 
-				}));
-			});
-			if (detail) changePositionTo($('#position_id').val());
-		}
-	});
-}
-
-function updateLocationsSelect(detail) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/getlocations",
-		success: function(data)
-		{
-			locationList = data;
-			$.each(data, function (index, value) {
-				$('#location_id').append($('<option/>', { 
-					value: this.location_id,
-					text : this.location_name 
-				}));
-			});
-//			if (detail) changeLocationTo($('#location_id').val());
-		}
-	});
-}
-
-function updateSurveysSelect(detail) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/getassessments",
-		success: function(data)
-		{
-			surveyList = data;
-			$.each(data, function (index, value) {
-				$('#asid').append($('<option />', { 
-					value: this.survey_asid,
-					text : this.survey_name
-				}));
-			});
-			if (detail) changeSurveyTo($('#asid').val());
-		}
-	});
-}
-
-function listSurveysSelect(detail) {
-	$.ajax({
-		type: "GET",
-		async: true,
-		url: "/survey/list",
-		success: function(data)
-		{
-			surveyList = data;
-			$.each(data, function (index, value) {
-				$('#survey_id').append($('<option />', { 
-					value: this.survey_id,
-					text : this.survey_name
-				}));
-			});
-			if (detail) changeSurveyTo($('#survey_id').val());
-		}
-	});
-}
-
-function initializeDatePicker(callback) {
-
+clientPortal.prototype.initializeDatePicker = function () {
+	var thePortal = this;
 	var cb = function(start, end, label) {
 		$('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
 		$('#fromdate').val(start.format('YYYY-MM-DD'));
 		$('#todate').val(end.format('YYYY-MM-DD'));
-		callback();
+		thePortal.requestDashUpdate();
 	}
 
 	var optionSet1 = {
@@ -348,30 +180,142 @@ function initializeDatePicker(callback) {
 	return;
 }
 
+clientPortal.prototype.requestDashUpdate = function() {
+	var fields = $('#refinequery').serializeArray();
+	this.dashParams = {};
+	this.dashParams.accountId = this.user.userAccountId;
+	for (var i=0;i<fields.length;i++) {
+		this.dashParams[fields[i].name] = fields[i].value;
+	}
+	submitDashUpdateRequest(this);
+}
 
-//Section for inviting new applicants
-function inviteApplicant() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/inviteapplicant",
-		data: $('#inviteapplicant').serialize(),
-		beforeSend: function(data) {
-			$("#inviteapplicant :input").prop('readonly', true);
-			$("#spinner").removeClass('hidden');
-		},
-		success: function(data)
-		{
-			$('#inviteapplicant').trigger('reset');
-			$('#invitationform').addClass('hidden');
-			$('#invitationsent').removeClass('hidden');
-		},
-		complete: function(data) {
-			$("#inviteapplicant :input").prop('readonly', false);
-			$("#spinner").addClass('hidden');
-		}
-	});
-	return false; // so as not to trigger actual action.
+clientPortal.prototype.updateDash = function(data) {
+	
+	var invited = 0;
+	var started = 0;
+	var completed = 0;
+	var scored = 0;
+	var hired = 0;
+	var appData = {
+			labels : [],
+			datasets : [{
+				data : [],
+				backgroundColor : [],
+				hoverBackgroundColor : []
+			}]};
+	var hireData = {
+			labels : [],
+			datasets : [{
+				data : [],
+				backgroundColor : [],
+				hoverBackgroundColor : []
+			}]};
+	
+	// Clear Hire Rates Progress Bars
+	$('#hirerates').empty();
+	
+	for (var i=0;i<data.length;i++) {
+		var dataPoint = data[i];
+
+		
+		// Add to totals
+		invited += dataPoint.data[0];
+		started += dataPoint.data[1];
+		completed += dataPoint.data[2];
+		scored += dataPoint.data[3];
+		hired += dataPoint.data[4];
+				
+		// Create AppData Doughnut set
+		appData.labels[i] = dataPoint.series;
+		appData.datasets[0].backgroundColor[i] = dataPoint.color;
+		appData.datasets[0].hoverBackgroundColor[i] = dataPoint.highlight;
+		appData.datasets[0].data[i] = dataPoint.data[3];
+
+		// Create HireData Doughnut set
+		hireData.labels[i] = dataPoint.series;
+		hireData.datasets[0].backgroundColor[i] = dataPoint.color;
+		hireData.datasets[0].hoverBackgroundColor[i] = dataPoint.highlight;
+		hireData.datasets[0].data[i] = dataPoint.data[4];
+
+		if (dataPoint.data[3] > 0) this.addHireRateBar(dataPoint);
+	}
+	
+	$('#invitecount').html(invited);
+	$('#completedcount').html(completed);
+	$('#scoredcount').html(scored);	
+	$('#hiredcount').html(hired);
+
+	this.refreshDashApplicants(appData);
+	this.refreshDashHires(hireData);
+	
+	updateHistory(getHistoryData());
+	
+}
+
+clientPortal.prototype.refreshDashApplicants = function(data) {
+	if (dashApplicants != null) dashApplicants.destroy();
+	// Build Applicants Widget
+	dashApplicants = new Chart($("#dashApplicants").get(0).getContext("2d"), {
+		type: 'doughnut',
+		data: data,
+		options: {
+			cutoutPercentage : 35,
+			responsive : true,
+			legend: { display: false }
+		}});
+}
+
+clientPortal.prototype.refreshDashHires = function(data) {
+	if (dashHires != null) dashHires.destroy();
+
+	// Build Hires Widget
+	dashHires = new Chart($("#dashHires").get(0).getContext("2d"), {
+		type: 'doughnut', 
+		data: data, 
+		options: {
+			cutoutPercentage : 35,
+			responsive : true,
+			animation : { onProgress : function (chart){
+				var ctx = chart.chartInstance.chart.ctx;
+				var total = 0;
+				ctx.fillText(total, ctx.width/2 - 20, ctx.width/2, 200);
+			}},
+			legend: { display: false }
+	}});
+}
+
+clientPortal.prototype.addHireRateBar = function(data) {
+
+	var rate = Math.round(100*data.data[4] / data.data[3]);
+
+	var badge = getProfileBadge(data.profileClass, data.profileIcon, data.series);
+
+	var progress =	$('<div />',{
+				'class' : 'progress-bar',
+				'role':'progress-bar',
+				});
+	$(progress).addClass(data.profileClass.replace('btn-','progress-bar-'));
+	$(progress).attr('aria-valuenow',rate);
+	$(progress).attr('style','width:'+rate+'%;');
+	
+	var row = $('<div />',{'style' : 'margin-top:10px;'});
+	var leftcol = $('<div />',{'style' : 'float:left;width:40px'});
+	var rightcol = $('<div />',{'style' : 'float:right;width:60px;text-align:right'}).html('<h4>'+rate + '%</h4>');
+	var centercol = $('<div />',{'style' : 'float:none;height:30px'});	
+	leftcol.append(badge);
+	centercol.append(
+			$('<div />',{'class' : 'progress','style' : 'height:30px;margin-top:0px;margin-bottom:0px'}).append(progress)
+	);
+	row.append(leftcol);
+	row.append(rightcol);
+	row.append(centercol);
+	$('#hirerates').append(row);
+
+}
+
+clientPortal.prototype.getLastTenCandidates = function() {
+	console.log('get Last Ten called');
 }
 
 function resetInvitation() {
@@ -379,31 +323,6 @@ function resetInvitation() {
 	$('#invitationform').removeClass('hidden');	
 }
 
-function exportSurvey() {
-	$.ajax({
-		type: "GET",
-		async: true,
-		url: "/survey/definition",
-		data: $('#exportsurvey').serialize(),
-		beforeSend: function(data) {
-			$("#exportsurvey :input").prop('readonly', true);
-			$("#spinner").removeClass('hidden');
-		},
-		success: function(data)
-		{
-			$('#exportsurvey').trigger('reset');
-			$('#exportsurveyform').addClass('hidden');
-			$('#surveyexported').removeClass('hidden');
-			
-			$('#surveydefinition').text(JSON.stringify(data));		
-		},
-		complete: function(data) {
-			$("#exportsurvey :input").prop('readonly', false);
-			$("#spinner").addClass('hidden');
-		}
-	});
-	return false; // so as not to trigger actual action.
-}
 
 function resetExport() {
 	$('#surveyexported').addClass('hidden');
@@ -417,66 +336,7 @@ function resetPersistence() {
 	$('#persistenceresults').text('');
 }
 
-function persistSurvey() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		headers: { 
-	        'Accept': 'application/json',
-	        'Content-Type': 'application/json' 
-	    },
-	    dataType: 'json',		
-		url: "/survey/definition",
-		data: $('#inputsurveydefinition').val(),
-		beforeSend: function(data) {
-			$("#persistsurvey :input").prop('readonly', true);
-			$("#spinner").removeClass('hidden');
-		},
-		success: function(data)
-		{
-			$('#persistsurvey').trigger('reset');
-			$('#persistsurveyform').addClass('hidden');
-			$('#surveypersisted').removeClass('hidden');
-			console.log(data);
-			if(data.message != null) {
-				$('#persistenceresults').text(data.message);
-			}
-		},	
-		complete: function(data) {
-			$("#persistsurvey :input").prop('readonly', false);
-			$("#spinner").addClass('hidden');
-		}
-	});
-	return false; // so as not to trigger actual action.
-}
-
 // Corefactor migrations
-
-function exportCorefactors() {
-	$.ajax({
-		type: "GET",
-		async: true,
-		url: "/survey/corefactor",
-		//data: $('#exportsurvey').serialize(),
-		beforeSend: function(data) {
-			$("#exportcf :input").prop('readonly', true);
-			$("#spinner").removeClass('hidden');
-		},
-		success: function(data)
-		{
-			//$('#exportcf').trigger('reset');
-			$('#exportcfform').addClass('hidden');
-			$('#cfexported').removeClass('hidden');
-			
-			$('#cfdefinition').text(JSON.stringify(data));		
-		},
-		complete: function(data) {
-			$("#exportcf :input").prop('readonly', false);
-			$("#spinner").addClass('hidden');
-		}
-	});
-	return false; // so as not to trigger actual action.
-}
 
 function resetCfExport() {
 	$('#cfexported').addClass('hidden');
@@ -490,38 +350,7 @@ function resetCfPersistence() {
 	$('#cfpersistenceresults').text('');
 }
 
-function persistCorefactors() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		headers: { 
-	        'Accept': 'application/json',
-	        'Content-Type': 'application/json' 
-	    },
-	    dataType: 'json',		
-		url: "/survey/corefactor",
-		data: $('#inputcfdefinition').val(),
-		beforeSend: function(data) {
-			$("#persistcf :input").prop('readonly', true);
-			$("#spinner").removeClass('hidden');
-		},
-		success: function(data)
-		{
-			$('#persistcf').trigger('reset');
-			$('#persistcfform').addClass('hidden');
-			$('#cfpersisted').removeClass('hidden');
-			console.log(data);
-			if(data.message != null) {
-				$('#cfpersistenceresults').text(data.message);
-			}
-		},	
-		complete: function(data) {
-			$("#persistcf :input").prop('readonly', false);
-			$("#spinner").addClass('hidden');
-		}
-	});
-	return false; // so as not to trigger actual action.
-}
+
 
 //Section for search respondants / build respondants table
 function initRespondantsTable() {
@@ -547,40 +376,6 @@ function initRespondantsTable() {
 	updateRespondantsTable();
 }
 
-function updateRespondantsTable() {
-
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/getrespondants",
-		data: $('#refinequery').serialize(),
-		beforeSend: function() {
-			$("#waitingmodal").removeClass("hidden");
-			rTable = $('#respondants').DataTable();
-			rTable.clear();
-		},
-		success: function(data)
-		{
-			rTable = $('#respondants').DataTable();
-			if (data.length > 0) {
-				$('#respondants').dataTable().fnAddData(data);
-				rTable.$('tr').click(function (){
-					rTable.$('tr.selected').removeClass('selected');
-					$(this).addClass('selected');
-					var respondant = $('#respondants').dataTable().fnGetData(this);
-					showApplicantScoring(respondant);
-				});
-				rTable.on('click', 'i', function (){
-					var respondant = rTable.row($(this).parents('tr')).data();
-					window.location.assign('/respondant_score.jsp?&respondant_id='+respondant.respondant_id);
-				});
-			}
-		},
-		complete: function() {
-			$("#waitingmodal").addClass("hidden");
-		}
-	});
-}
 
 //Section for looking at / manipulating surveys
 function changeSurveyTo(asid) {
@@ -633,64 +428,7 @@ function updateSurveyQuestions(survey) {
 	return
 }
 
-function updateDash() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/portal/updatedash",
-		data: $('#refinequery').serialize(),
-		success: function(data)
-		{
-			$('#invitecount').html(data.totalinvited);
-			$('#completedcount').html(data.totalcompleted);
-			$('#scoredcount').html(data.totalscored);	
-			$('#hiredcount').html(data.totalhired);
 
-			refreshDashApplicants(data.applicantData);
-			refreshDashHires(data.hireData);
-			refreshProgressBars(data.applicantData, data.hireData);
-			updateHistory(getHistoryData());
-		}
-	});
-
-}
-
-
-function refreshDashApplicants(dataApplicants) {
-	if (dashApplicants != null) dashApplicants.destroy();
-	// Build Applicants Widget
-	dashApplicants = new Chart($("#dashApplicants").get(0).getContext("2d"), {
-		type: 'doughnut',
-		data: dataApplicants,
-		options: {
-			cutoutPercentage : 35,
-			responsive : true,
-			legend: { display: false }
-		}});
-}
-
-function refreshDashHires(dataHires) {
-	if (dashHires != null) {
-		dashHires.destroy();
-		dashHires = null;
-	}
-
-	// Build Hires Widget
-	dashHires = new Chart($("#dashHires").get(0).getContext("2d"), {
-		type: 'doughnut', 
-		data: dataHires, 
-		options: {
-			cutoutPercentage : 35,
-			responsive : true,
-			animation : { onProgress : function (chart){
-				var ctx = chart.chartInstance.chart.ctx;
-				var total = 0;
-				ctx.fillText(total, ctx.width/2 - 20, ctx.width/2, 200);
-
-			}},	
-			legend: { display: false }
-	}});
-}
 
 function refreshProgressBars(dataApplicants, dataHires) {
 	var rate;
@@ -997,75 +735,6 @@ function uploadPayroll(e) {
 	})
 }
 
-
-//Respondant scoring section
-function getScore(respondantId) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_id" : respondantId   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentRespondantScores(data);
-		}
-	});    
-}
-
-//Respondant scoring section
-function getScoreUuid(respondantUuid) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_uuid" : respondantUuid   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentRespondantScores(data);
-		}
-	});    
-}
-
-//Respondant scoring section
-function getPredictions(respondantId) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_id" : respondantId   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentPredictions(data);
-		}
-	});    
-}
-
-//Respondant scoring section
-function getPredictionsUuid(respondantUuid) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_uuid" : respondantUuid   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentPredictions(data);
-		}
-	});    
-}
-
 function copyToClipboard(element) {
     var $temp = $("<input>");
     $("body").append($temp);
@@ -1300,26 +969,31 @@ function updateGradesTable(arr1) {
 		var td0 = document.createElement("td");
 		var divClass;
 		var iconClass;
+		var label;
 		
 		switch (arr1[i].grade){
 			case "A":
 				divClass='btn-success';
 				iconClass='fa-rocket';
+				label = 'Rising Star';
 				break;
 			case "B":
 				divClass='btn-info';
 				iconClass='fa-user-plus';
+				label = 'Long Timer';
 				break;
 			case "C":
 				divClass='btn-warning';
 				iconClass='fa-warning';
+				label = 'Churner';
 				break;
 			case "D":
 				divClass='btn-danger';
 				iconClass='fa-hand-stop-o';
+				label = 'Red Flag';
 				break;
 		}	
-		$(td0).append(getProfileBadge(divClass, iconClass));
+		$(td0).append(getProfileBadge(divClass, iconClass, label));
 		tr0.appendChild(td0);		
 		
 		var td1 = document.createElement("td");
@@ -1356,8 +1030,12 @@ function updateGradesTable(arr1) {
 	el.appendChild(tr0);
 }
 
-function getProfileBadge(divClass,iconClass) {
-	var div = $('<div />', {'class':'profilesquare'}).addClass(divClass);
+function getProfileBadge(divClass,iconClass,label) {
+	var div = $('<div />', {
+		'class':'profilesquare',
+		'data-toggle' : 'tooltip',
+		'title' : label
+			}).addClass(divClass);
 	var icon = $('<i />', {'class':'fa'}).addClass(iconClass);
 	$(div).append(icon);
 	return div;
@@ -1481,48 +1159,10 @@ function updateCriticalFactorsChart(position) {
 
 
 
-function lookupLastTenCandidates() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getlastten",
-		data: $('#refinequery').serialize(),
-		success: function(respondants)
-		{
-			$('#recentcandidates').empty();
-			for (var i = 0; i < respondants.length; i++ ) {
-				var li = $('<li />', { 'class' : 'media event' });
 
-				var div = $('<div />', {
-					'class' : respondants[i].respondant_profile_class + ' profilebadge' 
-				}).append($('<i />', {'class' : "fa " + respondants[i].respondant_profile_icon }));
-
-				var ico = $('<a />', {
-					'class' : "pull-left",
-					'href' : '/respondant_score.jsp?&respondant_id=' + respondants[i].respondant_id
-				}).append(div);
-
-				var badge = $('<div />', { 'class' : 'media-body' });
-				$('<a />', {
-					'class' : 'title',
-					'href' : '/respondant_score.jsp?&respondant_id=' + respondants[i].respondant_id,
-					'text' : respondants[i].respondant_person_fname + ' ' + respondants[i].respondant_person_lname
-				}).appendTo(badge);
-				$('<p />', {
-					'text' : respondants[i].respondant_position_name
-				}).appendTo(badge);
-				$('<p />', {
-					'html' : '\<small\>' + respondants[i].respondant_location_name + '\<\/small\>'
-				}).appendTo(badge);
-
-				li.append(ico);
-				li.append(badge);
-				$('#recentcandidates').append(li);
-			}}});
-}
 
 function cdf(x, mean, variance) {
-	  return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2 * variance))));
+	  return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2) * variance)));
 }
 
 function erf(x) {
@@ -1541,5 +1181,5 @@ function erf(x) {
 	  // A&S formula 7.1.26
 	  var t = 1.0/(1.0 + p*x);
 	  var y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-	  return sign * y; // erf(-x) = -erf(x);
+	  return sign * y; 
 }
