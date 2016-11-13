@@ -2,7 +2,7 @@ package com.talytica.portal.objects;
 
 import org.springframework.beans.factory.annotation.Value;
 
-public class RespondantSearch {
+public class RespondantSearchParams {
 
 	@Value("-1")
 	public int statusLow;

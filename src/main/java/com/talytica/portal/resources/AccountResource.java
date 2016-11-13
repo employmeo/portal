@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -84,6 +85,23 @@ public class AccountResource {
 		
 		return Response.status(Status.CREATED).entity(savedAccount).build();
 	}
+
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Updates the provided account", response = Account.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 202, message = "Account updatedd"),
+	   })	
+	public Response updateAccount(Account account) {
+		log.debug("Requested account save: {}", account);
+		
+		Account savedAccount = accountService.save(account);
+		log.debug("Saved account {}", savedAccount);
+		
+		return Response.status(Status.ACCEPTED).entity(savedAccount).build();
+	}
+	
 	
 	@GET
 	@Path("/{id}/locations")

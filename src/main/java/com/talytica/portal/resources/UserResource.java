@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -83,5 +84,23 @@ public class UserResource {
 		log.debug("Saved user {}", savedUser);
 		
 		return Response.status(Status.CREATED).entity(savedUser).build();
-	}		
+	}
+	
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Updates the provided user", response = User.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 201, message = "User saved"),
+	   })	
+	public Response updateUser(User user) {
+		log.debug("Requested user save: {}", user);
+		
+		User savedUser = userService.save(user);
+		log.debug("Saved user {}", savedUser);
+		
+		return Response.status(Status.CREATED).entity(savedUser).build();
+	}
+		
+	
 }

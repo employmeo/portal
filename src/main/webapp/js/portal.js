@@ -118,7 +118,7 @@ function login() {
 		type: "POST",
 		async: true,
 		data : $('#loginform').serialize(),
-		url: "/portal/login",
+		url: "/login",
 		xhrFields: {
 			withCredentials: true
 		},
@@ -128,7 +128,7 @@ function login() {
 			$('#login').toggleClass('hidden');
 		},
 		success: function(data) {
-			portal.loginUser();
+			console.log(data);
 		},
 		statusCode: {
 		      401: function(){

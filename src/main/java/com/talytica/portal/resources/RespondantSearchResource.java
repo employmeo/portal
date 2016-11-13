@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Respondant;
 import com.employmeo.data.service.RespondantService;
-import com.talytica.portal.objects.RespondantSearch;
+import com.talytica.portal.objects.RespondantSearchParams;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,14 +45,13 @@ public class RespondantSearchResource {
 			     @ApiResponse(code = 404, message = "No such Respondant found")
 			   })	
 	public Iterable<Respondant> searchRespondants(
-			@ApiParam(value = "Search Object") RespondantSearch search){
+			@ApiParam(value = "Search Object") RespondantSearchParams search){
 
 		log.debug("Fetching respondants");
 		Timestamp from = new Timestamp(Date.valueOf(search.fromDate).getTime());
 		Timestamp to = new Timestamp(Date.valueOf(search.toDate).getTime() + ONE_DAY);
 		
 		return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, search.locationId, search.positionId, from, to);
-		
 
 	}
 }
