@@ -1,5 +1,7 @@
 package com.talytica.portal.objects;
 
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Value;
 
 public class RespondantSearchParams {
@@ -16,10 +18,12 @@ public class RespondantSearchParams {
 
 	public Long positionId;
 
-	@Value("2015-01-01")
-	public String fromDate;
+	public Date fromdate;
 
-	@Value ("2020-12-31")
-	public String toDate;
+	public Date todate;
+	
+	public int pagenum;
+	
+	public int pagesize;
 	
 }

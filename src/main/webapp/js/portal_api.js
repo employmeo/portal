@@ -72,6 +72,30 @@ function getAssessments(thePortal) {
 	});
 }
 
+function getCorefactors(thePortal) {
+	$.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "corefactor",
+		success: function(data)
+		{
+			thePortal.corefactors = data;
+		}
+	});
+}
+
+function getProfiles(thePortal) {
+	$.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "account/"+thePortal.user.userAccountId+"/profiles",
+		success: function(data)
+		{
+			thePortal.profiles = data;
+		}
+	});
+}
+
 function submitDashUpdateRequest(thePortal) {
 	$.ajax({
 		type: "POST",
@@ -88,8 +112,26 @@ function submitDashUpdateRequest(thePortal) {
 			thePortal.updateDash(data);
 		}
 	});
-
 }
+
+function submitLastTenUpdateRequest(thePortal) {
+	$.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "respondantsearch",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(thePortal.respParams),
+		success: function(data)
+		{
+			thePortal.updateLastTen(data);
+		}
+	});
+}
+
 function forgotPass() {
 	$.ajax({
 		type: "POST",
@@ -266,45 +308,4 @@ function getPredictionsUuid(respondantUuid) {
 			presentPredictions(data);
 		}
 	});    
-}
-
-
-function lookupLastTenCandidates() {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getlastten",
-		data: $('#refinequery').serialize(),
-		success: function(respondants)
-		{
-			$('#recentcandidates').empty();
-			for (var i = 0; i < respondants.length; i++ ) {
-				var li = $('<li />', { 'class' : 'media event' });
-
-				var div = $('<div />', {
-					'class' : respondants[i].respondant_profile_class + ' profilebadge' 
-				}).append($('<i />', {'class' : "fa " + respondants[i].respondant_profile_icon }));
-
-				var ico = $('<a />', {
-					'class' : "pull-left",
-					'href' : '/respondant_score.jsp?&respondant_id=' + respondants[i].respondant_id
-				}).append(div);
-
-				var badge = $('<div />', { 'class' : 'media-body' });
-				$('<a />', {
-					'class' : 'title',
-					'href' : '/respondant_score.jsp?&respondant_id=' + respondants[i].respondant_id,
-					'text' : respondants[i].respondant_person_fname + ' ' + respondants[i].respondant_person_lname
-				}).appendTo(badge);
-				$('<p />', {
-					'text' : respondants[i].respondant_position_name
-				}).appendTo(badge);
-				$('<p />', {
-					'html' : '\<small\>' + respondants[i].respondant_location_name + '\<\/small\>'
-				}).appendTo(badge);
-
-				li.append(ico);
-				li.append(badge);
-				$('#recentcandidates').append(li);
-			}}});
 }

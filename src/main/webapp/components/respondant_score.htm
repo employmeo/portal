@@ -86,23 +86,5 @@
 	</div>
 </div>
 <script>
-	var urlParams;
-	(window.onpopstate = function() {
-		var match, pl = /\+/g, // Regex for replacing addition symbol with a space
-		search = /([^&=]+)=?([^&]*)/g, decode = function(s) {
-			return decodeURIComponent(s.replace(pl, " "));
-		}, query = window.location.search.substring(1);
-
-		urlParams = {};
-		while (match = search.exec(query))
-			urlParams[decode(match[1])] = decode(match[2]);
-	})();
-	var respondantId = urlParams.respondant_id;
-	var respondantUuid = urlParams.respondant_uuid;
-	if (respondantId != null) {
-		getPredictions(respondantId);
-	}
-	if (respondantUuid != null) {
-		getPredictionsUuid(respondantUuid);
-	}
+	portal.presentPredictions();
 </script>

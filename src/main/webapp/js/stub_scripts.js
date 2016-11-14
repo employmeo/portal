@@ -371,7 +371,7 @@ function postToService(data, url, callback) {
 
 
 function getPredictionMean(prediction) {
-	switch (prediction.model_id) {
+	switch (prediction.positionPredictionConfig.predictionModelId) {
 		case 1:
 			return .48;
 			break;
@@ -386,7 +386,7 @@ function getPredictionMean(prediction) {
 	}
 }
 function getPredictionStDev(prediction) {
-	switch (prediction.model_id) {
+	switch (prediction.positionPredictionConfig.predictionModelId) {
 	case 1:
 		return .052;
 		break;

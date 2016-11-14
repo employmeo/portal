@@ -1,6 +1,5 @@
 package com.talytica.portal.resources;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 
 import javax.ws.rs.Consumes;
@@ -38,7 +37,7 @@ public class RespondantSearchResource {
 	
 	@POST	
 	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Consumes(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Searches for respondants", response = Respondant.class, responseContainer = "List")
 	   @ApiResponses(value = {
 			     @ApiResponse(code = 200, message = "Respondant found"),
@@ -46,10 +45,19 @@ public class RespondantSearchResource {
 			   })	
 	public Iterable<Respondant> searchRespondants(
 			@ApiParam(value = "Search Object") RespondantSearchParams search){
+		
 
 		log.debug("Fetching respondants");
-		Timestamp from = new Timestamp(Date.valueOf(search.fromDate).getTime());
-		Timestamp to = new Timestamp(Date.valueOf(search.toDate).getTime() + ONE_DAY);
+		Timestamp from = new Timestamp(search.fromdate.getTime());
+		Timestamp to = new Timestamp(search.todate.getTime() + ONE_DAY);
+		Long locationId = null;
+		if (search.locationId >= 1) locationId = search.locationId;
+		Long positionId = null;
+		if (search.positionId >= 1) positionId = search.positionId;		
+		
+		if ((search.pagenum > 0) && (search.pagesize > 0)) {
+			return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, locationId, positionId, from, to, search.pagenum, search.pagesize);
+		}
 		
 		return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, search.locationId, search.positionId, from, to);
 
