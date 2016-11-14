@@ -5,8 +5,8 @@
 	<div class="col-md-6 col-sm-6 col-xs-12 pull-right">
 		<form class="form-inline pull-right" id='refinequery'>
 			<div class="form-group">
-				<select class="form-control" id="position_id" name="positionid"
-					onChange='changePositionTo(this.value);'>
+				<select class="form-control" id="positionId" name="positionId"
+					onChange='portal.changePositionTo(this.value);'>
 				</select>
 			</div>
 		</form>
@@ -116,7 +116,6 @@
 </div>
 
 <script type="text/javascript">
-	var cfBarChart = initCriticalFactorsChart();
-	updatePositionsSelect(true); // this script gets all the positions from the server, then triggers the first "refresh"
-
+	portal.initCriticalFactorsChart();
+	portal.updatePositionSelect(true); // this script gets all the positions from the server, then triggers the first "refresh"
 </script>

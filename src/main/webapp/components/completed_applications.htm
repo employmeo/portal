@@ -4,8 +4,8 @@
 	</div>
 	<div class="col-md-9 col-sm-9 col-xs-12 pull-right">
 		<form class="form-inline pull-right" id='refinequery'>
-			<input type="hidden" name="respondant_status_low" value="10">
-			<input type="hidden" name="respondant_status_high" value="15">
+			<input type="hidden" name="statusLow" value="10">
+			<input type="hidden" name="statusHigh" value="25">
 			<div class="form-group">
 				<div id="reportrange" class="form-control"
 					style="line-height: 1.42857143;">
@@ -16,14 +16,14 @@
 					type=hidden name="todate" id='todate'>
 			</div>
 			<div class="form-group">
-				<select class="form-control" id="location_id" name="location_id"
-					onChange='updateRespondantsTable()'>
+				<select class="form-control" id="locationId" name="locationId"
+					onChange='portal.searchRespondants()'>
 					<option value=-1>all locations</option>
 				</select>
 			</div>
 			<div class="form-group">
-				<select class="form-control" id="position_id" name="position_id"
-					onChange='updateRespondantsTable()'>
+				<select class="form-control" id="positionId" name="positionId"
+					onChange='portal.searchRespondants()'>
 					<option value=-1>all positions</option>
 				</select>
 			</div>
@@ -43,45 +43,65 @@
 				<table id="respondants" class="table display table-condensed nowrap" width="100%"></table>
 			</div>
 		</div>
-		<div id="applicantprofile" class="row content">
-			<div class="col-xs-12 col-sm-12 col-md-6">
-				<div class="x_panel">
-					<div class="x_content">
-						<div>
-							<table class='table table-hover'>
-								<thead>
-									<tr>
-										<td><h4>Core Factor</h4></td>
-										<td><h4>Score</h4></td>
-									</tr>
-								</thead>
-								<tbody id='assessmentresults'>
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</div>
+		<div id="applicantprofile" class="row content hidden">
+			<div class="col xs-12 col-sm-4 col-md-4">
+			<div class="x_panel">
+			<div class="x_title">
+				<div style='display:inline-block;margin-left:5px;'><h3 id='candidatename'></h3></div>
 			</div>
-			<div class="col-xs-12 col-sm-12 col-md-6">
-				<div class="x_panel">
-					<div class="x_title">
-						<h4>Similar Applicants</h4>
+			<div class="x_content">
+				<h4>Application Details</h4>
+					<div class='row'>
+						<table class="table table-hover" id='candidatedetails'>
+							<tbody>
+								<tr title="email address">
+									<td><span><i class="fa fa-envelope"></i></span></td>
+									<td><span id='candidateemail'></span></td>
+								</tr>
+								<tr title="home address">
+									<td><span><i class="fa fa-home"></i></span></td>
+									<td><span id='candidateaddress'></span></td>
+								</tr>
+								<tr title="position applied to">
+									<td><span><i class="fa fa-briefcase"></i></span></td>
+									<td><span id='candidateposition'></span></td>
+								</tr>
+								<tr title="location applied to">
+									<td><span><i class="fa fa-map-marker"></i></span></td>
+									<td><span id='candidatelocation'></span></td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
-					<div class="x_content">
-						<div class="col-sm-6 col-md-9">
-							<canvas id="positionTenure" style="width: 100%, height: auto;"></canvas>
-						</div>
+					</div>
+			</div>
+		</div>	
+		<div class="col xs-12 col-sm-8 col-md-8">
+			<div class="x_panel">
+				<div class="x_content">
+					<div>
+					    <h2 class='text-center' id='assessmentname'>Scores</h2>
+						<a href='#' onClick="portal.showComponent('assessment_results');" id='detailslink' class='pull-right'>More Detail</a>
+						<span id='assessmentdate'></span>
+					</div>
+					<div>
+						<table class='table table-hover'>
+							<tbody id='assessmentresults'>
+							</tbody>
+						</table>
+						<hr>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+	</div>
 </div>
 <script type="text/javascript">
 	$(document).ready(function() {
-		updatePositionsSelect(false);
-		updateLocationsSelect(false);
-		initializeDatePicker(updateRespondantsTable);
-		initRespondantsTable();
+		portal.updatePositionSelect(false);
+		portal.updateLocationSelect(false);
+		portal.initializeDatePicker( function() {portal.searchRespondants();});
+		portal.initRespondantsTable();
 	});
 </script>

@@ -31,6 +31,8 @@ body.coverpage {
 	width: 30px;
 	vertical-align:middle;
 	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
 }
 			   					
 .profilesquare i {
@@ -137,7 +139,8 @@ body.coverpage {
 }
 
 .selected {
-	outline: inset;
+	outline: 1px #eee groove;
+    background-color: #eee;
 }
 
 .squarecontent {

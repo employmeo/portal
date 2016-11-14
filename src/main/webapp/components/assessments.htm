@@ -6,7 +6,7 @@
 		<form class="form-inline pull-right" id='refinequery'>
 			<div class="form-group">
 				<select class="form-control" id="asid" name="asid"
-					onChange='changeSurveyTo(this.value);'>
+					onChange='portal.changeAssessmentTo(this.value);'>
 				</select>
 			</div>
 		</form>
@@ -56,7 +56,7 @@
 	<div class="col-sm-12 col-md-12 col-lg-12">
 	<div class="x_panel">
 	<div class="x_title">
-	<h4>Survey Questions</h4>
+	<h4>Assessment Questions</h4>
 	</div>
 	<div class="x_content">
 						<table id="questions"
@@ -80,6 +80,7 @@ $(document).ready(function() {
     	size: $('#completionguage').width(),
     	onStep: function(from, to, percent) { $(this.el).find('.percent').text(Math.round(percent));}
   	});
-	updateSurveysSelect(true);
+	portal.initSurveyQuestionsTable();
+	portal.updateAssessmentSelect(true);
 });
 </script>

@@ -1,9 +1,3 @@
-//Useful Global Variables
-var historyChart;
-var respondant;
-var qTable;
-var detailedScores;
-
 Chart.defaults.global.defaultFontColor = '#000';
 Chart.defaults.global.defaultFontSize = 16;
 Chart.defaults.global.defaultFontFamily = '"Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif';
@@ -18,21 +12,19 @@ clientPortal = function() {
 	this.positionList = {};
 	this.locationList = {};
 	this.corefactors = {};
-	this.profiles = {
-			"unscored" : { label : 'Unscored', profileClass : 'btn-default', profileIcon : 'fa-question-circle-o'},
-			"profile_a" : { label : 'Rising Star', profileClass : 'btn-success', profileIcon : 'fa-rocket'},
-			"profile_b" : { label : 'Long Timer', profileClass : 'btn-info', profileIcon : 'fa-user-plus'},
-			"profile_c" : { label : 'Churner', profileClass : 'btn-warning', profileIcon : 'fa-warning'},
-			"profile_d" : { label : 'Red Flag', profileClass : 'btn-danger', profileIcon : 'fa-hand-stop-o'},
-			};
+	this.profiles = {};
 
 	this.respondant = {};
+	this.position = {};
+	this.location = {};
+	this.respParams = {};
 	this.dashParams = {};
+	
 	this.historyChart = null;
 	this.dashApplicants = null;
 	this.dashHires = null;
+	this.cfBarChart = null;
 	this.qTable = null;
-	this.detailedScores = null;
 	this.init();
 }
 
@@ -132,13 +124,12 @@ clientPortal.prototype.updatePositionSelect = function (detail) {
 	if (detail) this.changePositionTo($('#positionId').val());
 }
 
-clientPortal.prototype.initializeDatePicker = function () {
-	var thePortal = this;
+clientPortal.prototype.initializeDatePicker = function (callback) {
 	var cb = function(start, end, label) {
 		$('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
 		$('#fromdate').val(start.format('YYYY-MM-DD'));
 		$('#todate').val(end.format('YYYY-MM-DD'));
-		thePortal.requestDashUpdate();
+		callback();
 	}
 
 	var optionSet1 = {
@@ -200,7 +191,11 @@ clientPortal.prototype.requestDashUpdate = function() {
 	this.respParams.pagenum = 1;
 	this.respParams.statusLow = 10; //Show only completed and above
 	this.respParams.statusHigh = 100; //Show all others
-	submitLastTenUpdateRequest(this);
+
+	var thePortal = this;
+	submitRespondantSearchRequest(thePortal, function(data) {
+		thePortal.updateLastTen(data);
+	});
 }
 
 clientPortal.prototype.updateDash = function(data) {
@@ -261,8 +256,7 @@ clientPortal.prototype.updateDash = function(data) {
 
 	this.refreshDashApplicants(appData);
 	this.refreshDashHires(hireData);
-	
-	updateHistory(getHistoryData());
+	this.updateHistory(getHistoryData());
 	
 }
 
@@ -281,7 +275,6 @@ clientPortal.prototype.refreshDashApplicants = function(data) {
 
 clientPortal.prototype.refreshDashHires = function(data) {
 	if (this.dashHires != null) this.dashHires.destroy();
-
 	// Build Hires Widget
 	this.dashHires = new Chart($("#dashHires").get(0).getContext("2d"), {
 		type: 'doughnut', 
@@ -297,7 +290,12 @@ clientPortal.prototype.addHireRateBar = function(data) {
 
 	var rate = Math.round(100*data.data[4] / data.data[3]);
 
-	var badge = getProfileBadge(data.profileClass, data.profileIcon, data.series);
+	var profile = {
+			profileClass : data.profileClass,
+			profileIcon : data.profileIcon,
+			labels : [data.series]	
+	};
+	var badge = this.getProfileBadge(profile);
 
 	var progress =	$('<div />',{
 				'class' : 'progress-bar',
@@ -408,42 +406,79 @@ clientPortal.prototype.getProfile = function(series) {
 	return null;
 }
 
-
-function resetInvitation() {
+clientPortal.prototype.resetInvitation = function() {
 	$('#invitationsent').addClass('hidden');
 	$('#invitationform').removeClass('hidden');	
 }
 
-
-
 //Section for search respondants / build respondants table
-function initRespondantsTable() {
-	var rTable = $('#respondants').DataTable( {
+clientPortal.prototype.initRespondantsTable = function() {
+	var thePortal = this;
+	this.rTable = $('#respondants').DataTable( {
 		responsive: true,
 		order: [[ 0, 'desc' ]],
 		columns: [
-		          { className: 'text-center', responsivePriority: 1, title: 'Score', 
-		        	  data: 'respondant_profile_icon', 
+		          { responsivePriority: 1, className: 'text-center', title: 'Score', data: 'profileRecommendation', 
 		        	  render : function ( data, type, row ) {
-		        		  return '<div class="profilemini ' + row.respondant_profile_class +
-		        		  '"><i class="fa '+ data + '"></i></div>';
+		        		  return thePortal.getProfileBadge(thePortal.getProfile(data)).wrap("<div />").parent().html();
 		        	  }
 		          },
-		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'respondant_person_fname'},
-		          { responsivePriority: 3, className: 'text-left', title: 'Last Name', data: 'respondant_person_lname'},
-		          { responsivePriority: 6, className: 'text-left', title: 'Email', data: 'respondant_person_email'},
-		          { responsivePriority: 7, className: 'text-left', title: 'Position', data: 'respondant_position_name'},
-		          { responsivePriority: 8, className: 'text-left', title: 'Location', data: 'respondant_location_name'}
-		          ]
+		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person.firstName'},
+		          { responsivePriority: 3, className: 'text-left', title: 'Last Name', data: 'person.lastName'},
+		          { responsivePriority: 6, className: 'text-left', title: 'Email', data: 'person.email'},
+		          { responsivePriority: 7, className: 'text-left', title: 'Position', data: 'positionId', 
+		        	  render : function ( data, type, row ) {return thePortal.getPositionBy(data).positionName;}
+		          },
+		          { responsivePriority: 8, className: 'text-left', title: 'Location', data: 'locationId', 
+		        	  render : function ( data, type, row ) {return thePortal.getLocationBy(data).locationName;}
+		          }
+		         ]
 	});
 	$.fn.dataTable.ext.errMode = 'none';
-	updateRespondantsTable();
+	if (this.searchResults == null) {
+		this.searchRespondants();
+	} else {
+		this.updateRespondantsTable();
+	}
 }
 
+clientPortal.prototype.searchRespondants = function() {
+	var thePortal = this;
+	var fields = $('#refinequery').serializeArray();
+	this.respParams = {};
+	this.respParams.accountId = this.user.userAccountId;
+	this.respParams.pagesize = 500;
+	this.respParams.pagenum = 1;
+	for (var i=0;i<fields.length;i++) {
+		this.respParams[fields[i].name] = fields[i].value;
+	}
+	
+	submitRespondantSearchRequest(thePortal, function(data) {
+		thePortal.searchResults = data;
+		thePortal.updateRespondantsTable();
+	});
+}
+
+clientPortal.prototype.updateRespondantsTable = function() {	
+	var thePortal = this;
+	if (this.searchResults.content.length > 0) {
+		$('#respondants').dataTable().fnAddData(this.searchResults.content);
+		this.rTable.$('tr').click(function (){
+			thePortal.rTable.$('tr.selected').removeClass('selected');
+			$(this).addClass('selected');
+			thePortal.respondant = $('#respondants').dataTable().fnGetData(this);
+			thePortal.renderAssessmentScore();
+		});
+		this.rTable.on('click', 'i', function (){
+			thePortal.respondant = thePortal.rTable.row($(this).parents('tr')).data();
+			thePortal.showComponent('respondant_score');
+		});
+	}
+}
 
 //Section for looking at / manipulating assessments
 clientPortal.prototype.changeAssessmentTo = function(asid) {
-	this.assessment = getAssessmentBy(asid);
+	this.assessment = this.getAssessmentBy(asid);
 	this.updateSurveyFields();
 	this.updateSurveyQuestions();		
 }
@@ -453,7 +488,7 @@ clientPortal.prototype.updateSurveyFields = function() {
 	$('#assessmenttime').text(msToTime(this.assessment.survey.completionTime));
 	$('#assessmentdesc').html(this.assessment.survey.description);
 	$('#completionguage').data('easyPieChart').update(100*this.assessment.survey.completionPercent);  
-	$('#questiontotal').text(assessment.survey.questions.length);
+	$('#questiontotal').text(this.assessment.survey.surveyQuestions.length);
 	function msToTime(s) {
 		  var ms = s % 1000;
 		  s = (s - ms) / 1000;
@@ -465,7 +500,7 @@ clientPortal.prototype.updateSurveyFields = function() {
 }
 
 clientPortal.prototype.initSurveyQuestionsTable = function() {
-	qTable = $('#questions').DataTable( {
+	this.qTable = $('#questions').DataTable( {
 		responsive: true,
 		order: [[0, 'asc'],[ 1, 'asc' ]],
 		columns: [{ title: 'Sec', data: 'page'},
@@ -478,19 +513,21 @@ clientPortal.prototype.initSurveyQuestionsTable = function() {
 }	
 
 clientPortal.prototype.updateSurveyQuestions = function() {
-	if (qTable == null) initSurveyQuestionsTable();
-	qTable.clear();
-	$('#questions').dataTable().fnAddData(this.assessment.survey.questions);
-	qTable.$('tr').click(function (){
-		qTable.$('tr.selected').removeClass('selected');
+	if (this.qTable == null) this.initSurveyQuestionsTable();
+	this.qTable.clear();
+	$('#questions').dataTable().fnAddData(this.assessment.survey.surveyQuestions);
+	var thePortal = this;
+	this.qTable.$('tr').click(function (){
+		thePortal.qTable.$('tr.selected').removeClass('selected');
 		$(this).addClass('selected');
 	});
 	return
 }
 
-function updateHistory(historyData) {
+clientPortal.prototype.updateHistory = function(historyData) {
+	if (this.historyChart != null) this.historyChart.destroy();
 	var dashHistory = $("#dashHistory").get(0).getContext("2d");
-	historyChart = new Chart(dashHistory, {
+	this.historyChart = new Chart(dashHistory, {
 		type: 'bar', data: historyData,
 		options: { 
 			bar: {stacked: true},
@@ -506,12 +543,6 @@ function updateHistory(historyData) {
 			legend: { display: false }
 		}
 	});
-	return;
-}
-
-function showApplicantScoring(applicantData) {
-	renderAssessmentScore(applicantData.scores);
-	refreshPositionTenure(getPositionTenureData()); // use stub code
 }
 
 clientPortal.prototype.presentPredictions = function() {
@@ -519,13 +550,6 @@ clientPortal.prototype.presentPredictions = function() {
 	$('#candidateicon').html('<i class="fa ' + profile.profileIcon +'"></i>');
 	$('#candidateicon').addClass(profile.profileClass);
 	$('#compositescore').text(Math.round(this.respondant.compositeScore));
-	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
-	$('#candidateemail').text(this.respondant.person.email);
-	$('#candidateaddress').text(this.respondant.person.address);
-	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
-	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
-	$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
-	$('#assessmentdate').text(this.respondant.respondantCreatedDate);
 	
 	var fulltext = this.respondant.person.firstName +
 	               "'s application is in the top " +
@@ -721,23 +745,21 @@ clientPortal.prototype.produceHistogram = function(prediction) {
 
 }
 
-function changePositionTo(pos_id) {
-	$(positionList).each(function() {
-		if (pos_id == this.position_id) {
-			this.data = getStubDataForRoleBenchmark(); /// replace with REST call or pull from other var
+clientPortal.prototype.changePositionTo = function(id) {	
+	this.position = this.getPositionBy(id);
+	this.position.data = getStubDataForRoleBenchmark(); /// replace with REST call or pull from other var
 
-			updatePositionDetails(this);
-			updatePositionModelDetails(this.data.role_benchmark);
-			updateGradesTable(this.data.role_benchmark.role_grade);
-			updateCriticalFactorsChart(this);
+	$('#positionname').text(this.position.positionName);
+	$('#positiondesc').text(this.position.description);
+	$('#div_applicant_count').html(this.position.data.role_benchmark.applicant_count);
+	$('#div_hire_count').html(this.position.data.role_benchmark.hire_count);
+	$('#div_hire_rate').html(Math.round((
+			this.position.data.role_benchmark.hire_count/
+			this.position.data.role_benchmark.applicant_count)*100)+'%');		
 
-		}		
-	});
-}
-
-function updatePositionDetails(position) {
-	$('#positionname').text(position.position_name);
-	$('#positiondesc').text(position.position_description);
+	//this.updatePositionModelDetails(this.position.data.role_benchmark);
+	this.updateGradesTable(this.position.data.role_benchmark.role_grade);
+	this.updateCriticalFactorsChart();
 }
 
 //Payroll tools section
@@ -779,16 +801,18 @@ function copyToClipboard(element) {
 }
 
 function presentRespondantScores(dataScores) {
-	$('#candidatename').text(respondant.respondant_person_fname + ' ' + respondant.respondant_person_lname);
-	$('#candidateemail').text(respondant.respondant_person_email);
-	$('#candidateaddress').text(respondant.respondant_person_address);
-	$('#candidateposition').text(respondant.respondant_position_name);
-	$('#candidatelocation').text(respondant.respondant_location_name);
-	$('#assessmentname').text(respondant.respondant_survey_name);
-	$('#assessmentdate').text(respondant.respondant_created_date);
+	
+	$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
+	$('#assessmentdate').text(new Date(this.respondant.createdDate).toDateString());
+	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
+	$('#candidateemail').text(this.respondant.person.email);
+	$('#candidateaddress').text(this.respondant.person.address);
+	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
+	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
+	$('#detailslink').prop("href", '/assessment_results.jsp?&respondant_id=' + this.respondant.id);
 
-	detailedScores = dataScores.detailed_scores;
-	renderDetailedAssessmentScore();
+	this.detailedScores = dataScores.detailed_scores;
+	this.renderDetailedAssessmentScore();
 }
 
 function showAllDetails() {
@@ -889,16 +913,27 @@ function renderDetailedAssessmentScore() {
 			}));
 		$('#assessmentresults').append(messageRow);
 		
-
 	}
 	
 }
 
-function prepPersonalMessage (message) {
+clientPortal.prototype.inviteApplicant = function () {	
+	this.invitation = {};
+	var fields = $('#inviteapplicant').serializeArray();
+	this.invitation = {};
+	this.invitation.accountId = this.user.userAccountId;
+	for (var i=0;i<fields.length;i++) {
+		this.invitation[fields[i].name] = fields[i].value;
+	}
+	sendInvitation(this);
+}
+
+
+clientPortal.prototype.prepPersonalMessage = function(message) {
 	var pm = message;
 	if (pm != null) {
-		pm = pm.replace(new RegExp("\\[FNAME\\]","g"),respondant.respondant_person_fname);
-		pm = pm.replace(new RegExp("\\[LNAME\\]","g"),respondant.respondant_person_lname);
+		pm = pm.replace(new RegExp("\\[FNAME\\]","g"),this.respondant.person.firstName);
+		pm = pm.replace(new RegExp("\\[LNAME\\]","g"),this.respondant.person.lastName);
 	
 		pm = pm.replace(new RegExp("\\[CHESHE\\]","g"),"This candidate");
 		pm = pm.replace(new RegExp("\\[LHESHE\\]","g"),"this candidate");
@@ -913,8 +948,17 @@ function prepPersonalMessage (message) {
 }
 
 clientPortal.prototype.renderAssessmentScore = function() {
+	$('#applicantprofile').removeClass('hidden'); 
 	var scores = this.respondant.respondantScores;
+	$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
+	$('#assessmentdate').text(new Date(this.respondant.createdDate).toDateString());
+	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
+	$('#candidateemail').text(this.respondant.person.email);
+	$('#candidateaddress').text(this.respondant.person.address);
+	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
+	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
 	$('#detailslink').prop("href", '/assessment_results.jsp?&respondant_id=' + this.respondant.id);
+	
 	$('#assessmentresults').empty();
 	for (var key in scores) {
 		var value = scores[key].value;
@@ -980,14 +1024,7 @@ clientPortal.prototype.renderAssessmentScore = function() {
 
 }
 
-
-function updatePositionModelDetails(role_benchmark) {
-	document.querySelector('#div_applicant_count').innerHTML = role_benchmark.applicant_count;
-	document.querySelector('#div_hire_count').innerHTML = role_benchmark.hire_count;
-	document.querySelector('#div_hire_rate').innerHTML = Math.round((role_benchmark.hire_count/role_benchmark.applicant_count)*100)+'%';		
-}
-
-function updateGradesTable(arr1) {
+clientPortal.prototype.updateGradesTable = function(grades) {
 	$('#gradetable').empty();
 	$('#gradefooter').empty();
 	
@@ -996,49 +1033,26 @@ function updateGradesTable(arr1) {
 	var avg0 = 0;
 	var avg1 = 0;
 			
-	for (var i = 0, len = Object.keys(arr1).length; i < len; i++) {
+	for (var i = 0, len = Object.keys(grades).length; i < len; i++) {
+
+		var profile = this.getProfile(grades[i].grade);
 		//summary variables
-		avg0 += parseFloat(arr1[i].v0);
-		avg1 += parseFloat(arr1[i].v1);
+		avg0 += parseFloat(grades[i].v0);
+		avg1 += parseFloat(grades[i].v1);
 		
 		var tr0 = document.createElement("tr");
 		var td0 = document.createElement("td");
-		var divClass;
-		var iconClass;
-		var label;
-		
-		switch (arr1[i].grade){
-			case "A":
-				divClass='btn-success';
-				iconClass='fa-rocket';
-				label = 'Rising Star';
-				break;
-			case "B":
-				divClass='btn-info';
-				iconClass='fa-user-plus';
-				label = 'Long Timer';
-				break;
-			case "C":
-				divClass='btn-warning';
-				iconClass='fa-warning';
-				label = 'Churner';
-				break;
-			case "D":
-				divClass='btn-danger';
-				iconClass='fa-hand-stop-o';
-				label = 'Red Flag';
-				break;
-		}	
-		$(td0).append(getProfileBadge(divClass, iconClass, label));
+
+		$(td0).append(this.getProfileBadge(profile));
 		tr0.appendChild(td0);		
 		
 		var td1 = document.createElement("td");
 		td1.className="text-center";
-		td1.innerHTML = arr1[i].v0;
+		td1.innerHTML = grades[i].v0;
 		
 		var td2 = document.createElement("td");
 		td2.className="text-center";
-		td2.innerHTML = (arr1[i].v1*100).toPrecision(2)+'%';
+		td2.innerHTML = (grades[i].v1*100).toPrecision(2)+'%';
 		
 		tr0.appendChild(td1);
 		tr0.appendChild(td2);
@@ -1053,10 +1067,10 @@ function updateGradesTable(arr1) {
 	td0.innerHTML = "Average";
 	var td1 = document.createElement("th");
 	td1.className="text-center";
-	td1.innerHTML = (avg0/Object.keys(arr1).length).toFixed(1);
+	td1.innerHTML = (avg0/Object.keys(grades).length).toFixed(1);
 	var td2 = document.createElement("th");
 	td2.className="text-center";
-	td2.innerHTML = (avg1*100/Object.keys(arr1).length).toFixed(1)+'%';
+	td2.innerHTML = (avg1*100/Object.keys(grades).length).toFixed(1)+'%';
 	
 	tr0.appendChild(td0);
 	tr0.appendChild(td1);
@@ -1066,18 +1080,20 @@ function updateGradesTable(arr1) {
 	el.appendChild(tr0);
 }
 
-function getProfileBadge(divClass,iconClass,label) {
+clientPortal.prototype.getProfileBadge = function(profile) {
 	var div = $('<div />', {
 		'class':'profilesquare',
 		'data-toggle' : 'tooltip',
-		'title' : label
-			}).addClass(divClass);
-	var icon = $('<i />', {'class':'fa'}).addClass(iconClass);
+		'title' : profile.labels[0]
+			}).addClass(profile.profileClass);
+	var icon = $('<i />', {'class':'fa'}).addClass(profile.profileIcon);
 	$(div).append(icon);
 	return div;
 }	
 
-function initCriticalFactorsChart() {
+clientPortal.prototype.initCriticalFactorsChart = function() {
+	if (this.cfBarChart != null) this.cfBarChart.destroy();
+	
     var ctx = document.querySelector("#criticalfactorschart").getContext("2d");
 	var barChartConfig = {
 		    type: "bar",
@@ -1143,12 +1159,14 @@ function initCriticalFactorsChart() {
   	    	  	    ctx.textBaseline = 'bottom';
   	    	  	    var fontVar = 'normal 16px "Helvetica Neue", Roboto, Arial'
     	    	  	if (this.chart.width < 600) fontVar = 'bold 14px "Helvetica Neue", Roboto, Arial';
-
   	    	  	    this.data.datasets.forEach(function (dataset) {
-  	    	  	    	
   	    	  	        for (var i = 0; i < dataset.data.length; i++) {
-  	    	  	        	if (! dataset._meta[0].hidden) {
-  	    	  	                var model = dataset._meta[0].data[i]._model;
+  	    	  	        	if (! dataset._meta.hidden) {
+  	    	  	        		var meta;
+  	    	  	        		for (key in dataset._meta) {
+  	    	  	        			meta = dataset._meta[key];
+  	    	  	        		}
+  	    	  	                var model = meta.data[i]._model;
   	    	  	                ctx.font = fontVar;
   	    	  	                ctx.fillText(dataset.data[i].toFixed(1), model.x, model.y - 0);
   	    	  	        	}
@@ -1157,22 +1175,22 @@ function initCriticalFactorsChart() {
   	    	  	}}    
   	  	    }
   	  	};
-	return new Chart(ctx, barChartConfig);
-
+	this.cfBarChart = new Chart(ctx, barChartConfig);
 }
 	
-function updateCriticalFactorsChart(position) {
+clientPortal.prototype.updateCriticalFactorsChart = function() {
+	var factors = stubCorefactors(this.corefactors);
 
-	position.position_corefactors.sort(function(a,b) {
-		return a.corefactor_display_group.localeCompare(b.corefactor_display_group);
+	factors.sort(function(a,b) {
+		return a.displayGroup.localeCompare(b.displayGroup);
 	});
 	
 	$('#corefactorlist').empty();
-	$(position.position_corefactors).each(function () {
+	$(factors).each(function () {
 		var row = $('<tr/>');
-		row.append($('<td />',{ text : this.corefactor_name }));
-		row.append($('<td />',{ text : this.corefactor_description }));
-		row.append($('<td />',{ text : this.corefactor_display_group }));		
+		row.append($('<td />',{ text : this.name }));
+		row.append($('<td />',{ text : this.description }));
+		row.append($('<td />',{ text : this.displayGroup }));		
 		$('#corefactorlist').append(row);
 	});
 	
@@ -1180,22 +1198,18 @@ function updateCriticalFactorsChart(position) {
 	var chartData0 = []; 
 	var chartData1 = [];
 	
-	for (var i = 0; i < position.position_corefactors.length;i++) {
-		chartLabels.push(position.position_corefactors[i].corefactor_name);
-		chartData0.push(position.position_corefactors[i].pm_score_a-2*Math.random());
-		chartData1.push(position.position_corefactors[i].pm_score_a+1*Math.random());
+	for (var i = 0; i < factors.length;i++) {
+		// randomize the pm score - 
+		chartLabels.push(factors[i].name);
+		chartData0.push(factors[i].score-2*Math.random());
+		chartData1.push(factors[i].score+1*Math.random());
 	}
 	
-	cfBarChart.config.data.labels = chartLabels;	
-	cfBarChart.config.data.datasets[0].data = chartData0;
-	cfBarChart.config.data.datasets[1].data = chartData1;
-	
-	cfBarChart.update();
+	this.cfBarChart.config.data.labels = chartLabels;	
+	this.cfBarChart.config.data.datasets[0].data = chartData0;
+	this.cfBarChart.config.data.datasets[1].data = chartData1;
+	this.cfBarChart.update();
 }
-
-
-
-
 
 function cdf(x, mean, variance) {
 	  return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2) * variance)));

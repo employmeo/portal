@@ -47,7 +47,7 @@ public class RespondantSearchResource {
 			@ApiParam(value = "Search Object") RespondantSearchParams search){
 		
 
-		log.debug("Fetching respondants");
+		log.debug("Fetching respondants for search params {}", search);
 		Timestamp from = new Timestamp(search.fromdate.getTime());
 		Timestamp to = new Timestamp(search.todate.getTime() + ONE_DAY);
 		Long locationId = null;
