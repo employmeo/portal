@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.User;
 import com.employmeo.data.service.UserService;
+import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.ForgotPasswordRequest;
-import com.talytica.portal.util.EmailUtility;
 
 @Component
 @PermitAll
@@ -35,6 +35,9 @@ public class ForgotPasswordResource {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	EmailService emailService;
 	
 	private static final Logger log = LoggerFactory.getLogger(ForgotPasswordResource.class);
 	
@@ -52,7 +55,7 @@ public class ForgotPasswordResource {
 		User user = userService.getUserByEmail(fpr.email);
 		
 		if (user != null) {
-			EmailUtility.sendForgotPass(user);
+			emailService.sendForgotPass(user);
 			return Response.status(Status.OK).build();
 		}
 		

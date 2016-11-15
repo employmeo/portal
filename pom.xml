@@ -29,6 +29,7 @@
 		<dbdeploy.dbms>pgsql</dbdeploy.dbms>
 		<commons-math-version>3.6.1</commons-math-version>	
 		<persistence-unit.version>0.0.8-SNAPSHOT</persistence-unit.version>
+		<sendgrid.version>3.1.0</sendgrid.version>
 		<swagger.version>1.5.9</swagger.version>
 	</properties>
 
@@ -91,8 +92,14 @@
 			<version>2.6.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
+		    <groupId>org.json</groupId>
+		    <artifactId>json</artifactId>
+		</dependency>
+		<!-- sendgrid email service -->
+		<dependency>
+		    <groupId>com.sendgrid</groupId>
+		    <artifactId>sendgrid-java</artifactId>
+		    <version>${sendgrid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.connectors</groupId>

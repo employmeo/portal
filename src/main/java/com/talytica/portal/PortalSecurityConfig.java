@@ -46,6 +46,7 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 	    protected void configure(HttpSecurity http) throws Exception {
 			http
 	    		.authorizeRequests()
+	    		  .antMatchers("/portal/1/forgotpassword","/portal/1/signup").permitAll()
 	    		  .antMatchers("/portal/**").authenticated()
 	    		  .anyRequest().permitAll()
 	    		.and()
@@ -67,7 +68,7 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 	    		  .logout()
 	    		    .logoutUrl("/logout")
 	    		    .invalidateHttpSession(true)
-	    		    .logoutSuccessUrl("/")
+	    		    .logoutSuccessUrl("/portal.htm")
 	    		    .deleteCookies("JSESSIONID")
 	    		    .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
 	    		.and()
@@ -87,7 +88,7 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 			    	  UserPrincipal user = (UserPrincipal) authentication.getPrincipal();			    	  
 			    	  ObjectMapper mapper = new ObjectMapper();
 			    	  response.getWriter().append(mapper.writeValueAsString(user.getUser()));
-			          response.setStatus(200);
+			          response.setStatus(202);
 			    }
 			};
 		}
@@ -98,7 +99,7 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 				public void onAuthenticationFailure(HttpServletRequest rqst, HttpServletResponse response,
 						AuthenticationException ae) throws IOException, ServletException {		    	  
 			    	  response.getWriter().append(ae.getMessage());
-			          response.setStatus(200);		
+			          response.setStatus(401);		
 				}
 		    };
 	}		

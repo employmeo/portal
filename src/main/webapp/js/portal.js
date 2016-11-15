@@ -4,7 +4,6 @@ Chart.defaults.global.defaultFontFamily = '"Helvetica Neue", Roboto, Arial, "Dro
 
 /* start: create the app */
 clientPortal = function() {
-	this.cookies = {};
 	this.urlParams = {};
 	this.user = {};
 
@@ -29,43 +28,39 @@ clientPortal = function() {
 }
 
 clientPortal.prototype.init = function() {
-	// Load up Cookies & URL Parameters
-	var ca = document.cookie.split(';');
-	for(var i=0;i < ca.length;i++) {
-	    var cur = ca[i].split('=');
-	    this.cookies[cur[0].trim()] = cur[1];
-	}
+	// Load up URL Parameters
+
 	var match, pl = /\+/g, // Regex for replacing addition symbol with a space
 		search = /([^&=]+)=?([^&]*)/g, decode = function(s) {
 			return decodeURIComponent(s.replace(pl, " "));
 		}, query = window.location.search.substring(1);
 	while (match = search.exec(query)) this.urlParams[decode(match[1])] = decode(match[2]);
 
-	// Try to Login:
-	if (this.cookies.hasOwnProperty('hash-word')) {
-		$('#login').toggleClass('hidden');
-		console.log('logmein');
-		this.loginUser();
-	} else {
-		$('#wait').toggleClass('hidden');			
-		$('#login').load('/components/login.htm');
-      	var imagenum = Math.floor(Math.random()*12+1);
-      	$('#mainbody').addClass('coverpage');
-    	$('#mainbody').css('background-image',"url('/images/background-" + imagenum + ".jpg')");
-	}
+	// Check for autologin, and trigger remaining pieces
+	getUser(this);
+}
+
+clientPortal.prototype.showLoginForm = function () {
+	$('#wait').toggleClass('hidden');			
+	$('#login').load('/components/login.htm');
+  	var imagenum = Math.floor(Math.random()*12+1);
+  	$('#mainbody').addClass('coverpage');
+	$('#mainbody').css('background-image',"url('/images/background-" + imagenum + ".jpg')");
 }
 
 clientPortal.prototype.login = function () {
 	$("#wait").removeClass('hidden');			
 	$('#loginresponse').text('');
 	$('#login').toggleClass('hidden');
-	var thePortal = this;
 	postLogin($('#loginform').serialize(), this);
 }
 
 clientPortal.prototype.loginSuccess = function(data) {
 	this.user = data;
 	var thePortal = this;
+	
+	if (this.urlParams.respondantUuid != null) getRespondantByUuid(thePortal, this.urlParams.respondantUuid);
+
 	$('#portal').toggleClass('hidden');
   	$('#mainbody').removeClass('coverpage');
 	$('#mainbody').css('background-image','');
@@ -88,6 +83,11 @@ clientPortal.prototype.loginFail = function(data) {
 	$("#wait").removeClass('hidden');
 	$('#loginresponse').text('');
 	$('#login').toggleClass('hidden');
+}
+
+clientPortal.prototype.logout = function () {
+	$("#wait").removeClass('hidden');			
+	postLogout();
 }
 
 clientPortal.prototype.showComponent = function(component) {

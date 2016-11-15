@@ -17,11 +17,11 @@ import javax.ws.rs.core.SecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import org.springframework.stereotype.Component;
 import com.employmeo.data.model.User;
 import com.employmeo.data.service.UserService;
-import com.talytica.portal.objects.UserPrincipal;
+
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,16 +47,17 @@ public class UserResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the current logged in User", response = User.class)
 	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Users found"),
+	     @ApiResponse(code = 202, message = "User found"),
 	     @ApiResponse(code = 404, message = "Users not found")
 	   })	
 	public Response getCurrentUser() {
 		
-		User user = ((UserPrincipal) sc.getUserPrincipal()).getUser();
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+
 		log.debug("Returning user as {}", user);
 		
 		if(null != user) {
-			return Response.status(Status.OK).entity(user).build();
+			return Response.status(Status.ACCEPTED).entity(user).build();
 		} else {
 			return Response.status(Status.NOT_FOUND).build();
 		}

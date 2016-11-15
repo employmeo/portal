@@ -2,6 +2,26 @@
 var servicePath = '/portal/1/';
 
 //basic user / account functions (login/logout/etc)
+function getUser(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "user",
+		success: function(data, textStatus, jqXHR)
+		{
+			if (jqXHR.status != 202) {
+				thePortal.showLoginForm();
+			} else {
+				thePortal.loginSuccess(data);				
+			}
+		},
+		error : function(data, textStatus, jqXHR)
+		{
+				thePortal.showLoginForm();
+		}
+	});
+}
+
 function postLogin(postdata, thePortal) {
 	$.ajax({
 		type: "POST",
@@ -29,7 +49,7 @@ function postLogout() {
 			withCredentials: true
 		},
 		success: function(data) {
-			thePortal.logoutComplete(data);
+			window.location.reload();
 		}
 	});	
 }
@@ -96,6 +116,18 @@ function getProfiles(thePortal) {
 	});
 }
 
+function getRespondantByUuid(thePortal, uuid) {
+	$.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "respondant/"+uuid,
+		success: function(data)
+		{
+			thePortal.respondant = data;
+		}
+	});
+}
+
 function submitDashUpdateRequest(thePortal) {
 	$.ajax({
 		type: "POST",
@@ -129,7 +161,6 @@ function submitRespondantSearchRequest(thePortal, callback) {
 	});
 }
 
-//Section for inviting new applicants
 function sendInvitation(thePortal) {
 	$.ajax({
 		type: "POST",
@@ -160,19 +191,30 @@ function sendInvitation(thePortal) {
 }
 
 function forgotPass() {
+	var fpr = {};
+	var fields = $('#forgotpassform').serializeArray();
+	for (var i=0;i<fields.length;i++) {
+		fpr[fields[i].name] = fields[i].value;
+	}
 	$.ajax({
 		type: "POST",
 		async: true,
 		data : $('#forgotpassform').serialize(),
 		url: servicePath + "/forgotpassword",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data : JSON.stringify(fpr),
 		success: function(data) {
 			// disable forms
 			$('#forgotpassform :submit').text('Request Sent');
 			$('#forgotpassform :input').prop('disabled', true);
 			$('#emailtoyou').text('An password reset request has been submitted. Please check your email for instructions to reset your password.');	
 		},
-		error: function(data) {
-			console.log(data);			
+		error: function(data, textStatus, jqXHR) {
+			console.log(fpr, data, jqXHR);			
 		}
 	});	
 }
@@ -205,72 +247,4 @@ function resetPassword() {
 			console.log(data);			
 		}
 	});	
-}
-
-//Respondant scoring section
-function getScore(respondantId) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_id" : respondantId   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentRespondantScores(data);
-		}
-	});    
-}
-
-//Respondant scoring section
-function getScoreUuid(respondantUuid) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_uuid" : respondantUuid   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentRespondantScores(data);
-		}
-	});    
-}
-
-//Respondant scoring section
-function getPredictions(respondantId) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_id" : respondantId   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentPredictions(data);
-		}
-	});    
-}
-
-//Respondant scoring section
-function getPredictionsUuid(respondantUuid) {
-	$.ajax({
-		type: "POST",
-		async: true,
-		url: "/admin/getscore",
-		data: {
-			"respondant_uuid" : respondantUuid   	
-		},
-		success: function(data)
-		{
-			respondant = data.respondant;
-			presentPredictions(data);
-		}
-	});    
 }
