@@ -356,7 +356,6 @@ clientPortal.prototype.updateLastTen = function(data) {
 		li.append(badge);
 		
 		li.bind('click', function() {
-			console.log(this);
 			thePortal.respondant = $(this).data('respondant');
 			thePortal.showComponent('respondant_score');
 		});
@@ -467,7 +466,7 @@ clientPortal.prototype.updateRespondantsTable = function() {
 			thePortal.rTable.$('tr.selected').removeClass('selected');
 			$(this).addClass('selected');
 			thePortal.respondant = $('#respondants').dataTable().fnGetData(this);
-			thePortal.renderAssessmentScore();
+			thePortal.renderAssessmentScore(false);
 		});
 		this.rTable.on('click', 'i', function (){
 			thePortal.respondant = thePortal.rTable.row($(this).parents('tr')).data();
@@ -558,7 +557,7 @@ clientPortal.prototype.presentPredictions = function() {
 	               this.getLocationBy(this.respondant.locationId).locationName + ".";
 	$('#fulltextdesc').text(fulltext);
 	
-	this.renderAssessmentScore();
+	this.renderAssessmentScore(false);
 	
 	var header = $('<h4 />',{'text': 'Probability that ' + this.respondant.person.firstName + ' ...'});
 	$('#predictions').empty();
@@ -618,7 +617,7 @@ clientPortal.prototype.addPrediction = function(prediction) {
 	preddiv.append($('<hr />'));
     preddiv.append($('<h5 />',{'text' : 'Compared to other applicants...'} ));
 	preddiv.append(histCanvas);
-	var comparison = this.respondant.person.firstName + "'s predictions is better than " +
+	var comparison = this.respondant.person.firstName + "'s prediction is better than " +
     	(prediction.scorePercentile * 100).toFixed(0) +
 	    "% of other applicants."
     preddiv.append($('<h5 />',{'text' : comparison} ));
@@ -761,61 +760,7 @@ clientPortal.prototype.changePositionTo = function(id) {
 	this.updateGradesTable(this.position.data.role_benchmark.role_grade);
 	this.updateCriticalFactorsChart();
 }
-
-//Payroll tools section
-function uploadPayroll(e) {
-	$('#csvFile').parse({
-		config : {
-			header: true,
-			dynamicTyping: true,
-			complete: function(results, file) {
-				$('#payroll').DataTable( {
-					responsive: true,
-					data: results.data,
-					columns : [
-					           { title: 'Employee ID', data: 'employee'},
-					           { title: 'Raise Rate', data: 'RaiseRate'},
-					           { title: 'Total Hours', data: 'Total Hours' },
-					           { title: 'Tenure', data: 'Tenure' },
-					           { title: 'Monthly Hours', data: 'Monthly Hours' }
-					           ]
-
-				});
-
-				console.log("Parsing complete:", results, file);
-			}
-		},
-		before : function(file, inputElem){},
-		error: function(err, file, inputElem, reason){},
-		complete : {}
-
-	})
-}
-
-function copyToClipboard(element) {
-    var $temp = $("<input>");
-    $("body").append($temp);
-    $temp.val($(element).text()).select();
-    document.execCommand("copy");
-    $temp.remove();
-}
-
-function presentRespondantScores(dataScores) {
-	
-	$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
-	$('#assessmentdate').text(new Date(this.respondant.createdDate).toDateString());
-	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
-	$('#candidateemail').text(this.respondant.person.email);
-	$('#candidateaddress').text(this.respondant.person.address);
-	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
-	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
-	$('#detailslink').prop("href", '/assessment_results.jsp?&respondant_id=' + this.respondant.id);
-
-	this.detailedScores = dataScores.detailed_scores;
-	this.renderDetailedAssessmentScore();
-}
-
-function showAllDetails() {
+clientPortal.prototype.showAllDetails = function() {
 	for (i in detailedScores) {
 		var score = detailedScores[i];
 		showDetail(score.corefactor_id);
@@ -824,7 +769,7 @@ function showAllDetails() {
 	$('#showall').addClass('hidden');
 }
 
-function hideAllDetails() {
+clientPortal.prototype.hideAllDetails = function() {
 	for (i in detailedScores) {
 		var score = detailedScores[i];
 		hideDetail(score.corefactor_id);
@@ -833,88 +778,19 @@ function hideAllDetails() {
 	$('#hideall').addClass('hidden');
 }
 
-function showDetail(cfid) {
+clientPortal.prototype.showDetail = function(cfid) {
 	$('#cfmessage_' + cfid).removeClass('hidden');	
-	$('#expander_' + cfid).attr('onclick', 'hideDetail('+cfid+')');
+	$('#expander_' + cfid).attr('onclick', 'portal.hideDetail('+cfid+')');
 	$('#expander_' + cfid).removeClass('fa-plus-square-o');
 	$('#expander_' + cfid).addClass('fa-minus-square-o');
 }
 
 
-function hideDetail(cfid) {
+clientPortal.prototype.hideDetail = function(cfid) {
 	$('#cfmessage_' + cfid).addClass('hidden');
-	$('#expander_' + cfid).attr('onclick', 'showDetail('+cfid+')');
+	$('#expander_' + cfid).attr('onclick', 'portal.showDetail('+cfid+')');
 	$('#expander_' + cfid).removeClass('fa-minus-square-o');
 	$('#expander_' + cfid).addClass('fa-plus-square-o');
-}
-
-function renderDetailedAssessmentScore() {
-	$('#assessmentresults').empty();
-	detailedScores.sort(function(a, b) {
-	    return a.corefactor_display_group.localeCompare(b.corefactor_display_group);
-	});
-	var displaygroup = "";
-	
-	for (var i in detailedScores) {
-		var score = detailedScores[i];
-		if (displaygroup != score.corefactor_display_group) {
-			displaygroup = score.corefactor_display_group;
-			var grouprow = $('<tr />');
-			grouprow.append($('<th />', {'style':'text-align:center;'}).append($('<h4 />',{text:displaygroup})));
-			$('#assessmentresults').append(grouprow);
-		}
-		var row = $('<tr />', {
-			'title' : score.corefactor_description});
-		var namediv = $('<div />', {
-			'class' : 'col-xs-10 col-sm-8 col-md-6 col-lg-6 text-left',
-			title: score.corefactor_description});
-		var expander = $('<h5 />');
-		expander.append($('<strong />', { text : score.corefactor_name + ' '}));
-		expander.append($('<i />', {
-			'onclick' : "showDetail(" + score.corefactor_id + ")",
-			'class' : 'fa fa-plus-square-o',
-			'id' : 'expander_' + score.corefactor_id
-		}));
-		namediv.append(expander);
-		var scorediv = $('<div />', {
-			'class' : 'col-xs-2 col-sm-4 col-md-6 col-lg-6 text-right', 
-			html : '<h5><strong>' + score.cf_score.toFixed(1) + " of " + score.corefactor_high + '</strong></h5>'});
-		var lowdesc = $('<div />', {
-			'class' : 'hidden-xs col-sm-3 col-md-2 col-lg-2 text-left', 
-			html : '<h6><em>' +score.corefactor_low_desc + '</em></h6>'});
-		var highdesc = $('<div />', {
-			'class' : 'hidden-xs col-sm-3 col-md-2 col-lg-2 text-right', 
-			html : '<h6><em>' +score.corefactor_high_desc + '</em></h6>'});
-		var progress = $('<div />', {'class' : 'progress col-xs-12 col-sm-6 col-md-8 col-lg-8'
-				}).append($('<div />', {
-			'class': 'progress-bar progress-bar-success progress-bar-striped',
-			'role': 'progressbar',
-			'aria-valuenow' : score.cf_score,
-			'aria-valuemin' : "1",
-			'aria-valuemax' : "11",
-			'style' : 'width: ' + (100*score.cf_score/score.corefactor_high) + '%;'
-		}));
-
-		var tablecell = $('<td />');
-		tablecell.append(namediv);
-		tablecell.append(scorediv);
-		tablecell.append(lowdesc);
-		tablecell.append(progress);
-		tablecell.append(highdesc);
-		row.append(tablecell);
-		$('#assessmentresults').append(row);
-		var messageRow = $('<tr />',{
-			'id' : 'cfmessage_' + score.corefactor_id,
-			'class' : 'hidden'
-		}).append($('<td />',{
-			'bgcolor' : '#F7F7F7',
-			'border-top' : 'none',
-			'text' : prepPersonalMessage(score.cf_description)
-			}));
-		$('#assessmentresults').append(messageRow);
-		
-	}
-	
 }
 
 clientPortal.prototype.inviteApplicant = function () {	
@@ -947,7 +823,7 @@ clientPortal.prototype.prepPersonalMessage = function(message) {
 	return pm;
 }
 
-clientPortal.prototype.renderAssessmentScore = function() {
+clientPortal.prototype.renderAssessmentScore = function(detail) {
 	$('#applicantprofile').removeClass('hidden'); 
 	var scores = this.respondant.respondantScores;
 	$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
@@ -957,38 +833,91 @@ clientPortal.prototype.renderAssessmentScore = function() {
 	$('#candidateaddress').text(this.respondant.person.address);
 	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
 	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
-	$('#detailslink').prop("href", '/assessment_results.jsp?&respondant_id=' + this.respondant.id);
 	
 	$('#assessmentresults').empty();
+	
+	var displaygroup = "";
+	// sorting happens here?
+	
 	for (var key in scores) {
 		var value = scores[key].value;
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
-		var row = $('<tr />');
+		var row = $('<tr />', {	'title' : corefactor.description});
 		var cell = $('<td />');
 		var quartile = Math.floor(4*value/11);
 		
-		cell.append($('<div />', {'text': corefactor.name }));
-		cell.append( $('<div />', {'class' : 'progress'}).append($('<div />', {
-			'class': 'progress-bar '+getBarClass(quartile)+' progress-bar-striped',
+		var progress = $('<div />', {'class' : 'progress', 'style' : 'height:30px;margin-top:10px;margin-bottom:0px' }).append($('<div />', {
+			'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
 			'role': 'progressbar',
 			'aria-valuenow' : value,
 			'aria-valuemin' : "1",
 			'aria-valuemax' : "11",
-			'style' : 'width: ' + value/0.11 + '%;',
-			'text' : value
-		}))); 
+			'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
+				+ (100*value/corefactor.highValue) + '%;',
+			'text' : value }));
+
+		if (detail) {
+			if (displaygroup != corefactor.displayGroup) {
+				displaygroup = corefactor.displayGroup;
+				var grouprow = $('<tr />');
+				grouprow.append($('<th />', {'style':'text-align:center;'}).append($('<h4 />',{text:displaygroup})));
+				$('#assessmentresults').append(grouprow);
+			}
+			
+			var namediv = $('<div />', {
+				'class' : 'text-left',
+				'style' : 'float:left;width:120px;margin-right:2px;',
+				title: corefactor.description});
+			var expander = $('<h5 />');
+			expander.append($('<strong />', { text : corefactor.name + ' '}));
+			expander.append($('<i />', {
+				'onclick' : "portal.showDetail(" + corefactor.id + ")",
+				'class' : 'fa fa-plus-square-o',
+				'id' : 'expander_' + corefactor.id
+			}));
+			namediv.append(expander);
+			namediv.append('<h6><em>' +corefactor.lowDescription + '</em></h6>');
+			var scorediv = $('<div />', {
+				'class' : 'text-right',
+				'style' : 'float:right;width:120px;margin-left:2px',
+				html : '<h5><strong>' + value.toFixed(1) + " of " + corefactor.highValue + '</strong></h5>'});
+			scorediv.append('<h6><em>' +corefactor.highDescription + '</em></h6>');
+
+
+			cell.append(namediv);
+			cell.append(scorediv);	
+			cell.append(progress);
+		} else {
+			cell.append($('<div />', {'text': corefactor.name }));
+			cell.append(progress); 
+		}
 		row.append(cell);
 		$('#assessmentresults').append(row);
+
+		if (detail) {
+			var messageRow = $('<tr />',{
+				'id' : 'cfmessage_' + scores[key].corefactorId,
+				'class' : 'hidden'
+			}).append($('<td />',{
+				'bgcolor' : '#F7F7F7',
+				'border-top' : 'none',
+				'text' : this.prepPersonalMessage(corefactor.description)
+			}));
+			$('#assessmentresults').append(messageRow);
+		}
+		
 	}
 
-	var footer = $('<tr />');
-	var legend = $('<td />', {'style':'background-color:#eee;'});
+	
+	var legend = $('<div />',{
+		'style' : 'max-width:480px;margin-left:auto;margin-right:auto;'
+	});
 	legend.append($('<div />', {'class':'text-center', 'text': 'Bar Color Indicates Quartile'}));
 
 	for (var i = 0; i<4; i++) {
 		var div  = $('<div />', {'class' : 'col-xs-3 col-sm-3 col-md-3 col-lg 3'});	
 		div.append( $('<div />', {'class' : 'progress'}).append($('<div />', {
-			'class': 'progress-bar '+getBarClass(i)+' progress-bar-striped',
+			'class': 'progress-bar '+this.getBarClass(i)+' progress-bar-striped',
 			'role': 'progressbar',
 			'aria-valuenow' : 1,
 			'aria-valuemin' : "0",
@@ -998,31 +927,34 @@ clientPortal.prototype.renderAssessmentScore = function() {
 		})));
 		legend.append(div);
 	}
-	$('#assessmentresults').append(footer.append(legend));
+	var footer = $('<tr />').append($('<td />', {'style':'background-color:#eee;'}).append(legend));
+	$('#assessmentresults').append(footer);
 
-    function getBarClass(quartile) {
-    	var barclass;
-		switch (quartile) {
-		case 0:
-			barclass = 'progress-bar-danger';
-			break;
-		case 1:
-			barclass = 'progress-bar-warning';
-			break;
-		case 2:
-			barclass = 'progress-bar-info';
-			break;
-		case 3:
-			barclass = 'progress-bar-success';
-			break;
-		default:
-			barclass = 'progress-bar-default';
-			break;
-		}
-		return barclass;
-	}
 
 }
+
+clientPortal.prototype.getBarClass = function(quartile) {
+	var barclass;
+	switch (quartile) {
+	case 0:
+		barclass = 'progress-bar-danger';
+		break;
+	case 1:
+		barclass = 'progress-bar-warning';
+		break;
+	case 2:
+		barclass = 'progress-bar-info';
+		break;
+	case 3:
+		barclass = 'progress-bar-success';
+		break;
+	default:
+		barclass = 'progress-bar-default';
+		break;
+	}
+	return barclass;
+}
+
 
 clientPortal.prototype.updateGradesTable = function(grades) {
 	$('#gradetable').empty();
@@ -1210,6 +1142,39 @@ clientPortal.prototype.updateCriticalFactorsChart = function() {
 	this.cfBarChart.config.data.datasets[1].data = chartData1;
 	this.cfBarChart.update();
 }
+
+
+
+//Payroll tools section
+clientPortal.prototype.uploadPayroll = function(e) {
+	$('#csvFile').parse({
+		config : {
+			header: true,
+			dynamicTyping: true,
+			complete: function(results, file) {
+				$('#payroll').DataTable( {
+					responsive: true,
+					data: results.data,
+					columns : [
+					           { title: 'Employee ID', data: 'employee'},
+					           { title: 'Raise Rate', data: 'RaiseRate'},
+					           { title: 'Total Hours', data: 'Total Hours' },
+					           { title: 'Tenure', data: 'Tenure' },
+					           { title: 'Monthly Hours', data: 'Monthly Hours' }
+					           ]
+
+				});
+
+				console.log("Parsing complete:", results, file);
+			}
+		},
+		before : function(file, inputElem){},
+		error: function(err, file, inputElem, reason){},
+		complete : {}
+
+	})
+}
+
 
 function cdf(x, mean, variance) {
 	  return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2) * variance)));

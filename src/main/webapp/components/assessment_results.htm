@@ -59,8 +59,8 @@
 					<div>
 						<span id='assessmentdate' class='pull-right'>Date</span>
 						<h4 id='assessmentname'>Assessment</h4>
-						<span id='showall' class='pull-right'><a href="#" onclick="showAllDetails()">Click <i class="fa fa-plus-square-o"></i> to show detailed explanations</a></span>
-						<span id='hideall' class='hidden pull-right'><a href="#" onclick="hideAllDetails()">Click <i class="fa fa-minus-square-o"></i> to hide detailed explanations</a></span>
+						<span id='showall' class='pull-right'><a href="#" onclick="portal.showAllDetails()">Click <i class="fa fa-plus-square-o"></i> to show detailed explanations</a></span>
+						<span id='hideall' class='hidden pull-right'><a href="#" onclick="portal.hideAllDetails()">Click <i class="fa fa-minus-square-o"></i> to hide detailed explanations</a></span>
 					</div>
 					<div>
 						<table class='table table-hover'>
@@ -107,23 +107,7 @@
 	</div>
 </div>
 <script>
-	var urlParams;
-	(window.onpopstate = function() {
-		var match, pl = /\+/g, // Regex for replacing addition symbol with a space
-		search = /([^&=]+)=?([^&]*)/g, decode = function(s) {
-			return decodeURIComponent(s.replace(pl, " "));
-		}, query = window.location.search.substring(1);
-
-		urlParams = {};
-		while (match = search.exec(query))
-			urlParams[decode(match[1])] = decode(match[2]);
-	})();
-	var respondantId = urlParams.respondant_id;
-	var respondantUuid = urlParams.respondant_uuid;
-	if (respondantId != null) {
-		getScore(respondantId);
-	}
-	if (respondantUuid != null) {
-		getScoreUuid(respondantUuid);
-	}
+$(document).ready(function() {
+	portal.renderAssessmentScore(true);
+});
 </script>
