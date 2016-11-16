@@ -28,7 +28,7 @@ import com.employmeo.data.model.Location;
 import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
 import com.talytica.portal.objects.ApplicantDataPoint;
-import com.talytica.portal.util.PositionProfile;
+import com.talytica.portal.objects.PositionProfile;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

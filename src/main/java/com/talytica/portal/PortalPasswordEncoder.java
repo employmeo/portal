@@ -1,4 +1,4 @@
-package com.talytica.portal.util;
+package com.talytica.portal;
 
 import java.security.MessageDigest;
 

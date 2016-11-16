@@ -16,9 +16,9 @@ import javax.ws.rs.core.Response.Status;
 import com.employmeo.data.model.Respondant;
 import com.employmeo.data.model.User;
 import com.employmeo.data.service.UserService;
+import com.talytica.portal.PortalPasswordEncoder;
 import com.talytica.portal.objects.PasswordChangeRequest;
 import com.talytica.portal.service.PortalUserDetailsService;
-import com.talytica.portal.util.PortalPasswordEncoder;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

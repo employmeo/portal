@@ -1,4 +1,4 @@
-package com.talytica.portal.util;
+package com.talytica.portal.objects;
 
 import org.json.JSONObject;
 

@@ -22,7 +22,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.talytica.portal.objects.UserPrincipal;
 import com.talytica.portal.service.PortalUserDetailsService;
-import com.talytica.portal.util.PortalPasswordEncoder;
 
 
 @Configuration

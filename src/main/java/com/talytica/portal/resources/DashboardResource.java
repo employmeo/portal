@@ -22,7 +22,7 @@ import com.employmeo.data.model.Respondant;
 import com.employmeo.data.service.RespondantService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.talytica.portal.objects.DashboardParams;
-import com.talytica.portal.util.PositionProfile;
+import com.talytica.portal.objects.PositionProfile;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
