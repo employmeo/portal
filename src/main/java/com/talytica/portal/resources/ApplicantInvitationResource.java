@@ -68,7 +68,7 @@ public class ApplicantInvitationResource {
 		respondant.setPerson(savedApplicant);
 		respondant.setPersonId(savedApplicant.getId());
 		respondant.setAccountId(as.getAccountId());
-		respondant.setAccountSurveyId(invitation.asid);
+		respondant.setAccountSurveyId(as.getId());
 
 		respondant.setLocationId(as.getAccount().getDefaultLocationId());
 		if (invitation.locationId != null) respondant.setLocationId(invitation.locationId);

@@ -53,6 +53,7 @@ public class ForgotPasswordResource {
 	public Response forgotPassword(@ApiParam(value = "User email") ForgotPasswordRequest fpr) {
 
 		User user = userService.getUserByEmail(fpr.email);
+		log.debug("Password reset for email {} for user {}", fpr.email, user);
 		
 		if (user != null) {
 			emailService.sendForgotPass(user);
