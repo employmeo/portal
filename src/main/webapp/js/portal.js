@@ -59,24 +59,37 @@ clientPortal.prototype.loginSuccess = function(data) {
 	this.user = data;
 	var thePortal = this;
 	
-	if (this.urlParams.respondantUuid != null) getRespondantByUuid(thePortal, this.urlParams.respondantUuid);
-
 	$('#portal').toggleClass('hidden');
   	$('#mainbody').removeClass('coverpage');
 	$('#mainbody').css('background-image','');
 	$('#leftnav').load('/components/left.htm');
 	$('#topnav').load('/components/top.htm', function() {$('#user_fname').text(data.firstName);});
 	if (!this.urlParams.component) this.urlParams.component = 'dash';
-	$.when (getLocations(thePortal),
-			getPositions(thePortal),
-			getAssessments(thePortal),
-			getCorefactors(thePortal),
-			getProfiles(thePortal)).done(
-			function () {
-				thePortal.showComponent(thePortal.urlParams.component);
-				$('#wait').toggleClass('hidden');
-			}
-	);	
+
+	if (this.urlParams.respondantUuid != null) {
+		$.when (getRespondantByUuid(thePortal, this.urlParams.respondantUuid),
+				getLocations(thePortal),
+				getPositions(thePortal),
+				getAssessments(thePortal),
+				getCorefactors(thePortal),
+				getProfiles(thePortal)).done(
+				function () {
+					thePortal.showComponent(thePortal.urlParams.component);
+					$('#wait').toggleClass('hidden');
+				}
+		);
+	} else {
+		$.when (getLocations(thePortal),
+				getPositions(thePortal),
+				getAssessments(thePortal),
+				getCorefactors(thePortal),
+				getProfiles(thePortal)).done(
+				function () {
+					thePortal.showComponent(thePortal.urlParams.component);
+					$('#wait').toggleClass('hidden');
+				}
+		);
+	}
 }
 
 clientPortal.prototype.loginFail = function(data) {

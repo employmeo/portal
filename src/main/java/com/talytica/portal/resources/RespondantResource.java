@@ -1,5 +1,7 @@
 package com.talytica.portal.resources;
 
+import java.util.UUID;
+
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 
@@ -39,18 +41,18 @@ public class RespondantResource {
 	private RespondantService respondantService;
 
 	@GET
-	@Path("/{id}")
+	@Path("/{uuid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the respondant by provided Id", response = Respondant.class)
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Respondant found"),
 	     @ApiResponse(code = 404, message = "No such Respondant found")
 	   })	
-	public Response getRespondant(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long id) {
-		log.debug("Requested respondant by id {}", id);
+	public Response getRespondant(@ApiParam(value = "respondant uuid") @PathParam("uuid") @NotNull UUID uuid) {
+		log.debug("Requested respondant by uuid {}", uuid);
 		
-		Respondant respondant = respondantService.getRespondantById(id);
-		log.debug("Returning respondant by id {} as {}", id, respondant);
+		Respondant respondant = respondantService.getRespondant(uuid);
+		log.debug("Returning respondant by uuid {} as {}", uuid, respondant);
 		
 		if(null != respondant) {
 			return Response.status(Status.OK).entity(respondant).build();
