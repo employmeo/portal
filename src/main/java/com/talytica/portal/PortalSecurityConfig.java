@@ -46,7 +46,7 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 			http
 	    		.authorizeRequests()
 	    		  .antMatchers("/portal/1/forgotpassword","/portal/1/signup").permitAll()
-	    		  .antMatchers("/portal/**").authenticated()
+	    		  .antMatchers("/portal/1/**").authenticated()
 	    		  .anyRequest().permitAll()
 	    		.and()
 	    		  .formLogin()

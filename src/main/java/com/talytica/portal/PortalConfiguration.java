@@ -29,7 +29,8 @@ public class PortalConfiguration extends ResourceConfig {
 
 	public PortalConfiguration() {
         registerEndpoints();
-        register(RolesAllowedDynamicFeature.class);
+        //register(RolesAllowedDynamicFeature.class);
+		log.info("=============== Portal Application Config Instantiated ===============");
 	}
 
 	@PostConstruct
@@ -55,18 +56,19 @@ public class PortalConfiguration extends ResourceConfig {
 	 * @param packages
 	 */
 	public void scan(String... packages) {
+
 	    for (String pack : packages) {
 	        Reflections reflections = new Reflections(pack);
 	        reflections.getTypesAnnotatedWith(Provider.class)
 	                .parallelStream()
 	                .forEach((clazz) -> {
-	                    log.debug("New provider registered: " + clazz.getName());
+	                    log.info("New provider registered: " + clazz.getName());
 	                    register(clazz);
 	                });
 	        reflections.getTypesAnnotatedWith(Path.class)
 	                .parallelStream()
 	                .forEach((clazz) -> {
-	                    log.debug("New resource registered: " + clazz.getName());
+	                    log.info("New resource registered: " + clazz.getName());
 	                    register(clazz);
 	                });
 	    }
