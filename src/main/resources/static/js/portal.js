@@ -19,6 +19,9 @@ clientPortal = function() {
 	this.respParams = {};
 	this.dashParams = {};
 	
+	this.dashResults = null;
+	this.searchResults = null;
+	this.lastTenResults = null;
 	this.historyChart = null;
 	this.dashApplicants = null;
 	this.dashHires = null;
@@ -191,6 +194,21 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 	return;
 }
 
+clientPortal.prototype.readyDashBoard = function() {
+	if (Object.keys(this.dashParams).length > 0) {
+		// code to put the dashboard details in the right place.
+		// set date range
+		// set location
+		// set position
+		var dashData = this.dashResults;
+		this.updateDash(dashData)
+		var lastTenData = this.lastTenResults;
+		this.updateLastTen(lastTenData);		
+	} else {
+		this.requestDashUpdate();
+	}	
+}
+
 clientPortal.prototype.requestDashUpdate = function() {
 	var fields = $('#refinequery').serializeArray();
 	this.dashParams = {};
@@ -198,21 +216,23 @@ clientPortal.prototype.requestDashUpdate = function() {
 	for (var i=0;i<fields.length;i++) {
 		this.dashParams[fields[i].name] = fields[i].value;
 	}
-	submitDashUpdateRequest(this);
-	this.respParams = this.dashParams;
-	this.respParams.pagesize = 10;
-	this.respParams.pagenum = 1;
-	this.respParams.statusLow = 10; //Show only completed and above
-	this.respParams.statusHigh = 100; //Show all others
-
+	
+	var params = this.dashParams;
+	params.pagesize = 10;
+	params.pagenum = 1;
+	params.statusLow = 10;
+	params.statusHigh = 100;
 	var thePortal = this;
-	submitRespondantSearchRequest(thePortal, function(data) {
+	
+	submitDashUpdateRequest(this);
+	submitRespondantSearchRequest(params, function(data) {
 		thePortal.updateLastTen(data);
 	});
+
 }
 
-clientPortal.prototype.updateDash = function(data) {
-	
+clientPortal.prototype.updateDash = function(data) {	
+	this.dashResults = data;
 	var invited = 0;
 	var started = 0;
 	var completed = 0;
@@ -334,8 +354,9 @@ clientPortal.prototype.addHireRateBar = function(data) {
 }
 
 clientPortal.prototype.updateLastTen = function(data) {
+	this.lastTenResults = data;
 	var thePortal = this;
-	var respondants = data.content;
+	var respondants = this.lastTenResults.content;
 	$('#recentcandidates').empty();
 	for (var i = 0; i < respondants.length; i++ ) {
 		var profile = this.getProfile(respondants[i].profileRecommendation);
@@ -411,6 +432,7 @@ clientPortal.prototype.getCorefactorBy = function(id) {
 }
 
 clientPortal.prototype.getProfile = function(series) {
+	if (series == null) series = 'unscored';
 	for (var key in this.profiles) {
 		var profile = this.profiles[key];
 		if (series == profile.series) return profile;
@@ -465,7 +487,7 @@ clientPortal.prototype.searchRespondants = function() {
 		this.respParams[fields[i].name] = fields[i].value;
 	}
 	
-	submitRespondantSearchRequest(thePortal, function(data) {
+	submitRespondantSearchRequest(this.respParams, function(data) {
 		thePortal.searchResults = data;
 		thePortal.updateRespondantsTable();
 	});

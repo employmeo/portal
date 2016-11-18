@@ -146,7 +146,7 @@ function submitDashUpdateRequest(thePortal) {
 	});
 }
 
-function submitRespondantSearchRequest(thePortal, callback) {	
+function submitRespondantSearchRequest(params, callback) {	
 	$.ajax({
 		type: "POST",
 		async: true,
@@ -156,7 +156,7 @@ function submitRespondantSearchRequest(thePortal, callback) {
 	        'Content-Type': 'application/json' 
 	    },
 	    dataType: 'json',
-		data: JSON.stringify(thePortal.respParams),
+		data: JSON.stringify(params),
 		success: function(data) {callback(data);}
 	});
 }
