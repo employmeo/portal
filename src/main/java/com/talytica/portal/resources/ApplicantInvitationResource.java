@@ -20,6 +20,7 @@ import com.employmeo.data.model.Respondant;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.PersonService;
 import com.employmeo.data.service.RespondantService;
+import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.ApplicantInvitation;
 
 import io.swagger.annotations.Api;
@@ -41,6 +42,8 @@ public class ApplicantInvitationResource {
 	private AccountSurveyService accountSurveyService;
 	@Autowired
 	private RespondantService respondantService;
+	@Autowired
+	private EmailService emailService;
 	
 
 	@POST
@@ -76,7 +79,9 @@ public class ApplicantInvitationResource {
 		if (invitation.positionId != null) respondant.setPositionId(invitation.positionId);
 
 		
-	    Respondant savedRespondant = respondantService.save(respondant);
+	    Respondant savedRespondant = respondantService.save(respondant);   
+	    emailService.sendEmailInvitation(savedRespondant);
+	    
 	    return Response.status(Status.CREATED).entity(savedRespondant).build();
 	}
 
