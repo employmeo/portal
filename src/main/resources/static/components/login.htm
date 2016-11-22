@@ -1,0 +1,97 @@
+    <div id="wrapper">
+      <div class="container" style="background: rgba(0, 0, 0, 0.65);color: white;">
+	    <div class="col-xs-12 text-center"><img src="/images/tal-logo-sm.png" style="width:65%;"></div>
+	    <div class="col-xs-12 text-center"><hr></div>
+        
+        
+        <div id='logindiv' class="col-xs-12 text-center">
+	      <form name="login" method="post" action="javascript:portal.login();" id="loginform">
+            <h1>Sign In</h1>
+			<div class="clearfix"><span class='text-danger h4' id='loginresponse'></span></div>
+			<div class="clearfix" style="height: 15px;"></div>
+			<div class="col-xs-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-envelope-o"></i></div>
+			  <input class="form-control" type="email" name="email" required placeholder="Email Address"></div></div>
+			<div class="col-xs-12 cform-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-key"></i></div>
+			  <input class="form-control" type="password" name="password" placeholder="Password" required></div></div>
+            <div class="col-xs-6 form-group">
+              <input type="checkbox" id="rememberme" name="rememberme" value="true" checked>
+              <label for="rememberme" style="line-height:22px;vertical-align:middle;">&nbsp;Stay Logged In</label>
+            </div>
+            <div class="col-xs-6 form-group">
+              <a href="#" onClick="$('#logindiv').toggleClass('hidden');$('#forgotdiv').toggleClass('hidden');"
+              style='font-weight:800;color:white;;line-height:22px;vertical-align:middle;'> Forgot Password? </a>
+            </div>
+            <div class="col-xs-12 form-group"><button class="btn btn-info btn-block submit" type="submit">Log In</button></div>
+			<div class="clearfix" style="height: 15px;"></div>
+			<div class="col-xs-12 text-center"><hr></div>
+			<div class="col-xs-4"><p style="line-height:34px;">Not a User?</p></div>
+            <div class="col-xs-8">
+              <button class="btn btn-danger btn-block submit" type="button"
+                onClick="$('#logindiv').toggleClass('hidden');$('#signupdiv').toggleClass('hidden');">Try 1 Month Free</button>
+            </div>
+            <div class="col-xs-12 text-center"><br></div>
+          </form>
+        </div>
+              
+        <div id='forgotdiv' class="col-xs-12 text-center hidden">
+		  <form name="forgotpass" method="post" action="javascript:forgotPass();" id="forgotpassform">
+            <h1>Forgot Password</h1>
+            <div class="col-xs-12 text-center"><p class="change_link">Enter your email address and click the "Request Password Reset" button below.</p></div>
+			<div class="clearfix" style="height: 15px;"></div>
+			<div class="col-xs-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-envelope-o"></i></div>
+			  <input class="form-control" type="email" name="email" required placeholder="Email Address"></div></div>
+			<div class="clearfix" style="height: 15px;"></div>
+            <div>
+              <div class="col-xs-12 form-group"><button class="btn btn-info btn-block submit" type="submit">Request Password Reset</button></div>
+            </div>
+			<div class="clearfix" style="height: 15px;"></div>
+          </form>
+			<div class="col-xs-12 text-center"><hr></div>
+            <div class="col-xs-12 text-center">           
+                <a href="#" onClick="$('#logindiv').toggleClass('hidden');$('#forgotdiv').toggleClass('hidden');" style="color:white;">
+                <i class="fa fa-arrow-left"></i>&nbsp;Return to Login Screen </a>
+            </div>
+            <div class="col-xs-12 text-center"><br></div>
+        </div>
+        
+        <div id='signupdiv' class="col-xs-12 text-center hidden">
+	      <form name="signup" method="post" action="javascript:portal.signup();" id="signupform">
+            <h1>Sign Up</h1>
+			<div class="clearfix"><span class='text-danger h4' id='loginresponse'></span></div>
+			<div class="clearfix" style="height: 15px;"></div>
+			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-user"></i></div>
+			  <input class="form-control" type="text" name="fullName" placeholder="Full Name" required></div></div>
+			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-envelope-o"></i></div>
+			  <input class="form-control" type="email" name="email" required placeholder="Business Email Address"></div></div>
+			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-briefcase"></i></div>
+			  <input class="form-control" type="text" name="address" id='address' placeholder="Company Name" required></div></div>			
+			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-address-card-o"></i></div>
+			  <input class="form-control" type="text" name="address" id='address' placeholder="Company address" required></div></div>			
+			<div class="clearfix" style="height: 15px;"></div>
+            <div class="col-xs-12 col-sm-12 col-md-12"><button class="btn btn-danger btn-block submit" type="submit">Start Your Trial</button></div>
+		    <input type='hidden' id='lat' name='lat'>
+		    <input type='hidden' id='lng' name='lng'>
+		    <input type='hidden' id='formatted_address' name='formattedAddress'>
+		    <input type='hidden' id='country_short' name='country_short'>
+          </form>
+			<div class="col-xs-12 text-center"><hr></div>
+            <div class="col-xs-12 text-center">           
+                <a href="#" onClick="$('#logindiv').toggleClass('hidden');$('#signupdiv').toggleClass('hidden');" style="color:white;">
+                <i class="fa fa-arrow-left"></i>&nbsp;Return to Login Screen </a>
+            </div>
+            <div class="col-xs-12 text-center"><br></div>
+        </div>
+        
+      </div>
+  </div>
+  
+  <script>
+  $(document).ready(function() {
+    $('#address').geocomplete({details:'form'});
+    if (portal.urlParams.hasOwnProperty('signup')) {
+    	$('#logindiv').toggleClass('hidden');
+    	$('#signupdiv').toggleClass('hidden');
+    }
+  });
+  </script>
+  

@@ -1,0 +1,80 @@
+
+  <div class="row content"> 
+    <div class="col-sm-12">
+      <div class="col-sm-12 col-md-12 col-lg-12">
+        <div class="x_panel">
+        	<div class="x_title"><h4>Applicant Invitation</h4></div>
+        	<div class="x_content hidden" id="invitationsent">
+        		<h4>Invitation Sent</h4>
+    			<button type="button" class="btn btn-block btn-default" onclick='portal.resetInvitation();'>Invite Another</button> 
+        	</div>
+        	<div class="x_content" id="invitationform">
+        	  <form id='inviteapplicant' name="inviteapplicant" action="javascript:portal.inviteApplicant();"
+        	      class="form form-horizontal form-label-left input_mask">
+			    <div class="col-xs-12 col-sm-12 col-md-6">
+				  <h4>Contact Info</h4><hr>
+				  <label for="firstName">First Name:</label> 
+				  <div class="input-group has-feedback">
+				    <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+			        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="First Name" required>
+				  </div>
+				  <label for="lastName">Last Name:</label>
+				  <div class="input-group has-feedback">
+				    <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+				    <input class="form-control" id="lastName" name="lastName" placeholder="Last Name">
+				  </div>
+				  <label for="email">Email:</label>
+				  <div class="input-group has-feedback">
+				    <span class="input-group-addon"><i class="fa fa-envelope-o fa-fw"></i></span>
+				    <input required class="form-control" type="email" name="email" required placeholder="email" required>
+ 				  </div>
+				    <label for="street1">Address:</label>
+				    <div class="form-group has-feedback">
+				    <input required class="form-control" id="address" name="address">
+				    </div>
+				    <input type='hidden' id='lat' name='lat'>
+				    <input type='hidden' id='lng' name='lng'>
+				    <input type='hidden' id='formatted_address' name='formatted_address'>
+				    <input type='hidden' id='country_short' name='country_short'>
+				</div>
+			    <div class="col-xs-12 col-sm-12 col-md-6">
+					<h4>Application Details</h4><hr>
+				    <label for="asid">Assessment:</label>
+					<div class="form-group has-feedback">
+						<select class="form-control" id="asid" name="asid"></select>
+					</div>
+				    <label for="locationId">Location:</label>
+					<div class="form-group has-feedback">
+				    	<select class="form-control" id="locationId" name="locationId"></select>
+					</div>
+				    <label for="positionId">Position:</label>
+					<div class="form-group has-feedback">
+				    	<select class="form-control" id="positionId" name="positionId"></select>
+					</div>
+                    <div class="form-group">
+                        <input type="checkbox" id="notifyme" name="notifyme" value="true" checked>
+                        <label for="notifyme">Notify me upon scoring</label>
+                    </div>
+				</div>
+				 <div class="col-sm-12 col-lg-12">
+					<hr>
+				    <button type="submit" class="btn btn-block btn-default">
+				    	Send Invitation 
+				    	<i id="spinner" class="fa fa-spinner fa-spin hidden"></i>
+				    	</button>   
+				  </div>
+        		</form>
+        	</div>
+        </div>
+  	  </div>
+    </div>
+  </div>
+
+<script>
+$(document).ready(function() {
+  portal.updatePositionSelect(false);
+  portal.updateLocationSelect(false);
+  portal.updateAssessmentSelect(false);
+  $('#address').geocomplete({details:'form'});
+});
+</script>

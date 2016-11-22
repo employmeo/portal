@@ -1,9 +1,14 @@
 package com.talytica.portal.resources;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -11,13 +16,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Account;
+import com.employmeo.data.model.AccountSurvey;
+import com.employmeo.data.model.Location;
+import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
+import com.talytica.portal.objects.ApplicantDataPoint;
+import com.employmeo.data.model.PositionProfile;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -84,11 +95,28 @@ public class AccountResource {
 		
 		return Response.status(Status.CREATED).entity(savedAccount).build();
 	}
+
+	@PUT
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Updates the provided account", response = Account.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 202, message = "Account updatedd"),
+	   })	
+	public Response updateAccount(Account account) {
+		log.debug("Requested account save: {}", account);
+		
+		Account savedAccount = accountService.save(account);
+		log.debug("Saved account {}", savedAccount);
+		
+		return Response.status(Status.ACCEPTED).entity(savedAccount).build();
+	}
+	
 	
 	@GET
 	@Path("/{id}/locations")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the account by provided Id", response = Account.class)
+	@ApiOperation(value = "Gets the account by provided Id", response = Location.class, responseContainer = "List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Account found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
@@ -109,7 +137,7 @@ public class AccountResource {
 	@GET
 	@Path("/{id}/positions")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the account by provided Id", response = Account.class)
+	@ApiOperation(value = "Gets the account by provided Id", response = Position.class, responseContainer = "List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Account found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
@@ -130,7 +158,7 @@ public class AccountResource {
 	@GET
 	@Path("/{id}/assessments")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the account by provided Id", response = Account.class)
+	@ApiOperation(value = "Gets the assessments for provided accountId", response = AccountSurvey.class, responseContainer = "List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Account found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
@@ -148,4 +176,42 @@ public class AccountResource {
 		}
 	}	
 
+	@GET
+	@Path("/{id}/profiles")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets the profiles configured for provided accountId", response = ApplicantDataPoint.class, responseContainer = "List")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Account found"),
+	     @ApiResponse(code = 404, message = "No such Account found")
+	   })	
+	public Response getProfiles(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+		log.debug("Requested profiles for account id {}", id);
+		
+		
+		List<String> labels = Arrays.asList("unscored", PositionProfile.PROFILE_A, PositionProfile.PROFILE_B,
+				PositionProfile.PROFILE_C, PositionProfile.PROFILE_D);
+		List<ApplicantDataPoint> dataset= new ArrayList<ApplicantDataPoint>();
+		for (int i = 0; i < labels.size(); i++) {
+			ApplicantDataPoint profileData = new ApplicantDataPoint();
+			JSONObject profile = PositionProfile.getProfileDefaults(labels.get(i));
+			profileData.series = labels.get(i);
+			profileData.labels = new String[1];
+			profileData.labels[0] = profile.getString("profile_name");
+			profileData.profileClass = profile.getString("profile_class");
+			profileData.color = profile.getString("profile_color");
+			profileData.highlight = profile.getString("profile_highlight");
+			profileData.overlay = profile.getString("profile_overlay");
+			profileData.profileIcon = profile.getString("profile_icon");
+			dataset.add(profileData);
+		}
+		
+		Account account = accountService.getAccountById(id);
+		log.debug("Returning profiles for account id {}", id);
+		
+		if(null != account) {
+			return Response.status(Status.OK).entity(dataset).build();
+		} else {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+	}	
 }
