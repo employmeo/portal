@@ -1,0 +1,53 @@
+<div class="row">
+	<div class="col-xs-12 col-sm-3 col-md-3">
+		<h3>My Evaluations</h3>
+	</div>
+</div>
+<div class="row content">
+	<div class="col-xs-12 col-sm-8 col-md-8">
+		<div class="x_panel">
+			<div class="waiting hidden" id="waitingmodal">
+				<i class="fa fa-spinner fa-spin"></i>
+			</div>
+			<div class="x_title">
+				<h4>My Evaluations</h4>
+			</div>
+			<div class="x_content" id="grader_list">
+				<table id="graders" class="table display table-condensed nowrap" width="100%"></table>
+			</div>
+		</div>
+	</div>
+	<div class="col xs-12 col-sm-4 col-md-4">
+		<div id="grades" class="x_panel hidden">
+			<div class="x_title">
+				<div><h3 id='gradertitle'></h3></div>
+			</div>
+			<div id='gradeforms' class="x_content">
+
+			</div>
+		</div>	
+		<div class="col xs-12 col-sm-8 col-md-8">
+			<div class="x_panel">
+				<div class="x_content">
+					<div>
+					    <h2 class='text-center' id='assessmentname'>Scores</h2>
+						<a href='#' onClick="portal.showComponent('assessment_results');" id='detailslink' class='pull-right'>More Detail</a>
+						<span id='assessmentdate'></span>
+					</div>
+					<div>
+						<table class='table table-hover'>
+							<tbody id='assessmentresults'>
+							</tbody>
+						</table>
+						<hr>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {
+
+	});
+</script>
