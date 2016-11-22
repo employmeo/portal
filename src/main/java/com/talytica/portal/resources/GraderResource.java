@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Grade;
 import com.employmeo.data.model.Grader;
+import com.employmeo.data.model.Question;
 import com.employmeo.data.service.GraderService;
 
 import io.swagger.annotations.Api;
@@ -51,7 +52,7 @@ public class GraderResource {
 	public Response getGradersByRespondantId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
 		log.debug("Requested graders by respondant id {}", respondantId);
 
-		Page<Grader> graders = graderService.getGradersByUserId(respondantId);
+		List<Grader> graders = graderService.getGradersByRespondantId(respondantId);
 		return Response.status(Status.OK).entity(graders).build();
 
 	}	
@@ -59,7 +60,7 @@ public class GraderResource {
 	@GET
 	@Path("/user/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets all of the graders for a respondant", response = Grader.class, responseContainer="List")
+	@ApiOperation(value = "Gets all of the graders for a respondant", response = Grader.class, responseContainer="Page")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Graders found")
 	   })	
@@ -86,6 +87,20 @@ public class GraderResource {
 
 	}
 	
+	@GET
+	@Path("/{id}/criteria")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets all of the criteria for a graded question", response = Question.class, responseContainer="List")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Grades found")
+	   })	
+	public Response getCriteriaByGraderId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long questionId) {
+		log.debug("Requested grades by grader id {}", questionId);
+
+		List<Question> questions = graderService.getCriteriaByQuestionId(questionId);
+		return Response.status(Status.OK).entity(questions).build();
+
+	}
 	
 	@POST
 	@Path("/grade")
@@ -93,9 +108,9 @@ public class GraderResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Persists the provided grade", response = Grade.class)
 	   @ApiResponses(value = {
-	     @ApiResponse(code = 201, message = "Question saved"),
+	     @ApiResponse(code = 201, message = "Grade Saved"),
 	   })	
-	public Response saveQuestion(Grade grade) {
+	public Response saveQuestion(@ApiParam(value = "grade") Grade grade) {
 		log.debug("Requested question save: {}", grade);
 		
 		Grade savedGrade = graderService.saveGrade(grade);

@@ -398,6 +398,146 @@ clientPortal.prototype.updateLastTen = function(data) {
 	}
 }
 
+clientPortal.prototype.readyGradersTable = function(){
+	var thePortal = this;
+	this.rTable = $('#graders').DataTable( {
+		responsive: true,
+		order: [[ 0, 'desc' ]],
+		columns: [
+		          { responsivePriority: 8, className: 'text-left', title: 'Status', data: 'status'},
+		          { responsivePriority: 1, className: 'text-left', title: 'First Name', data: 'respondant.person.firstName'},
+		          { responsivePriority: 2, className: 'text-left', title: 'Last Name', data: 'respondant.person.lastName'},
+		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.questionText'},
+		          { responsivePriority: 4, className: 'text-left', title: 'Response', data: 'response.responseMedia',
+		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(data).wrap("<div />").parent().html()} }
+		         ]
+	});
+	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
+	
+	if (!this.myGraders) {
+		getGraders(thePortal);
+	} else {
+		this.showGraders();
+	}
+}
+
+clientPortal.prototype.renderAudioLink = function(link) {
+	var audio = $('<audio />' , {'controls': true, 'text':'Your Browser Does Not Support Audio Playback'});
+	var source = $('<source />', {'src':link,'type':'audio/mpeg'});
+	audio.append(source);
+	return audio;
+}
+
+clientPortal.prototype.saveGraders = function(data) {
+	this.myGraders = data;
+	this.showGraders();
+}
+
+clientPortal.prototype.showGraders = function() {
+	var thePortal = this;
+	console.log(this.myGraders);
+	if (this.myGraders.content.length > 0) {
+		$('#graders').dataTable().fnAddData(this.myGraders.content);
+		this.rTable.$('tr').click(function (){
+			thePortal.rTable.$('tr.selected').removeClass('selected');
+			$(this).addClass('selected');
+			thePortal.grader = $('#graders').dataTable().fnGetData(this);
+			if (thePortal.grader.criteria == null) { 
+			    $.when(getGrades(thePortal),getCriteria(thePortal)).done(function () {
+				    thePortal.showGradesPanel();
+			    });
+		    } else {
+		    	thePortal.showGradesPanel();
+		    }
+		});
+	}
+}
+
+clientPortal.prototype.showGradesPanel = function() {
+	console.log(this.grader.criteria);
+	console.log(this.grader.grades);
+	$('#gradername').html(this.grader.respondant.person.firstName + ' ' +
+			this.grader.respondant.person.lastName);
+	$('#graderquestion').html(this.grader.question.questionText);
+	$("#grades").removeClass('hidden'); 
+	$('#gradeforms').empty();
+	for (var key in this.grader.criteria) {
+		var form = this.createGradeForm(this.grader.criteria[key]);
+		$('#gradeforms').append(form);
+	}
+}
+	
+
+clientPortal.prototype.createGradeForm = function (criterion) {
+	var form =  $('<form class="well"/>', {
+		 'name' : 'criterion_'+criterion.questionId,
+		 'id' : 'criterion_'+criterion.questionId
+	});
+	form.append($('<input/>', {
+		name : 'id',
+		type : 'hidden',
+		id : 'gr_'+this.grader.id + '_cr_' +criterion.questionId,
+		value : ''
+	}));
+	form.append($('<input/>', {
+		name : 'graderId',
+		type : 'hidden',
+		value : this.grader.id
+	}));
+	form.append($('<input/>', {
+		name : 'questionId',
+		type : 'hidden',
+		value : criterion.questionId
+	}));
+	
+	var quesdiv =  $('<div />').html(criterion.questionText);
+	form.append($('<h4 />').html(criterion.questionText));
+	var ansdiv = $('<div />');
+	switch(criterion.questionType) {
+		case 2:
+			var like = $('<div />', {'class' : 'col-xs-6 col-sm-6 col-md-6 text-center'});
+			like.append($('<input />', {
+				'id'   : 'radiobox-' + criterion.questionId +"-1",
+				'type' : 'radio', 'class' : 'thumbs-up', 'name' : 'gradeValue',
+				'onChange' : '', 'value' :  '10'}));
+			like.append($('<label />', {
+				'for'   : 'radiobox-' + criterion.questionId +"-1", 'class' : 'thumbs-up' }));
+			var dislike = $('<div />', {'class' : 'col-xs-6 col-sm-6 col-md-6 text-center'});
+			dislike.append($('<input />', {
+				'id'   : 'radiobox-' + criterion.questionId +"-2",
+				'type' : 'radio', 'class' : 'thumbs-down', 'name' : 'gradeValue',
+				'onChange' : '', 'value' :  '1'}));
+			dislike.append($('<label />', {
+				'for'   : 'radiobox-' + criterion.questionId +"-2", 'class' : 'thumbs-down' }));
+			ansdiv.append(like);
+			ansdiv.append(dislike);
+			break;
+		case 5: // Likert
+		default:
+			ansdiv.addClass('text-center');
+			for (var i=5;i>0;i--) {
+				var ans = 2 *i;
+				ansdiv.append($('<input/>',{
+					'class' : 'star star-' + i,
+					'id' : 'star-' + i + '-' + criterion.questionId,
+					'type': 'radio',
+					'name': "gradeValue",
+					'onChange' : '',
+					'value': ans
+				}));
+				ansdiv.append($('<label />',{
+					'class' : 'star star-' + i,
+					'for' : 'star-' + i + '-' + criterion.questionId,
+				}));
+			}
+			break;
+		
+	}
+	form.append(ansdiv);
+	
+	return form;
+}
+
 
 clientPortal.prototype.getAssessmentBy = function(asid) {
 	for (var key in this.assessmentList) {

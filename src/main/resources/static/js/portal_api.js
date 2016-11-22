@@ -23,7 +23,7 @@ function getUser(thePortal) {
 }
 
 function postLogin(postdata, thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		data : postdata,
@@ -41,7 +41,7 @@ function postLogin(postdata, thePortal) {
 }
 
 function postLogout() {
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		url: "/logout",
@@ -93,7 +93,7 @@ function getAssessments(thePortal) {
 }
 
 function getCorefactors(thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "GET",
 		async: true,
 		url: servicePath + "corefactor",
@@ -105,7 +105,7 @@ function getCorefactors(thePortal) {
 }
 
 function getProfiles(thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "GET",
 		async: true,
 		url: servicePath + "account/"+thePortal.user.userAccountId+"/profiles",
@@ -117,7 +117,7 @@ function getProfiles(thePortal) {
 }
 
 function getRespondantByUuid(thePortal, uuid) {
-	$.ajax({
+	return $.ajax({
 		type: "GET",
 		async: true,
 		url: servicePath + "respondant/"+uuid,
@@ -129,7 +129,7 @@ function getRespondantByUuid(thePortal, uuid) {
 }
 
 function submitDashUpdateRequest(thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		url: servicePath + "dashboard",
@@ -147,7 +147,7 @@ function submitDashUpdateRequest(thePortal) {
 }
 
 function submitRespondantSearchRequest(params, callback) {	
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		url: servicePath + "respondantsearch",
@@ -160,6 +160,40 @@ function submitRespondantSearchRequest(params, callback) {
 		success: function(data) {callback(data);}
 	});
 }
+
+function getGraders(thePortal) {	
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/user/" + thePortal.user.id,
+		success: function(data) {
+			thePortal.saveGraders(data);
+		}
+	});
+}
+
+function getGrades(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/"+thePortal.grader.id+"/grade",
+		success: function(data) {
+			thePortal.grader.grades = data;
+		}
+	});	
+}
+
+function getCriteria(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/"+thePortal.grader.questionId+"/criteria",
+		success: function(data) {
+			thePortal.grader.criteria = data;
+		}
+	});
+}
+
 
 function sendInvitation(thePortal) {
 	$.ajax({
