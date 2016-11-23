@@ -17,17 +17,29 @@
 			</div>
 		</div>
 	</div>
-	<div class="col xs-12 col-sm-12 col-md-12 col-lg-4">
-		<div id="grades" class="x_panel hidden">
-			<div class="x_title">
-				<div><h3 id='gradername'></h3></div>
+	<div id="grades" class="col xs-12 col-sm-12 col-md-12 col-lg-4 hidden">
+		<div class="col xs-12 col-sm-6 col-md-6 col-lg-12">
+			<div class="x_panel">
+				<div class="x_title">
+					<div><h3 id='gradername'></h3></div>
+				</div>
+				<div class="x_content">
+				    <div><h5>QUESTION ASKED:</h5></div>
+				    <div><h4 id='graderquestion'></h4></div>
+					<div><div id='playmediadiv' class="button btn-default media-control"></div></div>
+					<div><hr></div>
+					<div><span class="pull-left" id='gradedate'>Requested: 11-16-2016</span><span class="pull-right" id="gradecompletion">0 of 2 Complete</span></div>
+				</div>
 			</div>
-			<div class="x_content">
-			    <div><h5>QUESTION ASKED:</h5></div>
-			    <div><h4 id='graderquestion'></h4></div>
-				<div><div class="button btn-default media-control"><i id="playbutton" class="fa fa-play"></i></div></div>
-				<div><hr></div>
-			    <div id='gradeforms' class="x_content"></div>
+		</div>
+		<div class="col xs-12 col-sm-6 col-md-6 col-lg-12">
+			<div  class="x_panel">
+				<div class="x_title">
+					<div><h4>Criteria</h4></div>
+				</div>
+				<div class="x_content">
+				    <div id='gradeforms' class="x_content"></div>
+				</div>
 			</div>
 		</div>	
 	</div>
