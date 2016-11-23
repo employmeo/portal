@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -41,11 +42,10 @@ public class GraderResource {
 	GraderService graderService;
 	
 	
-	
 	@GET
 	@Path("/respondant/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets all of the graders for a respondant", response = Grader.class, responseContainer="List")
+	@ApiOperation(value = "Gets array of the graders for a Respondant", response = Grader.class, responseContainer="List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Graders found")
 	   })	
@@ -60,7 +60,7 @@ public class GraderResource {
 	@GET
 	@Path("/user/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets all of the graders for a respondant", response = Grader.class, responseContainer="Page")
+	@ApiOperation(value = "Gets paged-results of the graders for a User", response = Grader.class, responseContainer="Page")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Graders found")
 	   })	
@@ -75,7 +75,7 @@ public class GraderResource {
 	@GET
 	@Path("/{id}/grade")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets all of the grades for grader", response = Grade.class, responseContainer="List")
+	@ApiOperation(value = "Gets list of the grades for grader", response = Grade.class, responseContainer="List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Grades found")
 	   })	
@@ -90,9 +90,9 @@ public class GraderResource {
 	@GET
 	@Path("/{id}/criteria")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets all of the criteria for a graded question", response = Question.class, responseContainer="List")
+	@ApiOperation(value = "Gets a list the criteria (questions) for a graded question", response = Question.class, responseContainer="List")
 	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Grades found")
+	     @ApiResponse(code = 200, message = "Criteria found")
 	   })	
 	public Response getCriteriaByGraderId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long questionId) {
 		log.debug("Requested grades by grader id {}", questionId);
@@ -111,12 +111,33 @@ public class GraderResource {
 	     @ApiResponse(code = 201, message = "Grade Saved"),
 	   })	
 	public Response saveQuestion(@ApiParam(value = "grade") Grade grade) {
-		log.debug("Requested question save: {}", grade);
+		log.debug("Requested grade save: {}", grade);
 		
 		Grade savedGrade = graderService.saveGrade(grade);
-		log.debug("Saved question {}", savedGrade);
+		log.debug("Saved grade {}", savedGrade);
 		
 		return Response.status(Status.CREATED).entity(savedGrade).build();
 	}	
 
+	@POST
+	@Path("/{id}/status")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Updates the status of specified grader", response = Grader.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 202, message = "Status update accepted"),
+	   })	
+	public Response updateGrader(@ApiParam(value = "grader id") @PathParam("id") Long graderId,
+			@ApiParam(value = "status code") @FormParam (value="status") int statusCode) {
+		log.debug("Requested grader id: {} status update to {}", graderId, statusCode);
+		Grader grader = graderService.getGraderById(graderId);
+		if (grader != null) {
+			grader.setStatus(statusCode);
+			Grader savedGrader = graderService.save(grader);
+			log.debug("Saved grader {}", savedGrader);	
+			return Response.status(Status.CREATED).entity(savedGrader).build();
+		} else {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+	}	
 }

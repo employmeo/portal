@@ -194,6 +194,35 @@ function getCriteria(thePortal) {
 	});
 }
 
+function saveGrade(thePortal, grade) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/grade",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(grade),
+		success: function(data) {
+			thePortal.logSavedGrade(data);
+		}
+	});
+}
+
+function updateGraderStatus(grader) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/"+grader.id+"/status",
+		data: 'status=' + grader.status,
+		processData: false,
+		success: function() {
+			// do nothing.
+		}
+	});
+}
 
 function sendInvitation(thePortal) {
 	$.ajax({

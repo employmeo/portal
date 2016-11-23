@@ -400,15 +400,18 @@ clientPortal.prototype.updateLastTen = function(data) {
 
 clientPortal.prototype.readyGradersTable = function(){
 	var thePortal = this;
-	this.rTable = $('#graders').DataTable( {
+	this.gTable = $('#graders').DataTable( {
 		responsive: true,
 		order: [[ 0, 'desc' ]],
+		rowId: 'id',
 		columns: [
-		          { responsivePriority: 8, className: 'text-left', title: 'Status', data: 'status'},
-		          { responsivePriority: 1, className: 'text-left', title: 'First Name', data: 'respondant.person.firstName'},
-		          { responsivePriority: 2, className: 'text-left', title: 'Last Name', data: 'respondant.person.lastName'},
-		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.questionText'},
-		          { responsivePriority: 4, className: 'text-left', title: 'Response', data: 'response.responseMedia',
+		          { responsivePriority: 1, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
+		        	  	if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Incomplete';
+		          }},
+		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'respondant.person.firstName'},
+		          { responsivePriority: 3, className: 'text-left', title: 'Last Name', data: 'respondant.person.lastName'},
+		          { responsivePriority: 4, className: 'text-left', title: 'Question', data: 'question.questionText'},
+		          { responsivePriority: 5, className: 'text-left', title: 'Response', data: 'response.responseMedia',
 		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} }
 		         ]
 	});
@@ -464,8 +467,8 @@ clientPortal.prototype.showGraders = function() {
 	var thePortal = this;	
 	if (this.myGraders.content.length > 0) {
 		$('#graders').dataTable().fnAddData(this.myGraders.content);
-		this.rTable.$('tr').click(function (){
-			thePortal.rTable.$('tr.selected').removeClass('selected');
+		this.gTable.$('tr').click(function (){
+			thePortal.gTable.$('tr.selected').removeClass('selected');
 			$(this).addClass('selected');
 			thePortal.grader = $('#graders').dataTable().fnGetData(this);
 			if (thePortal.grader.criteria == null) { 
@@ -486,6 +489,8 @@ clientPortal.prototype.showGradesPanel = function() {
 	$('#gradername').html(this.grader.respondant.person.firstName + ' ' +
 			this.grader.respondant.person.lastName);
 	$('#graderquestion').html(this.grader.question.questionText);
+	$('#gradedate').text('Requested: ' + '11-16-2016');
+	$('#gradecompletion').text(this.grader.grades.length + ' of ' + this.grader.criteria.length + ' Completed');
 	$('#playmediadiv').empty();
 	$('#playmediadiv').append($('<i />', {
 		'id' : 'playbutton_' + id,
@@ -504,6 +509,14 @@ clientPortal.prototype.showGradesPanel = function() {
 	
 
 clientPortal.prototype.createGradeForm = function (criterion) {
+	var grade = {'id':'','gradeText':'','gradeValue':''};
+	if (this.grader.grades.length > 0) {
+		this.checkGraderStatus(this.grader);
+	}
+	for (var i=0;i<this.grader.grades.length;i++) {
+		if (criterion.questionId == this.grader.grades[i].questionId) grade = this.grader.grades[i];
+	}
+	
 	var form =  $('<form/>', {
 		 'name' : 'grade_'+this.grader.id + '_cr_' +criterion.questionId,
 		 'id' : 'grade_'+this.grader.id + '_cr_' +criterion.questionId
@@ -512,7 +525,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 		name : 'id',
 		type : 'hidden',
 		id : 'gr_'+this.grader.id + '_cr_' +criterion.questionId,
-		value : ''
+		value : grade.id
 	}));
 	form.append($('<input/>', {
 		name : 'graderId',
@@ -531,17 +544,21 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 	switch(criterion.questionType) {
 		case 2:
 			var like = $('<div />', {'class' : 'col-xs-6 col-sm-6 col-md-6 text-center'});
-			like.append($('<input />', {
+			var radioLike =	$('<input />', {
 				'id'   : 'radiobox-' + criterion.questionId +"-1",
 				'type' : 'radio', 'class' : 'thumbs-up', 'name' : 'gradeValue',
-				'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');', 'value' :  '10'}));
+				'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');', 'value' :  '11'});
+			if (11 == grade.gradeValue) radioLike.prop('checked', true);
+			like.append(radioLike);
 			like.append($('<label />', {
 				'for'   : 'radiobox-' + criterion.questionId +"-1", 'class' : 'thumbs-up' }));
 			var dislike = $('<div />', {'class' : 'col-xs-6 col-sm-6 col-md-6 text-center'});
-			dislike.append($('<input />', {
+			var radioDislike =$('<input />', {
 				'id'   : 'radiobox-' + criterion.questionId +"-2",
 				'type' : 'radio', 'class' : 'thumbs-down', 'name' : 'gradeValue',
-				'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');', 'value' :  '1'}));
+				'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');', 'value' :  '1'});
+			if (1 == grade.gradeValue) radioDislike.prop('checked', true);
+			dislike.append(radioDislike);
 			dislike.append($('<label />', {
 				'for'   : 'radiobox-' + criterion.questionId +"-2", 'class' : 'thumbs-down' }));
 			ansdiv.append(like);
@@ -552,14 +569,16 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 			ansdiv.addClass('stars');
 			for (var i=5;i>0;i--) {
 				var ans = 2 *i;
-				ansdiv.append($('<input/>',{
+				var star =$('<input/>',{
 					'class' : 'star star-' + i,
 					'id' : 'star-' + i + '-' + criterion.questionId,
 					'type': 'radio',
 					'name': "gradeValue",
 					'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');',
 					'value': ans
-				}));
+				});
+				if (ans == grade.gradeValue) star.prop('checked', true);
+				ansdiv.append(star);
 				ansdiv.append($('<label />',{
 					'class' : 'star star-' + i,
 					'for' : 'star-' + i + '-' + criterion.questionId,
@@ -574,13 +593,55 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 }
 
 clientPortal.prototype.submitGrade = function(graderId, questionId) {
+	var thePortal = this;
 	var formname = 'grade_' + graderId + '_cr_' + questionId;
 	var fields = $('#'+formname).serializeArray();
 	var grade = {};
 	for (var i=0;i<fields.length;i++) {
 		grade[fields[i].name] = fields[i].value;
 	}
-	console.log(grade);
+	$('#'+formname+ " :input").prop('disabled', true);
+	saveGrade(thePortal, grade);
+}
+
+clientPortal.prototype.logSavedGrade = function(grade) {
+	var fieldname = 'gr_' + grade.graderId + '_cr_' + grade.questionId;
+	var formname = 'grade_' + grade.graderId + '_cr_' + grade.questionId;
+	$('#'+fieldname).val(grade.id);
+	$('#'+formname+ " :input").prop('disabled', false);
+
+	var updatedGrader = this.gTable.row('#'+grade.graderId).data();
+	if (grade.graderId == updatedGrader.id) {
+		var newGrade = true;
+		for (var i=0;i<updatedGrader.grades.length;i++) {
+			if (grade.questionId == updatedGrader.grades[i].questionId) {
+				updatedGrader.grades[i].gradeValue = grade.gradeValue;
+				updatedGrader.grades[i].gradeText = grade.gradeText;
+				newGrade = false;
+				break;
+			}
+		}
+		if (newGrade) {
+			updatedGrader.grades.push(grade);
+			this.checkGraderStatus(updatedGrader);
+		}
+	}
+};
+
+clientPortal.prototype.checkGraderStatus = function(updatedGrader) {
+	if (updatedGrader.id == this.grader.id) {
+		$('#gradecompletion').text(this.grader.grades.length + ' of ' + this.grader.criteria.length + ' Completed');		
+	}
+	
+	var shouldBe = 1;
+	if (updatedGrader.grades.length > 0) shouldBe = 5;
+	if (updatedGrader.grades.length >= updatedGrader.criteria.length) shouldBe = 10;
+	
+	if (updatedGrader.status != shouldBe) {
+		updatedGrader.status = shouldBe;
+		updateGraderStatus(updatedGrader); // this is aynch
+		this.gTable.row('#'+updatedGrader.id).data(updatedGrader).draw();
+	}
 }
 
 clientPortal.prototype.getAssessmentBy = function(asid) {
@@ -588,6 +649,7 @@ clientPortal.prototype.getAssessmentBy = function(asid) {
 		var assessment = this.assessmentList[key];
 		if (asid == assessment.id) return assessment;
 	}
+	
 	return null;
 }
 
