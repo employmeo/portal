@@ -96,9 +96,9 @@ clientPortal.prototype.loginSuccess = function(data) {
 }
 
 clientPortal.prototype.loginFail = function(data) {
-	$("#wait").removeClass('hidden');
-	$('#loginresponse').text('');
-	$('#login').toggleClass('hidden');
+	$("#wait").addClass('hidden');
+	$('#loginresponse').text(data.responseText);
+	$('#login').removeClass('hidden');
 }
 
 clientPortal.prototype.logout = function () {
@@ -194,7 +194,7 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 	return;
 }
 
-clientPortal.prototype.readyDashBoard = function() {
+clientPortal.prototype.initDashBoard = function() {
 	if (Object.keys(this.dashParams).length > 0) {
 		// code to put the dashboard details in the right place.
 		// set date range
@@ -398,7 +398,7 @@ clientPortal.prototype.updateLastTen = function(data) {
 	}
 }
 
-clientPortal.prototype.readyGradersTable = function(){
+clientPortal.prototype.initGradersTable = function(){
 	var thePortal = this;
 	this.gTable = $('#graders').DataTable( {
 		responsive: true,
@@ -697,8 +697,9 @@ clientPortal.prototype.initRespondantsTable = function() {
 	this.rTable = $('#respondants').DataTable( {
 		responsive: true,
 		order: [[ 0, 'desc' ]],
+		rowId: 'id',
 		columns: [
-		          { responsivePriority: 1, className: 'text-center', title: 'Score', data: 'profileRecommendation', 
+		          { responsivePriority: 1, className: 'text-left', title: 'Score', data: 'profileRecommendation', 
 		        	  render : function ( data, type, row ) {
 		        		  return thePortal.getProfileBadge(thePortal.getProfile(data)).wrap("<div />").parent().html();
 		        	  }
@@ -711,6 +712,11 @@ clientPortal.prototype.initRespondantsTable = function() {
 		          },
 		          { responsivePriority: 8, className: 'text-left', title: 'Location', data: 'locationId', 
 		        	  render : function ( data, type, row ) {return thePortal.getLocationBy(data).locationName;}
+		          },
+		          { responsivePriority: 9, className: 'text-left', title: 'Actions', data: 'status', 
+		        	  render : function ( data, type, row ) {
+		        		  return thePortal.renderRespondantActions(row).html();
+		        	  }
 		          }
 		         ]
 	});
@@ -721,6 +727,32 @@ clientPortal.prototype.initRespondantsTable = function() {
 		this.updateRespondantsTable();
 	}
 }
+
+clientPortal.prototype.renderRespondantActions = function(respondant) {
+	var cell = $('<td />');
+	switch (respondant.respondantStatus) {
+		case 1: // created or started
+			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'Send Reminder'}));
+			break;
+		case 6: // reminded already, but not finished
+			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'Remind Again'}));
+			break;
+		case 11: // ungraded
+			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'Edit Grades'}));
+			break;
+		case 13: // scored - not predicted
+			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'View Scores'}));
+		case 15: // predicted
+			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'View Prediction'}));
+			break;
+		case 10: // completed
+		case 12: // graded, but not scored
+		default:
+			break;
+	}
+	return cell;
+}
+
 
 clientPortal.prototype.searchRespondants = function() {
 	var thePortal = this;

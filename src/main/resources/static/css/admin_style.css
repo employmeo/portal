@@ -55,6 +55,7 @@ body.coverpage {
   text-align:center;
   display:table-cell;
   vertical-align:middle;
+  line-height: 35px;
   width:45px;
   height:45px;
   -moz-transition:.5s;
@@ -139,7 +140,6 @@ body.coverpage {
 }
 
 .selected {
-	outline: 1px #eee groove;
     background-color: #eee;
 }
 

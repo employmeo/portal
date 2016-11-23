@@ -259,26 +259,31 @@ function forgotPass() {
 	for (var i=0;i<fields.length;i++) {
 		fpr[fields[i].name] = fields[i].value;
 	}
+	$("#wait").removeClass('hidden');
+
 	$.ajax({
 		type: "POST",
 		async: true,
-		data : $('#forgotpassform').serialize(),
-		url: servicePath + "/forgotpassword",
+		url: servicePath + "forgotpassword",
 	    headers: { 
-	        'Accept': 'application/json',
 	        'Content-Type': 'application/json' 
 	    },
-	    dataType: 'json',
 		data : JSON.stringify(fpr),
-		success: function(data) {
+		success: function() {
 			// disable forms
 			$('#forgotpassform :submit').text('Request Sent');
 			$('#forgotpassform :input').prop('disabled', true);
-			$('#emailtoyou').text('An password reset request has been submitted. Please check your email for instructions to reset your password.');	
+			$("#wait").addClass('hidden');
+			$('#results').removeClass('hidden');
+			$('#results').text('An password reset request has been submitted. Please check your email for instructions to reset your password.');	
+			$('#results').css('color','white');	
 		},
 		error: function(data, textStatus, jqXHR) {
-			console.log(fpr, data, jqXHR);			
-		}
+			$('#results').removeClass('hidden');
+			$('#results').text('The email you provided was not found.');	
+			$('#results').css('color','red');	
+			$("#wait").addClass('hidden');
+		}	
 	});	
 }
 
