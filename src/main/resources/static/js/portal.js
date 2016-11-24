@@ -44,11 +44,15 @@ clientPortal.prototype.init = function() {
 }
 
 clientPortal.prototype.showLoginForm = function () {
-	$('#wait').toggleClass('hidden');			
-	$('#login').load('/components/login.htm');
+	$('#wait').toggleClass('hidden');
   	var imagenum = Math.floor(Math.random()*12+1);
   	$('#mainbody').addClass('coverpage');
 	$('#mainbody').css('background-image',"url('/images/background-" + imagenum + ".jpg')");
+	if (this.urlParams.hasOwnProperty('hash')){
+		$('#login').load('/components/reset.htm');		
+	} else {
+		$('#login').load('/components/login.htm');		
+	}
 }
 
 clientPortal.prototype.login = function () {
@@ -99,6 +103,20 @@ clientPortal.prototype.loginFail = function(data) {
 	$("#wait").addClass('hidden');
 	$('#loginresponse').text(data.responseText);
 	$('#login').removeClass('hidden');
+}
+
+clientPortal.prototype.requestPasswordChange = function() {
+	var fields = $('#newpasswordform').serializeArray();
+	this.cprf = {};
+	for (var i=0;i<fields.length;i++) {
+		this.cprf[fields[i].name] = fields[i].value;
+	}
+	if (this.cprf.newpass != this.cprf.confirmpass) {
+		$('#newpasswordresponse').text('Passwords do not match - please try again.');
+		return;
+	}
+	$("#wait").removeClass('hidden');
+	submitPasswordChangeRequest(this);
 }
 
 clientPortal.prototype.logout = function () {

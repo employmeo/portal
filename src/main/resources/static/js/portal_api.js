@@ -287,32 +287,25 @@ function forgotPass() {
 	});	
 }
 
-function resetPassword() {
+function submitPasswordChangeRequest(thePortal, cprf) {
 	$.ajax({
 		type: "POST",
-		url: servicePath + "/changepass",
+		url: servicePath + "changepass",
 		async: true,
 	    headers: { 
-	        'Accept': 'application/json',
 	        'Content-Type': 'application/json' 
 	    },
-	    dataType: 'json',
-		data : JSON.stringify({
-			'email' : email,
-			'hash' : hash,
-			'newpass' : $('input[name=newpass]').val()
-		}),
+		data : JSON.stringify(thePortal.cprf),
 		success: function(data) {
-			if (data.user_fname != null) {
-				// drop a cookie
-				document.cookie = "user_fname=" + data.user_fname;
-				window.location.assign('/index.jsp');
-			} else {
-				$('#errormsg').text('Unable to change your password. Please request another password reset.');
-			}
+			var formdata = {};
+			formdata.email = thePortal.cprf.email;
+			formdata.password = thePortal.cprf.newpass;
+			postLogin($.param(formdata),thePortal);
+			$('#login').addClass('hidden');
 		},
 		error: function(data) {
-			console.log(data);			
+			$('#wait').addClass('hidden');
+			$('#newpasswordresponse').text('Unable to change your password. Please try again or request another password reset.');		
 		}
 	});	
 }
