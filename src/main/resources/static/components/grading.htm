@@ -9,8 +9,19 @@
 			<div class="waiting hidden" id="waitingmodal">
 				<i class="fa fa-spinner fa-spin"></i>
 			</div>
+							<form class="form-inline pull-right" id='refinequery'>
+								<div class="form-group">
+									<div id="reportrange" class="form-control" style="line-height: 1.42857143;">
+									<i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+									<span></span> <b class="caret"></b>
+									</div>
+								    <input type=hidden name="fromdate" id='fromdate'>
+								    <input type=hidden name="todate" id='todate'>
+								</div>
+						   </form>	
 			<div class="x_title">
 				<h4>My Evaluations</h4>
+
 			</div>
 			<div class="x_content" id="grader_list">
 				<table id="graders" class="table display table-condensed" width="100%"></table>
@@ -46,6 +57,7 @@
 </div>
 <script type="text/javascript">
 	$(document).ready(function() {
+		portal.initializeDatePicker( function() {portal.searchGraders();});
 		portal.initGradersTable();
 	});
 </script>

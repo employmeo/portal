@@ -22,6 +22,7 @@ import com.employmeo.data.model.Grade;
 import com.employmeo.data.model.Grader;
 import com.employmeo.data.model.Question;
 import com.employmeo.data.service.GraderService;
+import com.talytica.portal.objects.GraderParams;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -134,10 +135,24 @@ public class GraderResource {
 		if (grader != null) {
 			grader.setStatus(statusCode);
 			Grader savedGrader = graderService.save(grader);
-			log.debug("Saved grader {}", savedGrader);	
+			log.debug("Saved grader {}", savedGrader);
 			return Response.status(Status.CREATED).entity(savedGrader).build();
 		} else {
 			return Response.status(Status.NOT_FOUND).build();
 		}
+	}
+	
+	@POST
+	@Path("/search")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets paged-results of the graders for a User", response = Grader.class, responseContainer="Page")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Graders found")
+	   })	
+	public Response searchGraders(@ApiParam(value = "Grader Search Params") @NotNull GraderParams params) {
+		log.debug("Requested graders by params {}", params);
+		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.fromdate, params.todate);
+		return Response.status(Status.OK).entity(graders).build();
 	}	
 }

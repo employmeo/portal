@@ -275,7 +275,7 @@ function forgotPass() {
 			$('#forgotpassform :input').prop('disabled', true);
 			$("#wait").addClass('hidden');
 			$('#results').removeClass('hidden');
-			$('#results').text('An password reset request has been submitted. Please check your email for instructions to reset your password.');	
+			$('#results').text('A password reset request has been submitted. Please check your email for instructions to reset your password.');	
 			$('#results').css('color','white');	
 		},
 		error: function(data, textStatus, jqXHR) {

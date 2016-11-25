@@ -4,9 +4,11 @@ Chart.defaults.global.defaultFontFamily = '"Helvetica Neue", Roboto, Arial, "Dro
 
 /* start: create the app */
 clientPortal = function() {
+    this.body = $('body');
+    this.leftcol = $('.left_col');
+    
 	this.urlParams = {};
 	this.user = {};
-
 	this.assessmentList = {};
 	this.positionList = {};
 	this.locationList = {};
@@ -70,7 +72,7 @@ clientPortal.prototype.loginSuccess = function(data) {
   	$('#mainbody').removeClass('coverpage');
 	$('#mainbody').css('background-image','');
 	$('#leftnav').load('/components/left.htm');
-	$('#topnav').load('/components/top.htm', function() {$('#user_fname').text(data.firstName);});
+	$('#topnav').load('/components/top.htm');
 	if (!this.urlParams.component) this.urlParams.component = 'dash';
 
 	if (this.urlParams.respondantUuid != null) {
@@ -99,6 +101,8 @@ clientPortal.prototype.loginSuccess = function(data) {
 	}
 }
 
+
+
 clientPortal.prototype.loginFail = function(data) {
 	$("#wait").addClass('hidden');
 	$('#loginresponse').text(data.responseText);
@@ -124,9 +128,6 @@ clientPortal.prototype.logout = function () {
 	postLogout();
 }
 
-clientPortal.prototype.showComponent = function(component) {
-	$('#mainpanel').load('/components/'+component+'.htm');
-}
 
 clientPortal.prototype.updateLocationSelect = function (detail) {
 	$.each(this.locationList, function (index, value) {
@@ -167,7 +168,7 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 	}
 
 	var optionSet1 = {
-			startDate: moment().subtract(29, 'days'),
+			startDate: moment().subtract(89, 'days'),
 			endDate: moment(),
 			minDate: '01/01/2012',
 			maxDate: moment().format('MM/DD/YYYY'),
@@ -215,9 +216,13 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 clientPortal.prototype.initDashBoard = function() {
 	if (Object.keys(this.dashParams).length > 0) {
 		// code to put the dashboard details in the right place.
-		// set date range
-		// set location
-		// set position
+		var drp = $('#reportrange').data('daterangepicker');
+		drp.setStartDate(moment(this.dashParams.fromdate));
+		drp.setEndDate(moment(this.dashParams.todate));
+		$('#reportrange span').html(drp.startDate.format('MMMM D, YYYY') + ' - ' + drp.endDate.format('MMMM D, YYYY'));
+		$('#locationId').val(this.dashParams.locationId);
+		$('#positionId').val(this.dashParams.positionId);
+		
 		var dashData = this.dashResults;
 		this.updateDash(dashData)
 		var lastTenData = this.lastTenResults;
@@ -409,7 +414,7 @@ clientPortal.prototype.updateLastTen = function(data) {
 		
 		li.bind('click', function() {
 			thePortal.respondant = $(this).data('respondant');
-			thePortal.showComponent('respondant_score');
+			thePortal.showComponent('candidate_detail');
 		});
 		
 		$('#recentcandidates').append(li);
@@ -423,23 +428,39 @@ clientPortal.prototype.initGradersTable = function(){
 		order: [[ 0, 'desc' ]],
 		rowId: 'id',
 		columns: [
-		          { responsivePriority: 1, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
-		        	  	if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Incomplete';
+		          { responsivePriority: 3, className: 'text-left', title: 'Date', data: 'createdDate', render: function ( data, type, row) {
+		        	  return moment(data).format('MM-DD-YY');
 		          }},
-		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'respondant.person.firstName'},
-		          { responsivePriority: 3, className: 'text-left', title: 'Last Name', data: 'respondant.person.lastName'},
-		          { responsivePriority: 4, className: 'text-left', title: 'Question', data: 'question.questionText'},
-		          { responsivePriority: 5, className: 'text-left', title: 'Response', data: 'response.responseMedia',
+		          { responsivePriority: 1, className: 'text-left', title: 'Candidate', data: 'respondant.person' ,
+		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
+		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
+		        	  	if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Started';
+		          }},
+		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.questionText'},
+		          { responsivePriority: 4, className: 'text-left', title: 'Response', data: 'response.responseMedia',
 		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} }
 		         ]
 	});
 	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
 	
 	if (!this.myGraders) {
-		getGraders(thePortal);
+		this.searchGraders();
 	} else {
+		var drp = $('#reportrange').data('daterangepicker');
+		drp.setStartDate(moment(this.graderParams.fromdate));
+		drp.setEndDate(moment(this.graderParams.todate));
+		$('#reportrange span').html(drp.startDate.format('MMMM D, YYYY') + ' - ' + drp.endDate.format('MMMM D, YYYY'));
 		this.showGraders();
 	}
+}
+
+clientPortal.prototype.searchGraders = function() {
+	this.graderParams ={};
+	this.graderParams.userId = this.user.id;
+	this.graderParams.status = [1,5,10];
+	this.graderParams.fromdate = $('#fromdate').val();
+	this.graderParams.todate = $('#todate').val();
+	getGraders(this);
 }
 
 clientPortal.prototype.renderAudioLink = function(row, link) {
@@ -484,6 +505,7 @@ clientPortal.prototype.saveGraders = function(data) {
 clientPortal.prototype.showGraders = function() {
 	var thePortal = this;	
 	if (this.myGraders.content.length > 0) {
+		$('#graders').dataTable().fnClearTable();
 		$('#graders').dataTable().fnAddData(this.myGraders.content);
 		this.gTable.$('tr').click(function (){
 			thePortal.gTable.$('tr.selected').removeClass('selected');
@@ -718,50 +740,60 @@ clientPortal.prototype.initRespondantsTable = function() {
 		rowId: 'id',
 		columns: [
 		          { responsivePriority: 1, className: 'text-left', title: 'Score', data: 'profileRecommendation', 
-		        	  render : function ( data, type, row ) {
-		        		  return thePortal.getProfileBadge(thePortal.getProfile(data)).wrap("<div />").parent().html();
-		        	  }
-		          },
-		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person.firstName'},
-		          { responsivePriority: 3, className: 'text-left', title: 'Last Name', data: 'person.lastName'},
-		          { responsivePriority: 6, className: 'text-left', title: 'Email', data: 'person.email'},
+		        	  render : function ( data, type, row ) { return '<div>' + 
+		        		  thePortal.getProfileBadge(thePortal.getProfile(data)).wrap("<div />").parent().html() + '</div>';}},
+		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person',
+		        	  render : function ( data, type, row ) { return data.firstName + ' ' + data.lastName; }},
+		          { responsivePriority: 3, className: 'text-left', title: 'Email', data: 'person.email'},
 		          { responsivePriority: 7, className: 'text-left', title: 'Position', data: 'positionId', 
-		        	  render : function ( data, type, row ) {return thePortal.getPositionBy(data).positionName;}
-		          },
+		        	  render : function ( data, type, row ) { return thePortal.getPositionBy(data).positionName;}},
 		          { responsivePriority: 8, className: 'text-left', title: 'Location', data: 'locationId', 
-		        	  render : function ( data, type, row ) {return thePortal.getLocationBy(data).locationName;}
-		          },
+		        	  render : function ( data, type, row ) { return thePortal.getLocationBy(data).locationName;}},
 		          { responsivePriority: 9, className: 'text-left', title: 'Actions', data: 'status', 
-		        	  render : function ( data, type, row ) {
-		        		  return thePortal.renderRespondantActions(row).html();
-		        	  }
-		          }
+		        	  render : function ( data, type, row ) { return thePortal.renderRespondantActions(row).html();}}
 		         ]
 	});
 	$.fn.dataTable.ext.errMode = 'none';
 	if (this.searchResults == null) {
 		this.searchRespondants();
 	} else {
+		// put params in 
+		var drp = $('#reportrange').data('daterangepicker');
+		drp.setStartDate(moment(this.respParams.fromdate));
+		drp.setEndDate(moment(this.respParams.todate));
+		$('#reportrange span').html(drp.startDate.format('MMMM D, YYYY') + ' - ' + drp.endDate.format('MMMM D, YYYY'));
+		$('#locationId').val(this.respParams.locationId);
+		$('#positionId').val(this.respParams.positionId);
 		this.updateRespondantsTable();
 	}
 }
 
 clientPortal.prototype.renderRespondantActions = function(respondant) {
 	var cell = $('<td />');
+	var thePortal = this;
 	switch (respondant.respondantStatus) {
 		case 1: // created or started
-			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'Send Reminder'}));
+			cell.append($('<button />',{
+				'class':'btn-primary btn-xs',
+				'text':'Remind',
+				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.sendApplicantReminder();'
+			}));
 			break;
 		case 6: // reminded already, but not finished
-			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'Remind Again'}));
+			cell.append($('<button />',{
+				'class':'btn-primary btn-xs',
+				'text':'Remind Again',
+				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.sendApplicantReminder();'
+			}));
 			break;
 		case 11: // ungraded
-			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'Edit Grades'}));
-			break;
 		case 13: // scored - not predicted
-			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'View Scores'}));
 		case 15: // predicted
-			cell.append($('<button />',{'class':'btn-primary btn-xs','text':'View Prediction'}));
+			cell.append($('<button />',{
+				'class':'btn-primary btn-xs',
+				'text':'View Detail',
+				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.showComponent("candidate_detail");'
+			}));
 			break;
 		case 10: // completed
 		case 12: // graded, but not scored
@@ -792,6 +824,7 @@ clientPortal.prototype.searchRespondants = function() {
 clientPortal.prototype.updateRespondantsTable = function() {	
 	var thePortal = this;
 	if (this.searchResults.content.length > 0) {
+		$('#respondants').dataTable().fnClearTable();
 		$('#respondants').dataTable().fnAddData(this.searchResults.content);
 		this.rTable.$('tr').click(function (){
 			thePortal.rTable.$('tr.selected').removeClass('selected');
@@ -799,11 +832,11 @@ clientPortal.prototype.updateRespondantsTable = function() {
 			thePortal.respondant = $('#respondants').dataTable().fnGetData(this);
 			thePortal.renderAssessmentScore(false);
 		});
-		this.rTable.on('click', 'i', function (){
-			thePortal.respondant = thePortal.rTable.row($(this).parents('tr')).data();
-			thePortal.showComponent('respondant_score');
-		});
 	}
+}
+
+clientPortal.prototype.setRespondantTo = function(respondantId) {
+	this.respondant = this.rTable.row('#'+respondantId).data();
 }
 
 //Section for looking at / manipulating assessments
@@ -1165,7 +1198,10 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
 	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
 	
-	$('#assessmentresults').empty();
+	
+	var resultsDiv = $('#assessmentresults');
+	if (detail) resultsDiv = $('#detailassessmentresults');
+	resultsDiv.empty();
 	
 	var displaygroup = "";
 	// sorting happens here?
@@ -1192,7 +1228,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 				displaygroup = corefactor.displayGroup;
 				var grouprow = $('<tr />');
 				grouprow.append($('<th />', {'style':'text-align:center;'}).append($('<h4 />',{text:displaygroup})));
-				$('#assessmentresults').append(grouprow);
+				resultsDiv.append(grouprow);
 			}
 			
 			var namediv = $('<div />', {
@@ -1223,7 +1259,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 			cell.append(progress); 
 		}
 		row.append(cell);
-		$('#assessmentresults').append(row);
+		resultsDiv.append(row);
 
 		if (detail) {
 			var messageRow = $('<tr />',{
@@ -1234,7 +1270,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 				'border-top' : 'none',
 				'text' : this.prepPersonalMessage(corefactor.description)
 			}));
-			$('#assessmentresults').append(messageRow);
+			resultsDiv.append(messageRow);
 		}
 		
 	}
@@ -1259,7 +1295,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		legend.append(div);
 	}
 	var footer = $('<tr />').append($('<td />', {'style':'background-color:#eee;'}).append(legend));
-	$('#assessmentresults').append(footer);
+	resultsDiv.append(footer);
 
 
 }
@@ -1507,6 +1543,115 @@ clientPortal.prototype.uploadPayroll = function(e) {
 }
 
 
+// Navigation and UI functions.
+clientPortal.prototype.readyLeftNav = function() {
+	var thePortal = this;
+    var URL = window.location; //
+    this.sidebar = $('#sidebar-menu');
+    this.sidebar_footer = $('.sidebar-footer');
+
+    this.sidebar.find('li ul').slideUp();
+    this.sidebar.find('li').removeClass('active');
+    this.sidebar.find('li').on('click', function(ev) {
+    	var link = $('a', this).attr('href');
+    	// prevent event bubbling on parent menu
+    	if (link) {
+    		ev.stopPropagation();
+    	} 
+    	// execute slidedown if parent menu
+    	else {
+    		if ($(this).is('.active')) {
+    			$(this).removeClass('active');
+    			$('ul', this).slideUp();
+	        } else {
+	            thePortal.sidebar.find('li').removeClass('active');
+	            thePortal.sidebar.find('li ul').slideUp();
+	            
+	            $(this).addClass('active');
+	            $('ul', this).slideDown();
+	        }
+	    }
+    });
+    
+}
+
+clientPortal.prototype.readyTopNav  =function() {
+	$('#user_fname').text(this.user.firstName);
+    this.menutoggle = $('#menu_toggle');
+    var thePortal = this;
+    this.menutoggle.on('click', function() {
+        if (thePortal.body.hasClass('nav-md')) {
+        	thePortal.body.removeClass('nav-md').addClass('nav-sm');
+        	thePortal.leftcol.removeClass('scroll-view').removeAttr('style');
+        	thePortal.sidebar_footer.hide();
+
+            if (thePortal.sidebar.find('li').hasClass('active')) {
+            	thePortal.sidebar.find('li.active').addClass('active-sm').removeClass('active');
+            }
+        } else {
+        	thePortal.body.removeClass('nav-sm').addClass('nav-md');
+            thePortal.sidebar_footer.show();
+
+            if (thePortal.sidebar.find('li').hasClass('active-sm')) {
+            	thePortal.sidebar.find('li.active-sm').addClass('active').removeClass('active-sm');
+            }
+        }
+    });
+}
+
+
+clientPortal.prototype.showComponent = function(component) {
+	$('#mainpanel').load('/components/'+component+'.htm');
+	
+    this.sidebar.find('a[href="' + URL + '"]').parent('li').addClass('current-page');
+
+    this.sidebar.find('a').filter(function () {
+        return this.href == URL;
+    }).parent('li').addClass('current-page').parent('ul').slideDown().parent().addClass('active'); 
+
+}
+
+clientPortal.prototype.activateUIElements = function() {
+	
+	// Close ibox function
+	$('.close-link').click(function () {
+	    var content = $(this).closest('div.x_panel');
+	    content.remove();
+	});
+	
+	// Collapse ibox function
+	$('.collapse-link').click(function () {
+		console.log('clicked');
+	    var x_panel = $(this).closest('div.x_panel');
+	    var button = $(this).find('i');
+	    var content = x_panel.find('div.x_content');
+	    content.slideToggle(200);
+	    (x_panel.hasClass('fixed_height_390') ? x_panel.toggleClass('').toggleClass('fixed_height_390') : '');
+	    (x_panel.hasClass('fixed_height_320') ? x_panel.toggleClass('').toggleClass('fixed_height_320') : '');
+	    button.toggleClass('fa-chevron-up').toggleClass('fa-chevron-down');
+	    setTimeout(function () {
+	        x_panel.resize();
+	    }, 50);
+	});
+
+
+	// Accordion
+	$(function () {
+	    $(".expand").on("click", function () {
+	        $(this).next().slideToggle(200);
+	        $expand = $(this).find(">:first-child");
+
+	        if ($expand.text() == "+") {
+	            $expand.text("-");
+	        } else {
+	            $expand.text("+");
+	        }
+	    });
+	});
+	
+}
+
+// Helper Functions:
 function cdf(x, mean, variance) {
 	  return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2) * variance)));
 }

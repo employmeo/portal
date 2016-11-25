@@ -289,6 +289,25 @@ input.thumbs-down:checked+label.thumbs-down:before { content: '\f165'; padding-r
 input.thumbs-up:checked+label.thumbs-up, input.thumbs-down:checked+label.thumbs-down { color: #0080ff;}
 
 
+input.namecheck { display: none; }
+label.namecheck {
+  background-color: white;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 12px;
+  border-style: solid;
+  border-width: 1px;
+  color: #337ab7;
+  transition: all .2s;
+  padding: 3px;
+}
+
+input.namecheck:checked+label.namecheck {
+	background-color: #337ab7;
+	color: white;
+	font-weight: bold;
+}
+
 @media (max-width: 767px) {
   .squaretext {
     font-size: 6.5vw;
