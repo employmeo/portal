@@ -1,5 +1,6 @@
 package com.talytica.portal.resources;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.constraints.NotNull;
@@ -56,7 +57,27 @@ public class GraderResource {
 		List<Grader> graders = graderService.getGradersByRespondantId(respondantId);
 		return Response.status(Status.OK).entity(graders).build();
 
+	}
+	
+	@GET
+	@Path("/respondant/{id}/grades")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets array of the grades for a Respondant", response = Grade.class, responseContainer="List")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Graders found")
+	   })	
+	public Response getGradesForRespondantId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
+		log.debug("Requested grades by respondant id {}", respondantId);
+
+		List<Grader> graders = graderService.getGradersByRespondantId(respondantId);
+		List<Grade> grades = new ArrayList<Grade>();
+
+		for (Grader grader : graders) {
+		    grades.addAll(graderService.getGradesByGraderId(grader.getId()));
+		}	
+		return Response.status(Status.OK).entity(grades).build();
 	}	
+	
 	
 	@GET
 	@Path("/user/{id}")

@@ -450,7 +450,7 @@ clientPortal.prototype.initGradersTable = function(){
 		drp.setStartDate(moment(this.graderParams.fromdate));
 		drp.setEndDate(moment(this.graderParams.todate));
 		$('#reportrange span').html(drp.startDate.format('MMMM D, YYYY') + ' - ' + drp.endDate.format('MMMM D, YYYY'));
-		this.showGraders();
+		this.updateGradersTable(this.myGraders);
 	}
 }
 
@@ -497,12 +497,8 @@ clientPortal.prototype.togglePlayMedia = function(id) {
 	};
 }
 
-clientPortal.prototype.saveGraders = function(data) {
+clientPortal.prototype.updateGradersTable = function(data) {
 	this.myGraders = data;
-	this.showGraders();
-}
-
-clientPortal.prototype.showGraders = function() {
 	var thePortal = this;	
 	if (this.myGraders.content.length > 0) {
 		$('#graders').dataTable().fnClearTable();
@@ -1125,18 +1121,18 @@ clientPortal.prototype.changePositionTo = function(id) {
 	this.updateCriticalFactorsChart();
 }
 clientPortal.prototype.showAllDetails = function() {
-	for (i in detailedScores) {
-		var score = detailedScores[i];
-		showDetail(score.corefactor_id);
+	for (i in this.respondant.respondantScores) {
+		var score = this.respondant.respondantScores[i];
+		this.showDetail(score.corefactorId);
 	}
 	$('#hideall').removeClass('hidden');
 	$('#showall').addClass('hidden');
 }
 
 clientPortal.prototype.hideAllDetails = function() {
-	for (i in detailedScores) {
-		var score = detailedScores[i];
-		hideDetail(score.corefactor_id);
+	for (i in this.respondant.respondantScores) {
+		var score = this.respondant.respondantScores[i];
+		this.hideDetail(score.corefactorId);
 	}	
 	$('#showall').removeClass('hidden');
 	$('#hideall').addClass('hidden');
@@ -1148,7 +1144,6 @@ clientPortal.prototype.showDetail = function(cfid) {
 	$('#expander_' + cfid).removeClass('fa-plus-square-o');
 	$('#expander_' + cfid).addClass('fa-minus-square-o');
 }
-
 
 clientPortal.prototype.hideDetail = function(cfid) {
 	$('#cfmessage_' + cfid).addClass('hidden');
@@ -1169,8 +1164,17 @@ clientPortal.prototype.inviteApplicant = function () {
 }
 
 
-clientPortal.prototype.prepPersonalMessage = function(message) {
+clientPortal.prototype.prepPersonalMessage = function(score) {
+	
+	var corefactor = this.getCorefactorBy(score.corefactorId);
+	var message = null;
+	for (var i in corefactor.corefactorDescriptions) {
+		var desc = corefactor.corefactorDescriptions[i];
+		if ((score.value >= desc.lowEnd) && (score.value <= desc.highEnd)) message = desc.description;
+	}
 	var pm = message;
+	
+	
 	if (pm != null) {
 		pm = pm.replace(new RegExp("\\[FNAME\\]","g"),this.respondant.person.firstName);
 		pm = pm.replace(new RegExp("\\[LNAME\\]","g"),this.respondant.person.lastName);
@@ -1268,7 +1272,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 			}).append($('<td />',{
 				'bgcolor' : '#F7F7F7',
 				'border-top' : 'none',
-				'text' : this.prepPersonalMessage(corefactor.description)
+				'text' : this.prepPersonalMessage(scores[key])
 			}));
 			resultsDiv.append(messageRow);
 		}
@@ -1322,6 +1326,158 @@ clientPortal.prototype.getBarClass = function(quartile) {
 	return barclass;
 }
 
+clientPortal.prototype.initRespondantGraderTables = function() {
+	var thePortal = this;
+	this.rEvaluators = $('#evaluationstable').DataTable( {
+		responsive: true,
+		order: [[ 0, 'desc' ]],
+		rowId: 'id',
+		columns: [
+		          { responsivePriority: 1, className: 'text-left', title: 'Question', data: 'question.questionText'},
+		          { responsivePriority: 2, className: 'text-left', title: 'Response', data: 'response.responseMedia',
+		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} },
+		          { responsivePriority: 4, className: 'text-left', title: 'Status', data: 'completed', render : function ( data, type, row ) {
+		        	  return row.completed + ' of ' + row.evaluators;
+		          }},
+		          { responsivePriority: 3, className: 'details-control', title: 'Grades', orderable: false, defaultContent : '', data : null }
+		         ]
+	});
+	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.	
+	this.rReferences = $('#referencetable').DataTable( {
+		responsive: true,
+		order: [[ 0, 'desc' ]],
+		rowId: 'id',
+		columns: [
+		          { responsivePriority: 3, className: 'text-left', title: 'Date', data: 'createdDate', render: function ( data, type, row) {
+		        	  return moment(data).format('MM-DD-YY');
+		          }},
+		          { responsivePriority: 1, className: 'text-left', title: 'Candidate', data: 'respondant.person' ,
+		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
+		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
+		        	  	if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Started';
+		          }},
+		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.questionText'},
+		          { responsivePriority: 4, className: 'text-left', title: 'Response', data: 'response.responseMedia',
+		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} }
+		         ]
+	});
+	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
+	
+	if ((this.respondant !=null) && (this.respondant.graders != null)) {
+		console.log('got graders',this.respondant.graders);
+		this.updateRespondantGraderTables();	
+	} else if (this.respondant != null) {
+		$.when(getRespondantGraders(thePortal),getRespondantGrades(thePortal)).done( function () {
+				thePortal.updateRespondantGraderTables();}
+		);
+	}
+}
+
+clientPortal.prototype.updateRespondantGraderTables = function() {
+	var thePortal = this;
+	var evaluators = new Array();
+	var evaluations = new Array();
+	var referers = new Array();
+	var references = new Array();
+	for (key in this.respondant.graders) {
+		grader = this.respondant.graders[key];
+		grader.grades = new Array();
+		for (var i=0;i<this.respondant.grades.length;i++) {
+			if (grader.id == this.respondant.grades[i].graderId) grader.grades.push(this.respondant.grades[i]);
+		}
+		if (grader.type == 1) {
+			evaluators.push(grader);
+			Array.prototype.push.apply(evaluations, grader.grades);
+		} else {
+			referers.push(grader);
+			Array.prototype.push.apply(references, grader.grades);
+		}
+	}
+
+	if (evaluators.length > 0) {
+		var responses = new Array();
+		var criteria = {};
+		for (var i=0;i<evaluations.length;i++) {
+			if (!criteria.hasOwnProperty(evaluations[i].questionId)) criteria[(evaluations[i].questionId)] = new Array();
+			criteria[(evaluations[i].questionId)].push(evaluations[i])
+		}
+		for (var i=0;i<evaluators.length;i++) {
+		    if (responses[evaluators[i].responseId] == null) {
+		    	responses[evaluators[i].responseId] = {};
+		    	responses[evaluators[i].responseId].response = evaluators[i].response;
+		    	responses[evaluators[i].responseId].question = evaluators[i].question;
+		    	responses[evaluators[i].responseId].evaluators = 0;
+		    	responses[evaluators[i].responseId].completed = 0;
+		    	responses[evaluators[i].responseId].criteria = new Array();
+		    }
+		    if (evaluators[i].status <= 10) responses[evaluators[i].responseId].evaluators++;
+		    if (evaluators[i].status == 10) responses[evaluators[i].responseId].completed++;
+		    
+		    for (var key in evaluators[i].grades) {
+		    	if(responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId] == null) {
+		    		responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId] = {};
+		    		responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId].grades = new Array();
+		    		responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId].text =
+		    		    evaluators[i].grades[key].questionText;
+		    	}
+		    	responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId].grades.push(evaluators[i].grades[key]);
+		    }	    
+		}
+		
+		var tabledata = new Array();
+		for (var key in responses) {
+			tabledata.push(responses[key]);
+		}
+		console.log(tabledata);
+		$('#evaluationstable').dataTable().fnClearTable();
+		$('#evaluationstable').dataTable().fnAddData(tabledata);
+		$('#evaluations').removeClass('hidden');
+		this.rEvaluators.$('td.details-control').click(function (){
+	        var tr = $(this).closest('tr');
+	        var row = thePortal.rEvaluators.row( tr );
+	        if ( row.child.isShown() ) {
+	            row.child.hide();
+	            tr.removeClass('shown');
+	        }
+	        else {
+	            // Open this row
+	            row.child( thePortal.renderEvaluationsDetail(row.data())).show();
+	            tr.addClass('shown');
+	        }
+		});
+	} 
+	
+	if (references.length > 0) {
+		$('#referencetable').dataTable().fnClearTable();
+		$('#referencetable').dataTable().fnAddData(references);
+		$('#refrences').removeClass('hidden');	
+	} 
+}
+
+clientPortal.prototype.renderEvaluationsDetail = function(data) {
+	
+	var criteria = data.criteria;
+	if (criteria.length == 0) return 'Not evaluated yet';
+	var table = $('<table />', {'class' :'table table-condensed', 'style' :'margin:0px;'});
+	var titles = $('<tr />');
+	titles.append($('<th />',{ 'text' : 'Criteria'}));
+	titles.append($('<th />',{ 'text' : 'Average Score'}));
+	table.append(titles);
+	for (var key in criteria) {
+		var row = $('<tr />');
+		var gradetotal = 0;
+		var gradecount = 0;
+		row.append($('<td />',{ 'text' : criteria[key].text}));
+		for (var i=0;i<criteria[key].grades.length;i++) {
+			gradetotal += criteria[key].grades[i].gradeValue;
+			gradecount++;
+		}
+		var average = gradetotal/gradecount;
+		row.append($('<td />',{ 'text' : average.toFixed(1), 'class' : 'text-left'}));
+		table.append(row);
+	}
+    return table.wrap("<div />").parent().html();	
+}
 
 clientPortal.prototype.updateGradesTable = function(grades) {
 	$('#gradetable').empty();

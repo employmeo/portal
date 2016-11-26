@@ -167,7 +167,7 @@ function getGraders(thePortal) {
 		async: true,
 		url: servicePath + "grader/user/" + thePortal.user.id,
 		success: function(data) {
-			thePortal.saveGraders(data);
+			thePortal.updateGradersTable(data);
 		}
 	});
 }
@@ -181,6 +181,28 @@ function getGrades(thePortal) {
 			thePortal.grader.grades = data;
 		}
 	});	
+}
+
+function getRespondantGraders(thePortal) {	
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/respondant/" + thePortal.respondant.id,
+		success: function(data) {
+			thePortal.respondant.graders = data;
+		}
+	});
+}
+
+function getRespondantGrades(thePortal) {	
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/respondant/" + thePortal.respondant.id + "/grades",
+		success: function(data) {
+			thePortal.respondant.grades = data;
+		}
+	});
 }
 
 function getCriteria(thePortal) {

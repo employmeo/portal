@@ -308,6 +308,21 @@ input.namecheck:checked+label.namecheck {
 	font-weight: bold;
 }
 
+/***
+ *
+ *  Styles for data tables
+ *
+ */
+
+td.details-control {
+	background: url('/images/details_open.png') no-repeat center center;
+	cursor: pointer;
+}
+tr.shown td.details-control {
+	background: url('/images/details_close.png') no-repeat center center;
+}
+
+
 @media (max-width: 767px) {
   .squaretext {
     font-size: 6.5vw;
