@@ -309,7 +309,30 @@ function forgotPass() {
 	});	
 }
 
-function submitPasswordChangeRequest(thePortal, cprf) {
+function submitSignupRequest(thePortal){
+	$.ajax({
+		type: "POST",
+		url: servicePath + "signup",
+		async: true,
+	    headers: { 
+	        'Content-Type': 'application/json' 
+	    },
+		data : JSON.stringify(thePortal.signuprequest),
+		success: function(data) {
+			$('#wait').addClass('hidden');
+			$('#signupform :submit').text('Signed Up!');
+			$('#signupform :input').prop('disabled', true);
+			$('#signupresponse').css('color','white');
+			$('#signupresponse').text('Thank You. We have sent you an email confirmation. Please check your email and follow the validation link.');
+		},
+		error: function(data, textStatus, jqXHR) {
+			$('#wait').addClass('hidden');
+			$('#signupresponse').text(data.responseText);		
+		}
+	});	
+}
+
+function submitPasswordChangeRequest(thePortal) {
 	$.ajax({
 		type: "POST",
 		url: servicePath + "changepass",

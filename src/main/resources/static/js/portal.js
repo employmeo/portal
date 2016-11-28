@@ -101,8 +101,6 @@ clientPortal.prototype.loginSuccess = function(data) {
 	}
 }
 
-
-
 clientPortal.prototype.loginFail = function(data) {
 	$("#wait").addClass('hidden');
 	$('#loginresponse').text(data.responseText);
@@ -122,6 +120,17 @@ clientPortal.prototype.requestPasswordChange = function() {
 	$("#wait").removeClass('hidden');
 	submitPasswordChangeRequest(this);
 }
+
+clientPortal.prototype.signup = function() {
+	var fields = $('#signupform').serializeArray();
+	this.signuprequest = {};
+	for (var i=0;i<fields.length;i++) {
+		this.signuprequest[fields[i].name] = fields[i].value;
+	}	
+	$("#wait").removeClass('hidden');
+	submitSignupRequest(this);
+}
+
 
 clientPortal.prototype.logout = function () {
 	$("#wait").removeClass('hidden');			
@@ -1364,7 +1373,6 @@ clientPortal.prototype.initRespondantGraderTables = function() {
 	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
 	
 	if ((this.respondant !=null) && (this.respondant.graders != null)) {
-		console.log('got graders',this.respondant.graders);
 		this.updateRespondantGraderTables();	
 	} else if (this.respondant != null) {
 		$.when(getRespondantGraders(thePortal),getRespondantGrades(thePortal)).done( function () {
@@ -1428,7 +1436,6 @@ clientPortal.prototype.updateRespondantGraderTables = function() {
 		for (var key in responses) {
 			tabledata.push(responses[key]);
 		}
-		console.log(tabledata);
 		$('#evaluationstable').dataTable().fnClearTable();
 		$('#evaluationstable').dataTable().fnAddData(tabledata);
 		$('#evaluations').removeClass('hidden');
@@ -1688,7 +1695,6 @@ clientPortal.prototype.uploadPayroll = function(e) {
 
 				});
 
-				console.log("Parsing complete:", results, file);
 			}
 		},
 		before : function(file, inputElem){},
@@ -1777,7 +1783,6 @@ clientPortal.prototype.activateUIElements = function() {
 	
 	// Collapse ibox function
 	$('.collapse-link').click(function () {
-		console.log('clicked');
 	    var x_panel = $(this).closest('div.x_panel');
 	    var button = $(this).find('i');
 	    var content = x_panel.find('div.x_content');

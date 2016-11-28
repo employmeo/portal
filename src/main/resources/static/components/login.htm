@@ -60,14 +60,14 @@
         <div id='signupdiv' class="col-xs-12 text-center hidden">
 	      <form name="signup" method="post" action="javascript:portal.signup();" id="signupform">
             <h1>Sign Up</h1>
-			<div class="clearfix"><span class='text-danger h4' id='loginresponse'></span></div>
+			<div class="clearfix"><span class='text-danger h4' id='signupresponse'></span></div>
 			<div class="clearfix" style="height: 15px;"></div>
 			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-user"></i></div>
 			  <input class="form-control" type="text" name="fullName" placeholder="Full Name" required></div></div>
 			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-envelope-o"></i></div>
 			  <input class="form-control" type="email" name="email" required placeholder="Business Email Address"></div></div>
 			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-briefcase"></i></div>
-			  <input class="form-control" type="text" name="address" id='address' placeholder="Company Name" required></div></div>			
+			  <input class="form-control" type="text" name="accountName" id='accountName' placeholder="Company Name" required></div></div>			
 			<div class="col-xs-12 col-sm-12 col-md-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-address-card-o"></i></div>
 			  <input class="form-control" type="text" name="address" id='address' placeholder="Company address" required></div></div>			
 			<div class="clearfix" style="height: 15px;"></div>
@@ -91,10 +91,12 @@
   <script>
   $(document).ready(function() {
     $('#address').geocomplete({details:'form'});
+
     if (portal.urlParams.hasOwnProperty('signup')) {
     	$('#logindiv').toggleClass('hidden');
     	$('#signupdiv').toggleClass('hidden');
     }
+    
   });
   </script>
   
