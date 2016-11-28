@@ -60,8 +60,8 @@ public class ApplicantInvitationResource {
 		// Perform business logic
 		Person applicant = new Person();
 		applicant.setEmail(invitation.email);
-		applicant.setFirstName(invitation.fname);
-		applicant.setLastName(invitation.lname);
+		applicant.setFirstName(invitation.firstName);
+		applicant.setLastName(invitation.lastName);
 		applicant.setAddress(invitation.address);
 		applicant.setLatitude(invitation.lat);
 		applicant.setLongitude(invitation.lng);
