@@ -71,6 +71,8 @@ public class ApplicantInvitationResource {
 		respondant.setPerson(savedApplicant);
 		respondant.setPersonId(savedApplicant.getId());
 		respondant.setAccountId(as.getAccountId());
+		respondant.setAccount(as.getAccount());
+		respondant.setAccountSurvey(as);
 		respondant.setAccountSurveyId(as.getId());
 
 		respondant.setLocationId(as.getAccount().getDefaultLocationId());
