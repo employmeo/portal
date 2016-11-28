@@ -6,7 +6,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
 
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.server.wadl.internal.WadlResource;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -29,7 +28,6 @@ public class PortalConfiguration extends ResourceConfig {
 
 	public PortalConfiguration() {
         registerEndpoints();
-        //register(RolesAllowedDynamicFeature.class);
 		log.info("=============== Portal Application Config Instantiated ===============");
 	}
 

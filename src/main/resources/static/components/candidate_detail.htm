@@ -1,0 +1,147 @@
+<div class="">
+	<div class="page-title">
+		<div class="title_left">
+			<h3 id='candidatename'></h3>
+		</div>
+		<div class="title_right">
+			<button id='backtosearch' class="btn btn-default hidden pull-right" type="button" onClick='portal.showComponent("completed_applications");'>
+				Back to Search Results</button>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+	<div class="row">
+		<div class="col-md-4 col-sm-4 col-xs-12">
+			<div class="x_panel">
+				<div class="x_title">
+				<h3>Application Details <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+				</div>
+				<div class="x_content" style="display:none;">
+					<div class="hidden profilebadge pull-left" id='candidateicon'>
+						<i class="fa fa-spinner fa-spin"></i>
+					</div>
+					<div class='row'>
+						<table class="table table-hover">
+							<tbody>
+								<tr title="email address">
+									<td><span><i class="fa fa-envelope"></i></span></td>
+									<td><span id='candidateemail'></span></td>
+								</tr>
+								<tr title="home address">
+									<td><span><i class="fa fa-home"></i></span></td>
+									<td><span id='candidateaddress'></span></td>
+								</tr>
+								<tr title="position applied to">
+									<td><span><i class="fa fa-briefcase"></i></span></td>
+									<td><span id='candidateposition'></span></td>
+								</tr>
+								<tr title="location applied to">
+									<td><span><i class="fa fa-map-marker"></i></span></td>
+									<td><span id='candidatelocation'></span></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="x_panel">
+				<div class="x_title">
+					<h3>Critical Trait Scores
+					  <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a>
+					</h3>
+				</div>
+				<div class="x_content">
+					<div>
+						<a href='#' onClick="portal.showComponent('assessment_results');" id='detailslink' class='pull-right'>More Detail</a>
+						<span id='assessmentdate' class='hidden'></span>
+						<h4 id='assessmentname'>Assessment</h4>
+					</div>
+					<div>
+						<table class='table table-hover'>
+							<tbody id='assessmentresults'>
+							</tbody>
+						</table>
+						<hr>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-8 col-sm-8 col-xs-12">
+			<div id='predictionpanel' class='x_panel'>
+				<div class="x_title">
+					<h3>Predictions
+					  <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a>
+					</h3>
+					<div class="clearfix"></div>
+				</div>
+				<div class="x_content">
+				    <h2>Composite Score: <span id='compositescore'></span></h2>
+					<h4 id='fulltextdesc'></h4>
+					<hr>
+					<div class='container fluid text-center' id='predictions'>
+					</div>
+					<hr>
+					<div class='container fluid text-center' id='histograms'>
+					</div>
+				</div>
+			</div>
+			<div id='assessmentscores' class='x_panel'>
+				<div class="x_title">
+					<h3>Assessment Scores <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+					<div class="clearfix"></div>
+				</div>
+				<div class="x_content">
+					<div>
+						<span id='assessmentdate' class='pull-right'>Date</span>
+						<h4 id='assessmentname'>Assessment</h4>
+						<span id='showall' class='pull-right'><a href="#" onclick="portal.showAllDetails()">Click <i class="fa fa-plus-square-o"></i> to show detailed explanations</a></span>
+						<span id='hideall' class='hidden pull-right'><a href="#" onclick="portal.hideAllDetails()">Click <i class="fa fa-minus-square-o"></i> to hide detailed explanations</a></span>
+					</div>
+					<div>
+						<table class='table table-hover'>
+							<tbody id='detailassessmentresults'>
+							</tbody>
+						</table>
+						<hr>
+					</div>
+				</div>
+			</div>
+			<div id='evaluations' class='x_panel hidden'>
+				<div class="x_title">
+					<h3>Evaluations <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+					<div class="clearfix"></div>
+				</div>
+				<div class="x_content">
+					<div>
+						<table id='evaluationstable' class='table table-hover'>
+							<tbody>
+							</tbody>
+						</table>
+						<hr>
+					</div>
+				</div>
+			</div>
+			<div id='references' class='x_panel hidden'>
+				<div class="x_title">
+					<h3>References <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+					<div class="clearfix"></div>
+				</div>
+				<div class="x_content">
+					<div>
+						<table id='referencetable' class='table table-hover'>
+							<tbody>
+							</tbody>
+						</table>
+						<hr>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</div>
+</div>
+<script>
+	portal.presentPredictions();
+	portal.renderAssessmentScore(true);
+	portal.initRespondantGraderTables();
+	portal.activateUIElements();
+	if (portal.searchResults != null) $('#backtosearch').toggleClass('hidden');
+</script>

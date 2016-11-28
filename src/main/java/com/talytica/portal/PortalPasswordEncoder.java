@@ -2,8 +2,6 @@ package com.talytica.portal;
 
 import java.security.MessageDigest;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
