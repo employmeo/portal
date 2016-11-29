@@ -1,6 +1,7 @@
 package com.talytica.portal.resources;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.constraints.NotNull;
@@ -42,6 +43,8 @@ public class GraderResource {
 	
 	@Autowired
 	GraderService graderService;
+	
+	private static final long ONE_DAY = 48*60*60*1000; // one day in milliseconds to add to the "to-date"
 	
 	
 	@GET
@@ -173,7 +176,8 @@ public class GraderResource {
 	   })	
 	public Response searchGraders(@ApiParam(value = "Grader Search Params") @NotNull GraderParams params) {
 		log.debug("Requested graders by params {}", params);
-		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.fromdate, params.todate);
+		Date newToDate = new Date(params.todate.getTime() + ONE_DAY);
+		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.fromdate, newToDate);
 		return Response.status(Status.OK).entity(graders).build();
 	}	
 }

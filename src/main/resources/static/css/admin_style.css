@@ -13,6 +13,10 @@ body.coverpage {
 audio {
 	width: 160px;
 }
+.table-condensed>tbody>tr>td {
+	vertical-align: middle;
+}
+
 /* 
  * Custom Stuff
  */

@@ -439,9 +439,14 @@ clientPortal.prototype.initGradersTable = function(){
 		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
 		        	  	if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Started';
 		          }},
-		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.questionText'},
+		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.description'},
 		          { responsivePriority: 4, className: 'text-left', title: 'Response', data: 'response.responseMedia',
-		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} }
+		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} },
+		          { responsivePriority: 4, className: 'text-right', title: 'Ignore', data: 'id',
+			        	  render : function ( data, type, row ) {
+			        		  if (row.status < 10) return '<button class="btn btn-danger btn-xs" onClick=portal.ignoreGrader('+row.id+')>X</button>'; 
+		        	          return '';
+		        	      }} 
 		         ]
 	});
 	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
@@ -503,7 +508,8 @@ clientPortal.prototype.togglePlayMedia = function(id) {
 }
 
 clientPortal.prototype.updateGradersTable = function(data) {
-	this.myGraders = data;
+	this.myGraders = data;		
+	
 	var thePortal = this;	
 	if (this.myGraders.content != null) {
 		$('#graders').dataTable().fnClearTable();
@@ -526,6 +532,11 @@ clientPortal.prototype.updateGradersTable = function(data) {
 clientPortal.prototype.showGradesPanel = function() {
 
 	var thePortal = this;
+	if (this.grader == null) {
+		$("#grades").addClass('hidden'); 
+		$('#gradeforms').empty();
+		return;
+	}
 	var id = this.grader.id;
 	$('#gradername').html(this.grader.respondant.person.firstName + ' ' +
 			this.grader.respondant.person.lastName);
@@ -654,6 +665,7 @@ clientPortal.prototype.logSavedGrade = function(grade) {
 	var updatedGrader = this.gTable.row('#'+grade.graderId).data();
 	if (grade.graderId == updatedGrader.id) {
 		var newGrade = true;
+		if (updatedGrader.grades == null) updatedGrader.grades = new Array();
 		for (var i=0;i<updatedGrader.grades.length;i++) {
 			if (grade.questionId == updatedGrader.grades[i].questionId) {
 				updatedGrader.grades[i].gradeValue = grade.gradeValue;
@@ -668,6 +680,18 @@ clientPortal.prototype.logSavedGrade = function(grade) {
 		}
 	}
 };
+
+clientPortal.prototype.ignoreGrader = function(graderId) {
+
+	var ignoredGrader = this.gTable.row('#'+graderId).data();
+	ignoredGrader.status = 15; // Assume this is ignored status? needs to have an archived status
+	updateGraderStatus(ignoredGrader); // this is aynch - but don't care about response
+	this.gTable.row('#'+graderId).remove().draw();
+	this.grader = null;
+	this.showGradesPanel();
+}
+	
+
 
 clientPortal.prototype.checkGraderStatus = function(updatedGrader) {
 	if (updatedGrader.id == this.grader.id) {
