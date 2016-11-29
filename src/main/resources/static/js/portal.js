@@ -393,20 +393,14 @@ clientPortal.prototype.updateLastTen = function(data) {
 	for (var i = 0; i < respondants.length; i++ ) {
 		var profile = this.getProfile(respondants[i].profileRecommendation);
 		var theRespondant = respondants[i];
-
 		var li = $('<li />', { 'class' : 'media event' }).data('respondant',respondants[i]);
-
 		var div = $('<div />', {
 			'class' : profile.profileClass + ' profilebadge' 
 		}).append($('<i />', {'class' : "fa " + profile.profileIcon }));
-
 		var ico = $('<a />', {
 			'class' : "pull-left",
 		}).append(div);
-
-		var badge = $('<div />', { 'class' : 'media-body' });
-
-		
+		var badge = $('<div />', { 'class' : 'media-body' });		
 		$('<a />', {
 			'class' : 'title',
 			'text' : respondants[i].person.firstName + ' ' + respondants[i].person.lastName
@@ -459,6 +453,7 @@ clientPortal.prototype.initGradersTable = function(){
 		drp.setStartDate(moment(this.graderParams.fromdate));
 		drp.setEndDate(moment(this.graderParams.todate));
 		$('#reportrange span').html(drp.startDate.format('MMMM D, YYYY') + ' - ' + drp.endDate.format('MMMM D, YYYY'));
+		if (this.graderParams.status.length >2) $('#statusall').prop('checked',true);
 		this.updateGradersTable(this.myGraders);
 	}
 }
@@ -466,7 +461,8 @@ clientPortal.prototype.initGradersTable = function(){
 clientPortal.prototype.searchGraders = function() {
 	this.graderParams ={};
 	this.graderParams.userId = this.user.id;
-	this.graderParams.status = [1,5,10];
+	this.graderParams.status = [1,5];
+	if ($('#statusall').prop('checked')) this.graderParams.status.push(10);
 	this.graderParams.fromdate = $('#fromdate').val();
 	this.graderParams.todate = $('#todate').val();
 	getGraders(this);
@@ -509,7 +505,7 @@ clientPortal.prototype.togglePlayMedia = function(id) {
 clientPortal.prototype.updateGradersTable = function(data) {
 	this.myGraders = data;
 	var thePortal = this;	
-	if (this.myGraders.content.length > 0) {
+	if (this.myGraders.content != null) {
 		$('#graders').dataTable().fnClearTable();
 		$('#graders').dataTable().fnAddData(this.myGraders.content);
 		this.gTable.$('tr').click(function (){
@@ -744,9 +740,15 @@ clientPortal.prototype.initRespondantsTable = function() {
 		order: [[ 0, 'desc' ]],
 		rowId: 'id',
 		columns: [
-		          { responsivePriority: 1, className: 'text-left', title: 'Score', data: 'profileRecommendation', 
-		        	  render : function ( data, type, row ) { return '<div>' + 
-		        		  thePortal.getProfileBadge(thePortal.getProfile(data)).wrap("<div />").parent().html() + '</div>';}},
+		          { responsivePriority: 1, className: 'text-left', title: 'Score', data: 'compositeScore', 
+		        	  render : function ( data, type, row ) { 
+		        		    var badge = '<div style="display:inline-block;">' + 
+		        		      thePortal.getProfileBadge(thePortal.getProfile(row.profileRecommendation)).wrap("<div />").parent().html() + '</div>';
+		        		    var score = '<div style="display:inline-block;font-size:26px;line-height:30px;float:right;">' +
+		        		      Math.floor(data) + '</div>';
+		        		    return badge + score;
+		        		  }
+		          },
 		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person',
 		        	  render : function ( data, type, row ) { return data.firstName + ' ' + data.lastName; }},
 		          { responsivePriority: 3, className: 'text-left', title: 'Email', data: 'person.email'},
@@ -754,6 +756,7 @@ clientPortal.prototype.initRespondantsTable = function() {
 		        	  render : function ( data, type, row ) { return thePortal.getPositionBy(data).positionName;}},
 		          { responsivePriority: 8, className: 'text-left', title: 'Location', data: 'locationId', 
 		        	  render : function ( data, type, row ) { return thePortal.getLocationBy(data).locationName;}},
+			      { responsivePriority: 9, className: 'text-left', title: 'Status', data: 'status'},
 		          { responsivePriority: 9, className: 'text-left', title: 'Actions', data: 'status', 
 		        	  render : function ( data, type, row ) { return thePortal.renderRespondantActions(row).html();}}
 		         ]
@@ -1766,7 +1769,6 @@ clientPortal.prototype.showComponent = function(component) {
 	$('#mainpanel').load('/components/'+component+'.htm');
 	
     this.sidebar.find('a[href="' + URL + '"]').parent('li').addClass('current-page');
-
     this.sidebar.find('a').filter(function () {
         return this.href == URL;
     }).parent('li').addClass('current-page').parent('ul').slideDown().parent().addClass('active'); 

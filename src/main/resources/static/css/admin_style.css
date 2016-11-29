@@ -10,7 +10,9 @@ body.coverpage {
 	background-attachment: fixed;
 }
 
-
+audio {
+	width: 160px;
+}
 /* 
  * Custom Stuff
  */
@@ -230,7 +232,7 @@ body.coverpage {
  */
 
 div.stars {
-    width: 220px;
+    width: 230px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -247,18 +249,14 @@ label.star {
 input.star:checked ~ label.star:before {
   content: '\f005';
   color: #FE7;
-  text-shadow: 0 0 4px #cb4;
+  text-shadow: 0 0 8px #333;
   transition: all .25s;
-}
-input.star-5:checked ~ label.star:before {
+} 
+label.star:hover {
   color: #FE7;
-  text-shadow: 0 0 4px #cb4;
+  text-shadow: 0 0 8px #333;
+  transform: scale(1.1);
 }
-input.star-1:checked ~ label.star:before {
-  color: #FE7;
-  text-shadow: 0 0 4px #cb4; }
-  
-label.star:hover { transform: scale(1.3); }
 label.star:before {
   content: '\f006';
   font-family: FontAwesome;

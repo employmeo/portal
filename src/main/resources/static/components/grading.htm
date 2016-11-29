@@ -21,7 +21,10 @@
 						   </form>	
 			<div class="x_title">
 				<h4>My Evaluations</h4>
-
+			</div>
+			<div class="form-group pull-right">Show:
+			  <input type=radio class='namecheck' id='statusall' name='status' value=10 onChange='portal.searchGraders();'><label class='namecheck' for='statusall'>All</label>
+			  <input type=radio class='namecheck' id='statusinc' name='status' value=5 checked onChange='portal.searchGraders();'><label class='namecheck' for='statusinc'>Incomplete</label>
 			</div>
 			<div class="x_content" id="grader_list">
 				<table id="graders" class="table display table-condensed" width="100%"></table>

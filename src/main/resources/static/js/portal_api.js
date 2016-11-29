@@ -161,11 +161,28 @@ function submitRespondantSearchRequest(params, callback) {
 	});
 }
 
-function getGraders(thePortal) {	
+function getAllMyGraders(thePortal) {	
 	return $.ajax({
 		type: "GET",
 		async: true,
 		url: servicePath + "grader/user/" + thePortal.user.id,
+		success: function(data) {
+			thePortal.updateGradersTable(data);
+		}
+	});
+}
+
+function getGraders(thePortal) {	
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/search",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(thePortal.graderParams),
 		success: function(data) {
 			thePortal.updateGradersTable(data);
 		}
