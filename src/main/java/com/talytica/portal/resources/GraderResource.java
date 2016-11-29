@@ -1,17 +1,9 @@
 package com.talytica.portal.resources;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -20,17 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import com.employmeo.data.model.Grade;
-import com.employmeo.data.model.Grader;
-import com.employmeo.data.model.Question;
+import com.employmeo.data.model.*;
 import com.employmeo.data.service.GraderService;
 import com.talytica.portal.objects.GraderParams;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -40,20 +26,20 @@ import lombok.extern.slf4j.Slf4j;
 @Path("/1/grader")
 @Api( value="/1/grader", produces=MediaType.APPLICATION_JSON, consumes=MediaType.APPLICATION_JSON)
 public class GraderResource {
-	
+
 	@Autowired
 	GraderService graderService;
-	
-	private static final long ONE_DAY = 48*60*60*1000; // one day in milliseconds to add to the "to-date"
-	
-	
+
+	//private static final long ONE_DAY = 24*60*60*1000; // one day in milliseconds to add to the "to-date"
+
+
 	@GET
 	@Path("/respondant/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets array of the graders for a Respondant", response = Grader.class, responseContainer="List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Graders found")
-	   })	
+	   })
 	public Response getGradersByRespondantId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
 		log.debug("Requested graders by respondant id {}", respondantId);
 
@@ -61,49 +47,49 @@ public class GraderResource {
 		return Response.status(Status.OK).entity(graders).build();
 
 	}
-	
+
 	@GET
 	@Path("/respondant/{id}/grades")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets array of the grades for a Respondant", response = Grade.class, responseContainer="List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Graders found")
-	   })	
+	   })
 	public Response getGradesForRespondantId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
 		log.debug("Requested grades by respondant id {}", respondantId);
 
 		List<Grader> graders = graderService.getGradersByRespondantId(respondantId);
-		List<Grade> grades = new ArrayList<Grade>();
+		List<Grade> grades = new ArrayList<>();
 
 		for (Grader grader : graders) {
 		    grades.addAll(graderService.getGradesByGraderId(grader.getId()));
-		}	
+		}
 		return Response.status(Status.OK).entity(grades).build();
-	}	
-	
-	
+	}
+
+
 	@GET
 	@Path("/user/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets paged-results of the graders for a User", response = Grader.class, responseContainer="Page")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Graders found")
-	   })	
+	   })
 	public Response getGradersByUserId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long userId) {
 		log.debug("Requested graders by user id {}", userId);
 
 		Page<Grader> graders = graderService.getGradersByUserId(userId);
 		return Response.status(Status.OK).entity(graders).build();
 
-	}	
-	
+	}
+
 	@GET
 	@Path("/{id}/grade")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets list of the grades for grader", response = Grade.class, responseContainer="List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Grades found")
-	   })	
+	   })
 	public Response getGradesByGraderId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long graderId) {
 		log.debug("Requested grades by grader id {}", graderId);
 
@@ -111,14 +97,14 @@ public class GraderResource {
 		return Response.status(Status.OK).entity(grades).build();
 
 	}
-	
+
 	@GET
 	@Path("/{id}/criteria")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets a list the criteria (questions) for a graded question", response = Question.class, responseContainer="List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Criteria found")
-	   })	
+	   })
 	public Response getCriteriaByGraderId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long questionId) {
 		log.debug("Requested grades by grader id {}", questionId);
 
@@ -126,7 +112,7 @@ public class GraderResource {
 		return Response.status(Status.OK).entity(questions).build();
 
 	}
-	
+
 	@POST
 	@Path("/grade")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -134,15 +120,15 @@ public class GraderResource {
 	@ApiOperation(value = "Persists the provided grade", response = Grade.class)
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 201, message = "Grade Saved"),
-	   })	
+	   })
 	public Response saveQuestion(@ApiParam(value = "grade") Grade grade) {
 		log.debug("Requested grade save: {}", grade);
-		
+
 		Grade savedGrade = graderService.saveGrade(grade);
 		log.debug("Saved grade {}", savedGrade);
-		
+
 		return Response.status(Status.CREATED).entity(savedGrade).build();
-	}	
+	}
 
 	@POST
 	@Path("/{id}/status")
@@ -151,7 +137,7 @@ public class GraderResource {
 	@ApiOperation(value = "Updates the status of specified grader", response = Grader.class)
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 202, message = "Status update accepted"),
-	   })	
+	   })
 	public Response updateGrader(@ApiParam(value = "grader id") @PathParam("id") Long graderId,
 			@ApiParam(value = "status code") @FormParam (value="status") int statusCode) {
 		log.debug("Requested grader id: {} status update to {}", graderId, statusCode);
@@ -165,7 +151,7 @@ public class GraderResource {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 	}
-	
+
 	@POST
 	@Path("/search")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -173,11 +159,21 @@ public class GraderResource {
 	@ApiOperation(value = "Gets paged-results of the graders for a User", response = Grader.class, responseContainer="Page")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Graders found")
-	   })	
+	   })
 	public Response searchGraders(@ApiParam(value = "Grader Search Params") @NotNull GraderParams params) {
 		log.debug("Requested graders by params {}", params);
-		Date newToDate = new Date(params.todate.getTime() + ONE_DAY);
+		Date newToDate = getInclusiveDate(params.getTodate());
 		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.fromdate, newToDate);
 		return Response.status(Status.OK).entity(graders).build();
-	}	
+	}
+
+	private Date getInclusiveDate(Date nonInclusiveDate) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(nonInclusiveDate);
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		Date inclusiveDate = cal.getTime();
+		return inclusiveDate;
+	}
 }
