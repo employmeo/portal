@@ -164,6 +164,7 @@ public class GraderResource {
 	public Response searchGraders(@ApiParam(value = "Grader Search Params") @NotNull GraderParams params) {
 		log.debug("Requested graders by params {}", params);
 		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.getFromdate(), params.getTodate());
+		log.debug("Verbose listing of graders page: {}", graders.getContent());
 		return Response.status(Status.OK).entity(graders).build();
 	}
 
