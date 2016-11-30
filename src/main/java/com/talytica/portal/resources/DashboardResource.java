@@ -93,6 +93,7 @@ public class DashboardResource {
 			case Respondant.STATUS_PREDICTED:
 				scoredByProfile[index] += count;
 			case Respondant.STATUS_COMPLETED:
+			case Respondant.STATUS_UNGRADED:
 				completedByProfile[index] += count;
 			case Respondant.STATUS_STARTED:
 				startedByProfile[index] += count;

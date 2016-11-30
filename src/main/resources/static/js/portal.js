@@ -684,11 +684,16 @@ clientPortal.prototype.logSavedGrade = function(grade) {
 clientPortal.prototype.ignoreGrader = function(graderId) {
 
 	var ignoredGrader = this.gTable.row('#'+graderId).data();
-	ignoredGrader.status = 15; // Assume this is ignored status? needs to have an archived status
+	ignoredGrader.status = 20; // This is ignored status?
 	updateGraderStatus(ignoredGrader); // this is aynch - but don't care about response
 	this.gTable.row('#'+graderId).remove().draw();
-	this.grader = null;
-	this.showGradesPanel();
+	window.event.stopPropagation();
+	if (this.grader.id == graderId) {
+		this.grader = null;
+		this.showGradesPanel();
+	}
+	return false;
+	
 }
 	
 
@@ -862,6 +867,7 @@ clientPortal.prototype.updateRespondantsTable = function() {
 			thePortal.rTable.$('tr.selected').removeClass('selected');
 			$(this).addClass('selected');
 			thePortal.respondant = $('#respondants').dataTable().fnGetData(this);
+			thePortal.renderApplicantDetails();
 			thePortal.renderAssessmentScore(false);
 		});
 	}
@@ -940,10 +946,30 @@ clientPortal.prototype.updateHistory = function(historyData) {
 	});
 }
 
-clientPortal.prototype.presentPredictions = function() {
+
+clientPortal.prototype.renderApplicantDetails = function() {
+	$('#applicantprofile').removeClass('hidden');
 	var profile = this.getProfile(this.respondant.profileRecommendation);
-	$('#candidateicon').html('<i class="fa ' + profile.profileIcon +'"></i>');
-	$('#candidateicon').addClass(profile.profileClass);
+	$('#compositescore').text(Math.round(this.respondant.compositeScore));
+	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
+	$('#candidateemail').text(this.respondant.person.email);
+	$('#candidateaddress').text(this.respondant.person.address);
+	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
+	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
+	$('#applicantscore').empty();
+	$('#applicantscore').append($('<div>',{'style':'float:left;'}).append(portal.getProfileBadge(profile)));
+	$('#applicantscore').append($('<div>',{'style':'float:right;'}).append(this.respondant.compositeScore));
+	$('#applicantscore').append($('<div>',{'style':'text-align:center;'}).append(profile.labels[0]));
+}
+
+clientPortal.prototype.renderPredictions = function() {
+	if ((this.respondant.predictions == null) || (this.respondant.predictions.length == 0)) {
+		$('#predictionpanel').addClass('hidden');
+		return;
+	} else {
+		$('#predictionpanel').removeClass('hidden');
+	}
+	var profile = this.getProfile(this.respondant.profileRecommendation);
 	$('#compositescore').text(Math.round(this.respondant.compositeScore));
 	
 	var fulltext = this.respondant.person.firstName +
@@ -952,8 +978,6 @@ clientPortal.prototype.presentPredictions = function() {
 	               " percentile of applicants to " + 
 	               this.getLocationBy(this.respondant.locationId).locationName + ".";
 	$('#fulltextdesc').text(fulltext);
-	
-	this.renderAssessmentScore(false);
 	
 	var header = $('<h4 />',{'text': 'Probability that ' + this.respondant.person.firstName + ' ...'});
 	$('#predictions').empty();
@@ -1228,25 +1252,37 @@ clientPortal.prototype.prepPersonalMessage = function(score) {
 }
 
 clientPortal.prototype.renderAssessmentScore = function(detail) {
-	$('#applicantprofile').removeClass('hidden'); 
+	var thePortal = this;
 	var scores = this.respondant.respondantScores;
-	$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
-	$('#assessmentdate').text(new Date(this.respondant.createdDate).toDateString());
-	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
-	$('#candidateemail').text(this.respondant.person.email);
-	$('#candidateaddress').text(this.respondant.person.address);
-	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
-	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
+
+	if ((scores == null) || (scores.length == 0)) {
+		$('#criticaltraitscores').addClass('hidden');
+		$('#assessmentscores').addClass('hidden');
+		return;
+	}
 	
+	// sorting happens here?
+	if (!detail) {
+		$('#criticaltraitscores').removeClass('hidden');
+		// sort by importance - unknown ??
+	} else {
+		$('#assessmentscores').removeClass('hidden');
+		$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
+		$('#assessmentdate').text(new Date(this.respondant.createdDate).toDateString());
+		scores.sort(function(a,b) {
+			var aGroup = thePortal.getCorefactorBy(a.corefactorId).displayGroup;
+			var bGroup = thePortal.getCorefactorBy(b.corefactorId).displayGroup;
+			return aGroup.localeCompare(bGroup);
+		});
+	}
 	
 	var resultsDiv = $('#assessmentresults');
 	if (detail) resultsDiv = $('#detailassessmentresults');
 	resultsDiv.empty();
+	var displaygroup = "";	
 	
-	var displaygroup = "";
-	// sorting happens here?
-	
-	for (var key in scores) {
+	for (var key=0;key<scores.length;key++) {
+		if ((!detail) && (key >= 5)) break;
 		var value = scores[key].value;
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
 		var row = $('<tr />', {	'title' : corefactor.description});
@@ -1315,7 +1351,6 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		
 	}
 
-	
 	var legend = $('<div />',{
 		'style' : 'max-width:480px;margin-left:auto;margin-right:auto;'
 	});

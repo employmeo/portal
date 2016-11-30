@@ -11,15 +11,12 @@
 	<div class="clearfix"></div>
 	<div class="row">
 		<div class="col-md-4 col-sm-4 col-xs-12">
-			<div class="x_panel">
+			<div id='applicantprofile' class="x_panel">
 				<div class="x_title">
 				<h3>Application Details <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
 				</div>
-				<div class="x_content" style="display:none;">
-					<div class="hidden profilebadge pull-left" id='candidateicon'>
-						<i class="fa fa-spinner fa-spin"></i>
-					</div>
-					<div class='row'>
+				<div class="x_content">
+						<div id='applicantscore' style="height:44px;font-size:20px;"></div>
 						<table class="table table-hover">
 							<tbody>
 								<tr title="email address">
@@ -40,10 +37,9 @@
 								</tr>
 							</tbody>
 						</table>
-					</div>
 				</div>
 			</div>
-			<div class="x_panel">
+			<div id='criticaltraitscores' class="x_panel hidden">
 				<div class="x_title">
 					<h3>Critical Trait Scores
 					  <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a>
@@ -66,7 +62,7 @@
 			</div>
 		</div>
 		<div class="col-md-8 col-sm-8 col-xs-12">
-			<div id='predictionpanel' class='x_panel'>
+			<div id='predictionpanel' class='x_panel hidden'>
 				<div class="x_title">
 					<h3>Predictions
 					  <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a>
@@ -84,7 +80,7 @@
 					</div>
 				</div>
 			</div>
-			<div id='assessmentscores' class='x_panel'>
+			<div id='assessmentscores' class='x_panel hidden'>
 				<div class="x_title">
 					<h3>Assessment Scores <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
 					<div class="clearfix"></div>
@@ -139,7 +135,9 @@
 	</div>
 </div>
 <script>
-	portal.presentPredictions();
+    portal.renderApplicantDetails();
+    portal.renderAssessmentScore(false);
+	portal.renderPredictions();
 	portal.renderAssessmentScore(true);
 	portal.initRespondantGraderTables();
 	portal.activateUIElements();
