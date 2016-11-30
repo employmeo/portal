@@ -541,7 +541,7 @@ clientPortal.prototype.showGradesPanel = function() {
 	$('#gradername').html(this.grader.respondant.person.firstName + ' ' +
 			this.grader.respondant.person.lastName);
 	$('#graderquestion').html(this.grader.question.questionText);
-	$('#gradedate').text('Requested: ' + '11-16-2016');
+	$('#gradedate').text(moment(this.grader.createdDate).format('MMM DD, YYYY'));
 	$('#gradecompletion').text(this.grader.grades.length + ' of ' + this.grader.criteria.length + ' Completed');
 	$('#playmediadiv').empty();
 	$('#playmediadiv').append($('<i />', {
@@ -590,8 +590,8 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 		value : criterion.questionId
 	}));
 	
-	var quesdiv =  $('<div />').html(criterion.questionText);
 	form.append($('<h4 />').html(criterion.questionText));
+	form.append($('<h6 />').html(criterion.description));
 	var ansdiv = $('<div />');
 	switch(criterion.questionType) {
 		case 2:
@@ -782,14 +782,14 @@ clientPortal.prototype.initRespondantsTable = function() {
 		          },
 		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person',
 		        	  render : function ( data, type, row ) { return data.firstName + ' ' + data.lastName; }},
-		          { responsivePriority: 3, className: 'text-left', title: 'Email', data: 'person.email'},
-		          { responsivePriority: 7, className: 'text-left', title: 'Position', data: 'positionId', 
+			      { responsivePriority: 8, className: 'text-left', title: 'Status', data: 'respondantStatus',
+			        	  render : function ( data, type, row ) { return thePortal.getStatusText(data);}},
+		          { responsivePriority: 9, className: 'text-left', title: 'Position', data: 'positionId', 
 		        	  render : function ( data, type, row ) { return thePortal.getPositionBy(data).positionName;}},
-		          { responsivePriority: 8, className: 'text-left', title: 'Location', data: 'locationId', 
+		          { responsivePriority: 10, className: 'text-left', title: 'Location', data: 'locationId', 
 		        	  render : function ( data, type, row ) { return thePortal.getLocationBy(data).locationName;}},
-			      { responsivePriority: 9, className: 'text-left', title: 'Status', data: 'respondantStatus',
-		        	  render : function ( data, type, row ) { return thePortal.getStatusText(data);}},
-		          { responsivePriority: 9, className: 'text-left', title: 'Actions', data: 'respondantStatus', 
+		          { responsivePriority: 11, className: 'text-left', title: 'Email', data: 'person.email'},		        	  
+		          { responsivePriority: 5, className: 'text-left', title: 'Actions', data: 'respondantStatus', 
 		        	  render : function ( data, type, row ) { return thePortal.renderRespondantActions(row).html();}}
 		         ]
 	});
@@ -898,6 +898,27 @@ clientPortal.prototype.updateRespondantsTable = function() {
 			thePortal.renderApplicantDetails();
 			thePortal.renderAssessmentScore(false);
 		});
+		
+		this.rTable.columns([1,2,3,4]).every( function () {
+            var column = this;
+            var cell = $('#filters').children()[this[0][0]];
+            var select = $('<select style="width:100%;"><option value=""></option></select>')
+                .appendTo( $(cell).empty() )
+                .on( 'change', function () {
+                    var val = $.fn.dataTable.util.escapeRegex(
+                        $(this).val()
+                    );
+
+                    column
+                        .search( val ? '^'+val+'$' : '', true, false )
+                        .draw();
+                } );
+
+            column.cells('', column[0]).render('display').sort().unique().each( function ( d, j ) {
+                select.append( '<option value="'+d+'">'+d+'</option>' )
+            } );
+		});
+		
 	}
 }
 
@@ -1440,6 +1461,7 @@ clientPortal.prototype.initRespondantGraderTables = function() {
 		responsive: true,
 		order: [[ 0, 'desc' ]],
 		rowId: 'id',
+		dom: 't',
 		columns: [
 		          { responsivePriority: 1, className: 'text-left', title: 'Question', data: 'question.questionText'},
 		          { responsivePriority: 2, className: 'text-left', title: 'Response', data: 'response.responseMedia',
@@ -1564,10 +1586,10 @@ clientPortal.prototype.renderEvaluationsDetail = function(data) {
 	
 	var criteria = data.criteria;
 	if (criteria.length == 0) return 'Not evaluated yet';
-	var table = $('<table />', {'class' :'table table-condensed', 'style' :'margin:0px;'});
+	var table = $('<table />', {'class' :'table table-condensed', 'style' :'margin:0px auto 0px auto;width:initial;'});
 	var titles = $('<tr />');
 	titles.append($('<th />',{ 'text' : 'Criteria'}));
-	titles.append($('<th />',{ 'text' : 'Average Score'}));
+	titles.append($('<th />',{ 'class' : 'text-right', 'text' : 'Average Score'}));
 	table.append(titles);
 	for (var key in criteria) {
 		var row = $('<tr />');
@@ -1579,7 +1601,7 @@ clientPortal.prototype.renderEvaluationsDetail = function(data) {
 			gradecount++;
 		}
 		var average = gradetotal/gradecount;
-		row.append($('<td />',{ 'text' : average.toFixed(1), 'class' : 'text-left'}));
+		row.append($('<td />',{ 'text' : average.toFixed(1), 'class' : 'text-right'}));
 		table.append(row);
 	}
     return table.wrap("<div />").parent().html();	
