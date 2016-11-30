@@ -96,6 +96,7 @@ public class DashboardResource {
 			case Respondant.STATUS_UNGRADED:
 				completedByProfile[index] += count;
 			case Respondant.STATUS_STARTED:
+			case Respondant.STATUS_REMINDED:
 				startedByProfile[index] += count;
 			case Respondant.STATUS_INVITED:
 				invitedByProfile[index] += count;

@@ -263,6 +263,17 @@ function updateGraderStatus(grader) {
 	});
 }
 
+function sendInviteReminder(id) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "inviteapplicant/"+id+"/reminder",
+		success: function() {
+			// do nothing.
+		}
+	});	
+}
+
 function sendInvitation(thePortal) {
 	$.ajax({
 		type: "POST",

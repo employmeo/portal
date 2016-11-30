@@ -773,9 +773,11 @@ clientPortal.prototype.initRespondantsTable = function() {
 		        	  render : function ( data, type, row ) { 
 		        		    var badge = '<div style="display:inline-block;">' + 
 		        		      thePortal.getProfileBadge(thePortal.getProfile(row.profileRecommendation)).wrap("<div />").parent().html() + '</div>';
-		        		    var score = '<div style="display:inline-block;font-size:26px;line-height:30px;float:right;">' +
-		        		      Math.floor(data) + '</div>';
-		        		    return badge + score;
+		        		    var score = 'N/A';
+		        		    if (data != null) score = data.toFixed(0);
+		        		    var scorediv = '<div style="display:inline-block;font-size:26px;line-height:30px;float:right;">' +
+		        		      score + '</div>';
+		        		    return badge + scorediv;
 		        		  }
 		          },
 		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person',
@@ -785,8 +787,9 @@ clientPortal.prototype.initRespondantsTable = function() {
 		        	  render : function ( data, type, row ) { return thePortal.getPositionBy(data).positionName;}},
 		          { responsivePriority: 8, className: 'text-left', title: 'Location', data: 'locationId', 
 		        	  render : function ( data, type, row ) { return thePortal.getLocationBy(data).locationName;}},
-			      { responsivePriority: 9, className: 'text-left', title: 'Status', data: 'status'},
-		          { responsivePriority: 9, className: 'text-left', title: 'Actions', data: 'status', 
+			      { responsivePriority: 9, className: 'text-left', title: 'Status', data: 'respondantStatus',
+		        	  render : function ( data, type, row ) { return thePortal.getStatusText(data);}},
+		          { responsivePriority: 9, className: 'text-left', title: 'Actions', data: 'respondantStatus', 
 		        	  render : function ( data, type, row ) { return thePortal.renderRespondantActions(row).html();}}
 		         ]
 	});
@@ -805,15 +808,40 @@ clientPortal.prototype.initRespondantsTable = function() {
 	}
 }
 
+clientPortal.prototype.getStatusText = function (status) {
+	switch (status) {
+		case 1:
+			return 'Invited';
+		case 5:
+		case 6:
+			return 'Incomplete';
+		case 10:
+			return 'Submitted';
+		case 11:
+			return 'Need Grades';
+		case 13:
+		case 15:
+		case 17:
+			return 'Scored';
+		case 20:
+		case 30:
+		case 40:
+			return 'Hired';
+		default:
+			return 'Not Hired';
+	}
+}
+
 clientPortal.prototype.renderRespondantActions = function(respondant) {
 	var cell = $('<td />');
 	var thePortal = this;
 	switch (respondant.respondantStatus) {
-		case 1: // created or started
+		case 1:
+		case 5: // created or started
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'Remind',
-				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.sendApplicantReminder();'
+				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
 			break;
 		case 6: // reminded already, but not finished
@@ -875,6 +903,15 @@ clientPortal.prototype.updateRespondantsTable = function() {
 
 clientPortal.prototype.setRespondantTo = function(respondantId) {
 	this.respondant = this.rTable.row('#'+respondantId).data();
+}
+
+clientPortal.prototype.sendApplicantReminder = function(respondantId) {
+	var thePortal = this;
+	$.when(sendInviteReminder(respondantId)).done(function () {
+		var resp = thePortal.rTable.row('#'+respondantId).data();	
+		if (resp.respondantStatus < 6) resp.respondantStatus = 6;
+		thePortal.rTable.row('#'+respondantId).data(resp).draw();	
+	})
 }
 
 //Section for looking at / manipulating assessments
@@ -1825,12 +1862,15 @@ clientPortal.prototype.readyTopNav  =function() {
 
 
 clientPortal.prototype.showComponent = function(component) {
+	this.sidebar.find('.current-page').removeClass('current-page');
+	this.sidebar.find('ul').children('li').children('ul').slideUp(0);
+	this.sidebar.find('.active').removeClass('active');
 	$('#mainpanel').load('/components/'+component+'.htm');
 	
-    this.sidebar.find('a[href="' + URL + '"]').parent('li').addClass('current-page');
+    this.sidebar.find("a[data-component='" + component + "']").parent('li').addClass('current-page');
     this.sidebar.find('a').filter(function () {
-        return this.href == URL;
-    }).parent('li').addClass('current-page').parent('ul').slideDown().parent().addClass('active'); 
+        return $(this).data('component') == component;
+    }).parent('li').addClass('current-page').parent('ul').slideDown(0).parent().addClass('active'); 
 
 }
 
