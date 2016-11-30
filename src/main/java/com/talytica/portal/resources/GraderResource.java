@@ -1,6 +1,7 @@
 package com.talytica.portal.resources;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -161,19 +162,10 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Graders found")
 	   })
 	public Response searchGraders(@ApiParam(value = "Grader Search Params") @NotNull GraderParams params) {
-		log.debug("Requested graders by params {}", params);
-		Date newToDate = getInclusiveDate(params.getTodate());
-		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.fromdate, newToDate);
+		log.debug("Requested graders by params {}, with fromDate={} and toDate={}", params, params.getFromdate(), params.getTodate());
+		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.getFromdate(), params.getTodate());
 		return Response.status(Status.OK).entity(graders).build();
 	}
 
-	private Date getInclusiveDate(Date nonInclusiveDate) {
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(nonInclusiveDate);
-		cal.set(Calendar.HOUR_OF_DAY, 23);
-		cal.set(Calendar.MINUTE, 59);
-		cal.set(Calendar.SECOND, 59);
-		Date inclusiveDate = cal.getTime();
-		return inclusiveDate;
-	}
+
 }
