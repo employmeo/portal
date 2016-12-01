@@ -115,7 +115,6 @@ public class SignUpResource {
 		accountSurvey.setAccount(savedAccount);
 		accountSurvey.setAccountId(savedAccount.getId());
 		accountSurvey.setSurveyId(DEFAULT_SURVEY_ID);
-		accountSurvey.setDisplayName("Worker Reliability");
 		AccountSurvey savedAccountSurvey = accountSurveyRepository.save(accountSurvey);
 		
 		savedAccount.setDefaultLocationId(savedLocation.getId());
