@@ -1,0 +1,34 @@
+    <div id="wrapper">
+      <div class="container" style="background: rgba(0, 0, 0, 0.65);color: white;">
+	    <div class="col-xs-12 text-center"><img src="/images/tal-logo-sm.png" style="width:65%;"></div>
+	    <div class="col-xs-12 text-center"><hr></div>
+        <div id='newpassdiv' class="col-xs-12 text-center">
+	      <form name="newpasswordform" method="post" action="javascript:portal.requestPasswordChange();" id="newpasswordform">
+	        <input type="hidden" name="hashword" id='hashword'>
+	        <input type="hidden" name="email" id='email'>
+	        <h1>Set New Password</h1>
+			<div class="clearfix"><span class='text-danger h4' id='newpasswordresponse'></span></div>
+			<div class="clearfix" style="height: 15px;"></div>
+			<div class="col-xs-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-envelope-o"></i></div>
+			  <span class="form-control" id='showemail'style="padding: 6px 12px 6px 12px;text-align: left;line-height: 20px;"></span></div></div>
+			<div class="col-xs-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-key"></i></div>
+			  <input class="form-control" type="password" name="newpass" placeholder="New Password" required></div></div>
+			<div class="col-xs-12 form-group"><div class="input-group"><div class="input-group-addon"><i class="fa fa-key"></i></div>
+			  <input class="form-control" type="password" name="confirmpass" placeholder="Confirm New Password" required></div></div>
+            <div class="col-xs-12 form-group"><button class="btn btn-info btn-block submit" type="submit">Change Password</button></div>
+			<div class="clearfix" style="height: 15px;"></div>
+			<div class="col-xs-12 text-center"><hr></div>
+            <div class="col-xs-12 text-center"><br></div>
+          </form>
+        </div>
+      </div>
+  </div>
+  
+  <script>
+  $(document).ready(function() {
+    $('#email').val(portal.urlParams.email);
+    $('#showemail').text(portal.urlParams.email);
+    $('#hashword').val(portal.urlParams.hash);
+  });
+  </script>
+  

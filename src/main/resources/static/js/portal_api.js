@@ -23,7 +23,7 @@ function getUser(thePortal) {
 }
 
 function postLogin(postdata, thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		data : postdata,
@@ -41,7 +41,7 @@ function postLogin(postdata, thePortal) {
 }
 
 function postLogout() {
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		url: "/logout",
@@ -93,7 +93,7 @@ function getAssessments(thePortal) {
 }
 
 function getCorefactors(thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "GET",
 		async: true,
 		url: servicePath + "corefactor",
@@ -105,7 +105,7 @@ function getCorefactors(thePortal) {
 }
 
 function getProfiles(thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "GET",
 		async: true,
 		url: servicePath + "account/"+thePortal.user.userAccountId+"/profiles",
@@ -117,7 +117,7 @@ function getProfiles(thePortal) {
 }
 
 function getRespondantByUuid(thePortal, uuid) {
-	$.ajax({
+	return $.ajax({
 		type: "GET",
 		async: true,
 		url: servicePath + "respondant/"+uuid,
@@ -129,7 +129,7 @@ function getRespondantByUuid(thePortal, uuid) {
 }
 
 function submitDashUpdateRequest(thePortal) {
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		url: servicePath + "dashboard",
@@ -147,7 +147,7 @@ function submitDashUpdateRequest(thePortal) {
 }
 
 function submitRespondantSearchRequest(params, callback) {	
-	$.ajax({
+	return $.ajax({
 		type: "POST",
 		async: true,
 		url: servicePath + "respondantsearch",
@@ -159,6 +159,119 @@ function submitRespondantSearchRequest(params, callback) {
 		data: JSON.stringify(params),
 		success: function(data) {callback(data);}
 	});
+}
+
+function getAllMyGraders(thePortal) {	
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/user/" + thePortal.user.id,
+		success: function(data) {
+			thePortal.updateGradersTable(data);
+		}
+	});
+}
+
+function getGraders(thePortal) {	
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/search",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(thePortal.graderParams),
+		success: function(data) {
+			thePortal.updateGradersTable(data);
+		}
+	});
+}
+
+function getGrades(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/"+thePortal.grader.id+"/grade",
+		success: function(data) {
+			thePortal.grader.grades = data;
+		}
+	});	
+}
+
+function getRespondantGraders(thePortal) {	
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/respondant/" + thePortal.respondant.id,
+		success: function(data) {
+			thePortal.respondant.graders = data;
+		}
+	});
+}
+
+function getRespondantGrades(thePortal) {	
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/respondant/" + thePortal.respondant.id + "/grades",
+		success: function(data) {
+			thePortal.respondant.grades = data;
+		}
+	});
+}
+
+function getCriteria(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/"+thePortal.grader.questionId+"/criteria",
+		success: function(data) {
+			thePortal.grader.criteria = data;
+		}
+	});
+}
+
+function saveGrade(thePortal, grade) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/grade",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(grade),
+		success: function(data) {
+			thePortal.logSavedGrade(data);
+		}
+	});
+}
+
+function updateGraderStatus(grader) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/"+grader.id+"/status",
+		data: 'status=' + grader.status,
+		processData: false,
+		success: function() {
+			// do nothing.
+		}
+	});
+}
+
+function sendInviteReminder(id) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "inviteapplicant/"+id+"/reminder",
+		success: function() {
+			// do nothing.
+		}
+	});	
 }
 
 function sendInvitation(thePortal) {
@@ -196,55 +309,76 @@ function forgotPass() {
 	for (var i=0;i<fields.length;i++) {
 		fpr[fields[i].name] = fields[i].value;
 	}
+	$("#wait").removeClass('hidden');
+
 	$.ajax({
 		type: "POST",
 		async: true,
-		data : $('#forgotpassform').serialize(),
-		url: servicePath + "/forgotpassword",
+		url: servicePath + "forgotpassword",
 	    headers: { 
-	        'Accept': 'application/json',
 	        'Content-Type': 'application/json' 
 	    },
-	    dataType: 'json',
 		data : JSON.stringify(fpr),
-		success: function(data) {
+		success: function() {
 			// disable forms
 			$('#forgotpassform :submit').text('Request Sent');
 			$('#forgotpassform :input').prop('disabled', true);
-			$('#emailtoyou').text('An password reset request has been submitted. Please check your email for instructions to reset your password.');	
+			$("#wait").addClass('hidden');
+			$('#results').removeClass('hidden');
+			$('#results').text('A password reset request has been submitted. Please check your email for instructions to reset your password.');	
+			$('#results').css('color','white');	
 		},
 		error: function(data, textStatus, jqXHR) {
-			console.log(fpr, data, jqXHR);			
+			$('#results').removeClass('hidden');
+			$('#results').text('The email you provided was not found.');	
+			$('#results').css('color','red');	
+			$("#wait").addClass('hidden');
+		}	
+	});	
+}
+
+function submitSignupRequest(thePortal){
+	$.ajax({
+		type: "POST",
+		url: servicePath + "signup",
+		async: true,
+	    headers: { 
+	        'Content-Type': 'application/json' 
+	    },
+		data : JSON.stringify(thePortal.signuprequest),
+		success: function(data) {
+			$('#wait').addClass('hidden');
+			$('#signupform :submit').text('Signed Up!');
+			$('#signupform :input').prop('disabled', true);
+			$('#signupresponse').css('color','white');
+			$('#signupresponse').text('Thank You. We have sent you an email confirmation. Please check your email and follow the validation link.');
+		},
+		error: function(data, textStatus, jqXHR) {
+			$('#wait').addClass('hidden');
+			$('#signupresponse').text(data.responseText);		
 		}
 	});	
 }
 
-function resetPassword() {
+function submitPasswordChangeRequest(thePortal) {
 	$.ajax({
 		type: "POST",
-		url: servicePath + "/changepass",
+		url: servicePath + "changepass",
 		async: true,
 	    headers: { 
-	        'Accept': 'application/json',
 	        'Content-Type': 'application/json' 
 	    },
-	    dataType: 'json',
-		data : JSON.stringify({
-			'email' : email,
-			'hash' : hash,
-			'newpass' : $('input[name=newpass]').val()
-		}),
+		data : JSON.stringify(thePortal.cprf),
 		success: function(data) {
-			if (data.user_fname != null) {
-				// drop a cookie
-				document.cookie = "user_fname=" + data.user_fname;
-				window.location.assign('/index.jsp');
-			} else {
-				$('#errormsg').text('Unable to change your password. Please request another password reset.');
-			}
+			var formdata = {};
+			formdata.email = thePortal.cprf.email;
+			formdata.password = thePortal.cprf.newpass;
+			postLogin($.param(formdata),thePortal);
+			$('#login').addClass('hidden');
 		},
 		error: function(data) {
-			console.log(data);			
+			$('#wait').addClass('hidden');
+			$('#newpasswordresponse').text('Unable to change your password. Please try again or request another password reset.');		
 		}
 	});	
 }

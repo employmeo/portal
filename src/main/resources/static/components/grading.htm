@@ -1,0 +1,59 @@
+<div class="row">
+	<div class="col-xs-12 col-sm-3 col-md-3">
+		<h3>My Evaluations</h3>
+	</div>
+</div>
+<div class="row content">
+	<div class="col-xs-12 col-sm-12 col-md-12 col-lg-8">
+		<div class="x_panel">
+			<div class="waiting hidden" id="waitingmodal">
+				<i class="fa fa-spinner fa-spin"></i>
+			</div>
+							<form class="form-inline pull-right" id='refinequery'>
+								<div class="form-group">
+									<div id="reportrange" class="form-control" style="line-height: 1.42857143;">
+									<i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+									<span></span> <b class="caret"></b>
+									</div>
+								    <input type=hidden name="fromdate" id='fromdate'>
+								    <input type=hidden name="todate" id='todate'>
+								</div>
+						   </form>	
+			<div class="x_title">
+				<h4>My Evaluations</h4>
+			</div>
+			<div class="form-group pull-right">Show:
+			  <input type=radio class='namecheck' id='statusall' name='status' value=10 onChange='portal.searchGraders();'><label class='namecheck' for='statusall'>All</label>
+			  <input type=radio class='namecheck' id='statusinc' name='status' value=5 checked onChange='portal.searchGraders();'><label class='namecheck' for='statusinc'>Incomplete</label>
+			</div>
+			<div class="x_content" id="grader_list">
+				<table id="graders" class="table display table-condensed" width="100%"></table>
+			</div>
+		</div>
+	</div>
+	<div id="grades" class="col xs-12 col-sm-12 col-md-12 col-lg-4 hidden">
+
+			<div class="x_panel">
+				<div class="x_title">
+					<div class='pull-left'><h3 id='gradername'></h3></div>
+					<div class='pull-right'><div id='playmediadiv' class="button btn-default media-control"></div></div>
+					<div class='clearfix'></div>
+				</div>
+				<div class="x_content">
+				    <div><h5>QUESTION ASKED:</h5></div>
+				    <div><h4 id='graderquestion'></h4></div>
+					<div>ANSWERED ON: <span class="pull-right" id='gradedate'>11-16-2016</span></div>
+					<div><div class='clearfix'></div><hr></div>
+				    <div><h3>Evaluation Criteria <span class="pull-right small" style='margin-top:8px;' id="gradecompletion">0 of 2 Complete</span></h3><hr></div>
+				    <div id='gradeforms' class="x_content"></div>
+				</div>
+			</div>
+
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {
+		portal.initializeDatePicker( function() {portal.searchGraders();});
+		portal.initGradersTable();
+	});
+</script>

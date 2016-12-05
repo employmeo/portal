@@ -108,14 +108,14 @@ function stubCorefactors(corefactors) {
 function getPredictionMean(prediction) {
 	switch (prediction.positionPredictionConfig.predictionModelId) {
 		case 1:
-			return .48;
+			return .33;
 			break;
 		case 2:
-			return .31
+			return .271;
 			break;
 		case 3:
 		default:
-			return .19;
+			return .191;
 			break;
 		
 	}
@@ -124,14 +124,14 @@ function getPredictionMean(prediction) {
 function getPredictionStDev(prediction) {
 	switch (prediction.positionPredictionConfig.predictionModelId) {
 	case 1:
-		return .052;
+		return .12;
 		break;
 	case 2:
-		return .047;
+		return .09;
 		break;
 	case 3:
 	default:
-		return .038;
+		return .06;
 		break;	
 	}
 }

@@ -3,8 +3,8 @@ package com.talytica.portal.objects;
 public class ApplicantInvitation {
   public Long asid;
   public String email;
-  public String fname;
-  public String lname;
+  public String firstName;
+  public String lastName;
   public String address;
   public Double lat;
   public Double lng;

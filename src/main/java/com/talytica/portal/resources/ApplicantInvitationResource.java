@@ -5,6 +5,7 @@ import javax.ws.rs.Consumes;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -60,8 +61,8 @@ public class ApplicantInvitationResource {
 		// Perform business logic
 		Person applicant = new Person();
 		applicant.setEmail(invitation.email);
-		applicant.setFirstName(invitation.fname);
-		applicant.setLastName(invitation.lname);
+		applicant.setFirstName(invitation.firstName);
+		applicant.setLastName(invitation.lastName);
 		applicant.setAddress(invitation.address);
 		applicant.setLatitude(invitation.lat);
 		applicant.setLongitude(invitation.lng);
@@ -71,6 +72,8 @@ public class ApplicantInvitationResource {
 		respondant.setPerson(savedApplicant);
 		respondant.setPersonId(savedApplicant.getId());
 		respondant.setAccountId(as.getAccountId());
+		respondant.setAccount(as.getAccount());
+		respondant.setAccountSurvey(as);
 		respondant.setAccountSurveyId(as.getId());
 
 		respondant.setLocationId(as.getAccount().getDefaultLocationId());
@@ -85,4 +88,23 @@ public class ApplicantInvitationResource {
 	    return Response.status(Status.CREATED).entity(savedRespondant).build();
 	}
 
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/{id}/reminder")
+	@ApiOperation(value = "sends an email reminder for a specified assessment")
+	  @ApiResponses(value = {
+      @ApiResponse(code = 200, message = "Reminder sent")})	
+	public Response remindRespondant(@ApiParam("Respondant Id") @PathParam("id") Long respondantId) {
+		// Collect expected input fields
+
+	    Respondant respondant = respondantService.getRespondantById(respondantId);
+	    if (respondant.getRespondantStatus() <= Respondant.STATUS_STARTED) {
+	    	respondant.setRespondantStatus(Respondant.STATUS_REMINDED);
+	    	emailService.sendEmailReminder(respondant);
+	    }
+	    return Response.status(Status.OK).build();
+	}
+	
 }

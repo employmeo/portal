@@ -47,8 +47,8 @@ public class SignUpResource {
 	private static final int DEFAULT_USER_TYPE = 1;
 	private static final int DEFAULT_USER_STATUS = 1;
 
-	private static final Response USER_EXISTS = Response.status(Status.NOT_MODIFIED).entity("User already exists.").build();
-	private static final Response ACCOUNT_EXISTS = Response.status(Status.NOT_MODIFIED).entity("Account with that name already exists.").build();
+	private static final Response USER_EXISTS = Response.status(Status.CONFLICT).entity("User already exists.").build();
+	private static final Response ACCOUNT_EXISTS = Response.status(Status.CONFLICT).entity("Account with that name already exists.").build();
 	
 	@Autowired
 	UserService userService;
@@ -74,7 +74,7 @@ public class SignUpResource {
 	@ApiOperation(value = "Signs Up a New company / user", response = User.class)
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 201, message = "Account and User Created"),
-	     @ApiResponse(code = 304, message = "Not Created Created")
+	     @ApiResponse(code = 409, message = "Conflict - User or Account Exists")
 	   })
 	
 	public Response signUp(SignUpRequest request) {
@@ -105,17 +105,16 @@ public class SignUpResource {
 		Location defaultLocation = new Location();
 		defaultLocation.setAccount(savedAccount);
 		defaultLocation.setAccountId(savedAccount.getId());
-		defaultLocation.setStreet1(request.formattedAddress);
+		defaultLocation.setStreet1(request.address);
 		defaultLocation.setLocationName(request.address);
-		defaultLocation.setLatitude(request.latitude);
-		defaultLocation.setLongitude(request.longitude);
+		defaultLocation.setLatitude(request.lat);
+		defaultLocation.setLongitude(request.lng);
 		Location savedLocation = locationRepository.save(defaultLocation);
 		
 		AccountSurvey accountSurvey = new AccountSurvey();
 		accountSurvey.setAccount(savedAccount);
 		accountSurvey.setAccountId(savedAccount.getId());
 		accountSurvey.setSurveyId(DEFAULT_SURVEY_ID);
-		accountSurvey.setDisplayName("Worker Reliability");
 		AccountSurvey savedAccountSurvey = accountSurveyRepository.save(accountSurvey);
 		
 		savedAccount.setDefaultLocationId(savedLocation.getId());
@@ -127,8 +126,12 @@ public class SignUpResource {
 		user.setAccount(updatedAccount);
 		user.setUserAccountId(updatedAccount.getId());
 		user.setEmail(request.email);
-		user.setFirstName(request.firstName);
-		user.setLastName(request.lastName);
+		
+		String[] names = request.fullName.split("\\s+");
+		user.setFirstName(names[0]);
+		user.setLastName("");
+		if (names.length > 1) user.setLastName(names[1]);
+		
 		user.setUserStatus(DEFAULT_USER_STATUS);
 		user.setUserType(DEFAULT_USER_TYPE);
 		
