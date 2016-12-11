@@ -189,15 +189,37 @@ function getGraders(thePortal) {
 	});
 }
 
-function getGrades(thePortal) {
+function getGrades(grader) {
 	return $.ajax({
 		type: "GET",
 		async: true,
-		url: servicePath + "grader/"+thePortal.grader.id+"/grade",
+		url: servicePath + "grader/"+grader.id+"/grade",
 		success: function(data) {
-			thePortal.grader.grades = data;
+			grader.grades = data;
 		}
 	});	
+}
+
+function getCriteria(grader) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/"+grader.id+"/allcriteria",
+		success: function(data) {
+			grader.criteria = data;
+		}
+	});
+}
+
+function getAllResponses(grader) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/"+grader.respondantId+"/allresponses",
+		success: function(data) {
+			grader.responses = data;
+		}
+	});
 }
 
 function getRespondantGraders(thePortal) {	
@@ -218,17 +240,6 @@ function getRespondantGrades(thePortal) {
 		url: servicePath + "grader/respondant/" + thePortal.respondant.id + "/grades",
 		success: function(data) {
 			thePortal.respondant.grades = data;
-		}
-	});
-}
-
-function getCriteria(thePortal) {
-	return $.ajax({
-		type: "GET",
-		async: true,
-		url: servicePath + "grader/"+thePortal.grader.questionId+"/criteria",
-		success: function(data) {
-			thePortal.grader.criteria = data;
 		}
 	});
 }

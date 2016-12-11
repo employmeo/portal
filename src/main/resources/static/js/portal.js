@@ -437,11 +437,13 @@ clientPortal.prototype.initGradersTable = function(){
 		          { responsivePriority: 1, className: 'text-left', title: 'Candidate', data: 'respondant.person' ,
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
 		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
-		        	  	if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Started';
+		        	  if (data == 20) return 'Ignored'; if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Started';
 		          }},
-		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.description'},
-		          { responsivePriority: 4, className: 'text-left', title: 'Response', data: 'response.responseMedia',
-		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} },
+		          { responsivePriority: 4, className: 'text-left', title: 'Question', data: 'question.description',
+		        	  render: function ( data, type, row) { 
+		        		  if (row.type== 1) return data;
+		        	      return 'All Questions In: ' + thePortal.getAssessmentBy(row.respondant.accountSurveyId).displayName;
+		        	      }},
 		          { responsivePriority: 4, className: 'text-right', title: 'Ignore', data: 'id',
 			        	  render : function ( data, type, row ) {
 			        		  if (row.status < 10) return '<button class="btn btn-danger btn-xs" onClick=portal.ignoreGrader('+row.id+')>X</button>'; 
@@ -473,6 +475,7 @@ clientPortal.prototype.searchGraders = function() {
 	getGraders(this);
 }
 
+
 clientPortal.prototype.renderAudioLink = function(row, link) {
 	var audio = $('<audio />' , {
 		'controls': '',
@@ -481,7 +484,7 @@ clientPortal.prototype.renderAudioLink = function(row, link) {
 	});
 	var source = $('<source />', {'src':link,'type':'audio/mpeg'});
 	audio.append(source);
-	return audio;
+	return audio.wrap("<div />").parent().html();
 }
 
 clientPortal.prototype.togglePlayMedia = function(id) {
@@ -515,17 +518,70 @@ clientPortal.prototype.updateGradersTable = function(data) {
 		$('#graders').dataTable().fnClearTable();
 		$('#graders').dataTable().fnAddData(this.myGraders.content);
 		this.gTable.$('tr').click(function (){
-			thePortal.gTable.$('tr.selected').removeClass('selected');
+			thePortal.gTable.$('tr.selected').each(function () {
+				$(this).removeClass('selected');
+				thePortal.gTable.row(this).child.hide()});	
 			$(this).addClass('selected');
 			thePortal.grader = $('#graders').dataTable().fnGetData(this);
 			if (thePortal.grader.criteria == null) { 
-			    $.when(getGrades(thePortal),getCriteria(thePortal)).done(function () {
+				var grader = $('#graders').dataTable().fnGetData(this);
+			    $.when(getGrades(grader),getCriteria(grader)).done(function () {
 				    thePortal.showGradesPanel();
 			    });
 		    } else {
 		    	thePortal.showGradesPanel();
 		    }
+
+			var row = thePortal.gTable.row(this);
+			
+        	if(thePortal.grader.type == 1) {
+        		thePortal.grader.responses = [thePortal.grader.response];
+        		row.child(thePortal.renderAudioDetail(thePortal.grader.respondant, thePortal.grader.responses)).show();
+        		$('div.container', row.child()).slideDown();
+        		row.child().addClass('selected');
+        	} else {
+        		if (!thePortal.grader.responses) {
+        			$.when(getAllResponses(thePortal.grader)).done(function() {
+        				row.child( thePortal.renderAudioDetail(thePortal.grader.respondant, thePortal.grader.responses)).show();
+        				$('div.container', row.child()).slideDown();
+        				row.child().addClass('selected');
+        				});
+        		} else {
+        			row.child( thePortal.renderAudioDetail(thePortal.grader.respondant, thePortal.grader.responses)).show();
+        			$('div.container', row.child()).slideDown();
+        			row.child().addClass('selected');
+        		}
+        	}
+        	
+			
 		});
+	}
+}
+
+
+clientPortal.prototype.renderAudioDetail = function(respondant, responses) {
+	var wrapper = $('<div />',{'class' : 'container', 'style' : 'display:none;'});
+	var table = $('<table />', {'class' :'table table-condensed', 'style' :'margin:0px auto 0px auto;'});
+ 	var titles = $('<tr />');
+	titles.append($('<th />',{ 'text' : 'Question'}));
+	titles.append($('<th />',{ 'text' : 'Response'}));	
+	table.append(titles);
+		
+	for (var i=0;i<responses.length;i++) {
+		response = responses[i];
+		var row = $('<tr />');
+		row.append($('<td />',{ 'text' : this.getQuestionFor(response.questionId, respondant.accountSurveyId).questionText}));
+		row.append($('<td />').append(this.renderAudioLink(response, response.responseMedia)));
+		table.append(row);
+	}
+	wrapper.append(table);
+	return wrapper.wrap("<div />").parent().html();	
+}
+
+clientPortal.prototype.getQuestionFor = function(questionId, asid) {
+	for (key in this.getAssessmentBy(asid).survey.surveyQuestions) {
+		if (this.getAssessmentBy(asid).survey.surveyQuestions[key].questionId == questionId) 
+			return this.getAssessmentBy(asid).survey.surveyQuestions[key].question;
 	}
 }
 
@@ -537,19 +593,10 @@ clientPortal.prototype.showGradesPanel = function() {
 		$('#gradeforms').empty();
 		return;
 	}
-	var id = this.grader.id;
 	$('#gradername').html(this.grader.respondant.person.firstName + ' ' +
 			this.grader.respondant.person.lastName);
-	$('#graderquestion').html(this.grader.question.questionText);
 	$('#gradedate').text(moment(this.grader.createdDate).format('MMM DD, YYYY'));
-	$('#gradecompletion').text(this.grader.grades.length + ' of ' + this.grader.criteria.length + ' Completed');
-	$('#playmediadiv').empty();
-	$('#playmediadiv').append($('<i />', {
-		'id' : 'playbutton_' + id,
-		'class' : 'fa fa-play',
-		'onClick' : 'portal.togglePlayMedia('+id+')'
-	}));
-	
+	$('#gradecompletion').text(this.grader.grades.length + ' of ' + this.grader.criteria.length + ' Completed');	
 	$("#grades").removeClass('hidden'); 
 	$('#gradeforms').empty();
 	for (var key in this.grader.criteria) {
@@ -571,6 +618,8 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 	
 	var form =  $('<form/>', {
 		 'name' : 'grade_'+this.grader.id + '_cr_' +criterion.questionId,
+		 'action' : 'javascript:portal.submitGrade('+this.grader.id+','+criterion.questionId+');',
+		 'class' : 'form',
 		 'id' : 'grade_'+this.grader.id + '_cr_' +criterion.questionId
 	});
 	form.append($('<input/>', {
@@ -590,9 +639,9 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 		value : criterion.questionId
 	}));
 	
+	form.append($('<span />',{'class' : 'control-label', 'text' : 'Required'}));		
 	form.append($('<h4 />').html(criterion.questionText));
-	form.append($('<h6 />').html(criterion.description));
-	var ansdiv = $('<div />');
+	var ansdiv = $('<div />', {'class' : 'form-group'});
 	switch(criterion.questionType) {
 		case 2:
 			var like = $('<div />', {'class' : 'col-xs-6 col-sm-6 col-md-6 text-center'});
@@ -608,7 +657,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 			var radioDislike =$('<input />', {
 				'id'   : 'radiobox-' + criterion.questionId +"-2",
 				'type' : 'radio', 'class' : 'thumbs-down', 'name' : 'gradeValue',
-				'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');', 'value' :  '1'});
+				'onChange' : 'this.form.submit()', 'value' :  '1'});
 			if (1 == grade.gradeValue) radioDislike.prop('checked', true);
 			dislike.append(radioDislike);
 			dislike.append($('<label />', {
@@ -626,7 +675,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 					'id' : 'star-' + i + '-' + criterion.questionId,
 					'type': 'radio',
 					'name': "gradeValue",
-					'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');',
+					'onChange' : 'this.form.submit()',
 					'value': ans
 				});
 				if (ans == grade.gradeValue) star.prop('checked', true);
@@ -639,7 +688,24 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 			break;
 		
 	}
+	ansdiv.append($('<div />', {'class' : 'clearfix'}));
 	form.append(ansdiv);
+	var notes = $('<div />', {'class' : 'form-group has-feedback'});
+	notes.append($('<label />',{'class' : 'control-label', 'text' : 'Notes','for' : 'notes_' + criterion.questionId}));
+	var comments = grade.gradeText;
+	notes.append($('<textarea />',{
+		'name' : 'gradeText',
+		'class' : 'form-control',
+		'text' : comments,
+		'onkeypress' : '$("#savenotes_'+criterion.questionId+'").removeClass("hidden");',
+		'id' : 'notes_' + criterion.questionId}));
+	var button = 'save';
+	notes.append($('<button />',{
+		'text' : 'save',
+		'id' : 'savenotes_' + criterion.questionId,
+		'class' : 'btn btn-primary btn-xs pull-right hidden',
+		'type' : 'submit'}));
+	form.append(notes);
 	
 	return form;
 }
@@ -652,8 +718,15 @@ clientPortal.prototype.submitGrade = function(graderId, questionId) {
 	for (var i=0;i<fields.length;i++) {
 		grade[fields[i].name] = fields[i].value;
 	}
+	if (!grade.gradeValue) {
+		 $('#'+formname).addClass('has-error');
+		return false;
+	} else {
+		 $('#'+formname).removeClass('has-error');		
+	}
 	$('#'+formname+ " :input").prop('disabled', true);
 	saveGrade(thePortal, grade);
+	$('#savenotes_'+questionId).addClass('hidden');
 }
 
 clientPortal.prototype.logSavedGrade = function(grade) {
@@ -1465,7 +1538,7 @@ clientPortal.prototype.initRespondantGraderTables = function() {
 		columns: [
 		          { responsivePriority: 1, className: 'text-left', title: 'Question', data: 'question.questionText'},
 		          { responsivePriority: 2, className: 'text-left', title: 'Response', data: 'response.responseMedia',
-		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} },
+		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data)} },
 		          { responsivePriority: 4, className: 'text-left', title: 'Status', data: 'completed', render : function ( data, type, row ) {
 		        	  return row.completed + ' of ' + row.evaluators;
 		          }},
@@ -1514,7 +1587,7 @@ clientPortal.prototype.updateRespondantGraderTables = function() {
 		for (var i=0;i<this.respondant.grades.length;i++) {
 			if (grader.id == this.respondant.grades[i].graderId) grader.grades.push(this.respondant.grades[i]);
 		}
-		if (grader.type == 1) {
+		if (grader.type < 100) {
 			evaluators.push(grader);
 			Array.prototype.push.apply(evaluations, grader.grades);
 		} else {
