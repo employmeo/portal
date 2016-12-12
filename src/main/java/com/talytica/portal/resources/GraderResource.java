@@ -2,6 +2,7 @@ package com.talytica.portal.resources;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.*;
 import com.employmeo.data.service.GraderService;
+import com.employmeo.data.service.RespondantService;
 import com.talytica.portal.objects.GraderParams;
 
 import io.swagger.annotations.*;
@@ -30,6 +32,9 @@ public class GraderResource {
 
 	@Autowired
 	GraderService graderService;
+	
+	@Autowired
+	RespondantService respondantService;
 
 	//private static final long ONE_DAY = 24*60*60*1000; // one day in milliseconds to add to the "to-date"
 
@@ -100,20 +105,44 @@ public class GraderResource {
 	}
 
 	@GET
-	@Path("/{id}/criteria")
+	@Path("/{questionId}/criteria")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets a list the criteria (questions) for a graded question", response = Question.class, responseContainer="List")
+	@ApiOperation(value = "Gets a list of the criteria (questions) for a gradable question", response = Question.class, responseContainer="List")
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 200, message = "Criteria found")
 	   })
-	public Response getCriteriaByGraderId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long questionId) {
-		log.debug("Requested grades by grader id {}", questionId);
-
+	public Response getCriteriaByQuestionId(@ApiParam(value = "question id") @PathParam("questionId") @NotNull Long questionId) {
+		log.debug("Requested criteria by question id {}", questionId);
 		List<Question> questions = graderService.getCriteriaByQuestionId(questionId);
 		return Response.status(Status.OK).entity(questions).build();
-
 	}
 
+	@GET
+	@Path("/{id}/allcriteria")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets a list of all criteria (questions) for a summary grader", response = Question.class, responseContainer="List")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Criteria found")
+	   })
+	public Response getCriteriaByGraderId(@ApiParam(value = "grader id") @PathParam("id") @NotNull Long graderId) {
+		List<Question> questions = graderService.getSummaryCriteriaByGraderId(graderId);
+		log.debug("Requested {} criteria by grader id {}", questions.size(), graderId);
+		return Response.status(Status.OK).entity(questions).build();
+	}
+	
+	@GET
+	@Path("/{id}/allresponses")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets a list of all responses for a summary grader respondant", response = com.employmeo.data.model.Response.class, responseContainer="List")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Responses found")
+	   })
+	public Response getResponsesByGraderId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
+		Set<com.employmeo.data.model.Response> responses = respondantService.getGradeableResponses(respondantId);
+		log.debug("Requested {} criteria by grader id {}", responses.size(),respondantId);
+		return Response.status(Status.OK).entity(responses).build();
+	}
+	
 	@POST
 	@Path("/grade")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -158,9 +187,7 @@ public class GraderResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets paged-results of the graders for a User", response = Grader.class, responseContainer="Page")
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Graders found")
-	   })
+	   @ApiResponses(value = {@ApiResponse(code = 200, message = "Graders found")})
 	public Response searchGraders(@ApiParam(value = "Grader Search Params") @NotNull GraderParams params) {
 		log.debug("Requested graders by params {}", params);
 		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.getFromdate(), params.getTodate());

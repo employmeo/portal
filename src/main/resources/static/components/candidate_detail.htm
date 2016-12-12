@@ -47,11 +47,6 @@
 				</div>
 				<div class="x_content">
 					<div>
-						<a href='#' onClick="portal.showComponent('assessment_results');" id='detailslink' class='pull-right'>More Detail</a>
-						<span id='assessmentdate' class='hidden'></span>
-						<h4 id='assessmentname'>Assessment</h4>
-					</div>
-					<div>
 						<table class='table table-hover'>
 							<tbody id='assessmentresults'>
 							</tbody>
@@ -82,7 +77,7 @@
 			</div>
 			<div id='assessmentscores' class='x_panel hidden'>
 				<div class="x_title">
-					<h3>Assessment Scores <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+					<h3>Assessed Scores <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
 					<div class="clearfix"></div>
 				</div>
 				<div class="x_content">
@@ -103,16 +98,21 @@
 			</div>
 			<div id='evaluations' class='x_panel hidden'>
 				<div class="x_title">
-					<h3>Evaluations <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+					<h3>Evaluated Scores <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
 					<div class="clearfix"></div>
 				</div>
 				<div class="x_content">
 					<div>
-						<table id='evaluationstable' class='table table-hover'>
-							<tbody>
+					<h4>Scores</h4>
+						<table class='table table-hover'>
+							<tbody id='gradedresults'>
 							</tbody>
 						</table>
 						<hr>
+					<h4>Responses</h4>
+						<div id='gradeablescontainer'>
+
+						</div>
 					</div>
 				</div>
 			</div>
@@ -139,7 +139,8 @@
     portal.renderAssessmentScore(false);
 	portal.renderPredictions();
 	portal.renderAssessmentScore(true);
-	portal.initRespondantGraderTables();
+	portal.renderGradedScores();
+	portal.showRespondantGradeables();
 	portal.activateUIElements();
 	if (portal.searchResults != null) $('#backtosearch').toggleClass('hidden');
 </script>
