@@ -435,17 +435,19 @@ clientPortal.prototype.initGradersTable = function(){
 		        	  return moment(data).format('MM-DD-YY');
 		          }},
 		          { responsivePriority: 1, className: 'text-left', title: 'Candidate', data: 'respondant.person' ,
-		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
+		        	  render : function ( data, type, row ) {if(!data) return ''; return data.firstName + ' ' + data.lastName;}},
 		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
 		        	  if (data == 20) return 'Ignored'; if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Started';
 		          }},
 		          { responsivePriority: 4, className: 'text-left', title: 'Question', data: 'question.description',
-		        	  render: function ( data, type, row) { 
+		        	  render: function ( data, type, row) {
+		        		  if(!data) return '';
 		        		  if (row.type== 1) return data;
 		        	      return 'All Questions In: ' + thePortal.getAssessmentBy(row.respondant.accountSurveyId).displayName;
 		        	      }},
 		          { responsivePriority: 4, className: 'text-right', title: 'Ignore', data: 'id',
 			        	  render : function ( data, type, row ) {
+			        		  if(!data) return '';
 			        		  if (row.status < 10) return '<button class="btn btn-danger btn-xs" onClick=portal.ignoreGrader('+row.id+')>X</button>'; 
 		        	          return '';
 		        	      }} 
@@ -552,8 +554,7 @@ clientPortal.prototype.updateGradersTable = function(data) {
         			row.child().addClass('selected');
         		}
         	}
-        	
-			
+	
 		});
 	}
 }
@@ -605,7 +606,23 @@ clientPortal.prototype.showGradesPanel = function() {
 		$('#gradeforms').append(form);
 	}
 }
-	
+
+clientPortal.prototype.showRespondantGradeables = function() {
+	var thePortal = this;
+	if (!this.respondant.gradeableresponses) {
+		$.when(getGradeableResponses(thePortal.respondant)).done(function () {
+			$('#gradeablescontainer').empty();
+			$('#gradeablescontainer').html(thePortal.renderAudioDetail(thePortal.respondant, thePortal.respondant.gradeableresponses));
+			$('div.container','#gradeablescontainer').slideDown();
+			if ((portal.respondant.gradeableresponses != null) && (portal.respondant.gradeableresponses > 0)) $('#evaluations').removeClass('hidden');
+			})	
+	} else {
+		$('#gradeablescontainer').empty();
+		$('#gradeablescontainer').html(thePortal.renderAudioDetail(thePortal.respondant, thePortal.respondant.gradeableresponses));
+		$('div.container','#gradeablescontainer').slideDown();
+		if ((portal.respondant.gradeableresponses != null) && (portal.respondant.gradeableresponses > 0)) $('#evaluations').removeClass('hidden');
+	}
+}
 
 clientPortal.prototype.createGradeForm = function (criterion) {
 	var grade = {'id':'','gradeText':'','gradeValue':''};
@@ -1081,7 +1098,7 @@ clientPortal.prototype.updateHistory = function(historyData) {
 clientPortal.prototype.renderApplicantDetails = function() {
 	$('#applicantprofile').removeClass('hidden');
 	var profile = this.getProfile(this.respondant.profileRecommendation);
-	$('#compositescore').text(Math.round(this.respondant.compositeScore));
+	$('#compositescore').text(Math.round(this.respondant.compositeScore.toFixed(2)));
 	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
 	$('#candidateemail').text(this.respondant.person.email);
 	$('#candidateaddress').text(this.respondant.person.address);
@@ -1089,7 +1106,7 @@ clientPortal.prototype.renderApplicantDetails = function() {
 	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
 	$('#applicantscore').empty();
 	$('#applicantscore').append($('<div>',{'style':'float:left;'}).append(portal.getProfileBadge(profile)));
-	$('#applicantscore').append($('<div>',{'style':'float:right;'}).append(this.respondant.compositeScore));
+	$('#applicantscore').append($('<div>',{'style':'float:right;'}).append(this.respondant.compositeScore.toFixed(2)));
 	$('#applicantscore').append($('<div>',{'style':'text-align:center;'}).append(profile.labels[0]));
 }
 
@@ -1411,77 +1428,140 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 	if (detail) resultsDiv = $('#detailassessmentresults');
 	resultsDiv.empty();
 	var displaygroup = "";	
-	
+	var counter = 0;
 	for (var key=0;key<scores.length;key++) {
-		if ((!detail) && (key >= 5)) break;
+		
 		var value = scores[key].value;
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
-		var row = $('<tr />', {	'title' : corefactor.description});
-		var cell = $('<td />');
-		var quartile = Math.floor(4*value/11);
-		
-		var progress = $('<div />', {'class' : 'progress', 'style' : 'height:30px;margin-top:10px;margin-bottom:0px' }).append($('<div />', {
-			'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
-			'role': 'progressbar',
-			'aria-valuenow' : value,
-			'aria-valuemin' : "1",
-			'aria-valuemax' : "11",
-			'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
-				+ (100*value/corefactor.highValue) + '%;',
-			'text' : value }));
-
 		if (detail) {
-			if (displaygroup != corefactor.displayGroup) {
+			if ((corefactor.displayGroup == 'Graded') || (corefactor.displayGroup == 'Hidden')) continue;
+			if ((detail) && (displaygroup != corefactor.displayGroup)) {
 				displaygroup = corefactor.displayGroup;
 				var grouprow = $('<tr />');
 				grouprow.append($('<th />', {'style':'text-align:center;'}).append($('<h4 />',{text:displaygroup})));
 				resultsDiv.append(grouprow);
 			}
-			
-			var namediv = $('<div />', {
-				'class' : 'text-left',
-				'style' : 'float:left;width:120px;margin-right:2px;',
-				title: corefactor.description});
-			var expander = $('<h5 />');
-			expander.append($('<strong />', { text : corefactor.name + ' '}));
-			expander.append($('<i />', {
-				'onclick' : "portal.showDetail(" + corefactor.id + ")",
-				'class' : 'fa fa-plus-square-o',
-				'id' : 'expander_' + corefactor.id
-			}));
-			namediv.append(expander);
-			namediv.append('<h6><em>' +corefactor.lowDescription + '</em></h6>');
-			var scorediv = $('<div />', {
-				'class' : 'text-right',
-				'style' : 'float:right;width:120px;margin-left:2px',
-				html : '<h5><strong>' + value.toFixed(1) + " of " + corefactor.highValue + '</strong></h5>'});
-			scorediv.append('<h6><em>' +corefactor.highDescription + '</em></h6>');
-
-
-			cell.append(namediv);
-			cell.append(scorediv);	
-			cell.append(progress);
+			resultsDiv.append(this.renderScoreDetail(scores[key]));
+			resultsDiv.append(this.renderScorePersonalMessage(scores[key]));	
 		} else {
-			cell.append($('<div />', {'text': corefactor.name }));
-			cell.append(progress); 
+			resultsDiv.append(this.renderSimpleScore(scores[key]))
+			if (counter >= 5) break;
 		}
-		row.append(cell);
-		resultsDiv.append(row);
-
-		if (detail) {
-			var messageRow = $('<tr />',{
-				'id' : 'cfmessage_' + scores[key].corefactorId,
-				'class' : 'hidden'
-			}).append($('<td />',{
-				'bgcolor' : '#F7F7F7',
-				'border-top' : 'none',
-				'text' : this.prepPersonalMessage(scores[key])
-			}));
-			resultsDiv.append(messageRow);
-		}
+		counter++;
 		
 	}
 
+	resultsDiv.append(this.getLegend());
+	if ((counter == 0) && detail){
+		$('#assessmentscores').addClass('hidden');
+		return;
+	}
+
+}
+
+clientPortal.prototype.renderGradedScores = function() {
+	var thePortal = this;
+	var scores = this.respondant.respondantScores;
+	
+	var resultsDiv = $('#gradedresults');
+	resultsDiv.empty();
+	var counter = 0;
+	for (var key=0;key<scores.length;key++) {	
+		var value = scores[key].value;
+		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
+		if (corefactor.displayGroup != 'Graded') continue;
+		resultsDiv.append(this.renderScoreDetail(scores[key]));
+		resultsDiv.append(this.renderScorePersonalMessage(scores[key]));	
+		counter++;	
+	}
+
+	if (counter == 0){
+		$('#gradedresults').append($('<tr />').append($('<th />',{'class' : 'text-center', 'html' : '<h4>No Scores Available</h4>'})));
+	}	
+}
+
+clientPortal.prototype.renderScoreDetail = function(score) {
+	var value = score.value;
+	var corefactor = this.getCorefactorBy(score.corefactorId);
+	var row = $('<tr />', {	'title' : corefactor.description});
+	var cell = $('<td />');
+	var quartile = Math.floor(4*value/11);
+	
+	var progress = $('<div />', {'class' : 'progress', 'style' : 'height:30px;margin-top:10px;margin-bottom:0px' }).append($('<div />', {
+		'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
+		'role': 'progressbar',
+		'aria-valuenow' : value,
+		'aria-valuemin' : "1",
+		'aria-valuemax' : "11",
+		'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
+			+ (100*value/corefactor.highValue) + '%;',
+		'text' : value }));
+
+	var namediv = $('<div />', {
+		'class' : 'text-left',
+		'style' : 'float:left;width:120px;margin-right:2px;',
+		title: corefactor.description});
+	var expander = $('<h5 />');
+	expander.append($('<strong />', { text : corefactor.name + ' '}));
+	expander.append($('<i />', {
+		'onclick' : "portal.showDetail(" + corefactor.id + ")",
+		'class' : 'fa fa-plus-square-o',
+		'id' : 'expander_' + corefactor.id
+	}));
+	namediv.append(expander);
+	namediv.append('<h6><em>' +corefactor.lowDescription + '</em></h6>');
+	var scorediv = $('<div />', {
+		'class' : 'text-right',
+		'style' : 'float:right;width:120px;margin-left:2px',
+		html : '<h5><strong>' + value.toFixed(1) + " of " + corefactor.highValue + '</strong></h5>'});
+	scorediv.append('<h6><em>' +corefactor.highDescription + '</em></h6>');
+
+	cell.append(namediv);
+	cell.append(scorediv);	
+	cell.append(progress);
+
+	row.append(cell);
+	return row;
+}
+
+clientPortal.prototype.renderScorePersonalMessage = function(score) {
+	var messageRow = $('<tr />',{
+		'id' : 'cfmessage_' + score.corefactorId,
+		'class' : 'hidden'
+	}).append($('<td />',{
+		'bgcolor' : '#F7F7F7',
+		'border-top' : 'none',
+		'text' : this.prepPersonalMessage(score)
+	}));
+	return messageRow;
+}
+
+clientPortal.prototype.renderSimpleScore = function(score) {
+	var detail = true;
+	var value = score.value;
+	var corefactor = this.getCorefactorBy(score.corefactorId);
+	var row = $('<tr />', {	'title' : corefactor.description});
+	var cell = $('<td />');
+	var quartile = Math.floor(4*value/11);
+	
+	var progress = $('<div />', {'class' : 'progress', 'style' : 'height:30px;margin-top:10px;margin-bottom:0px' }).append($('<div />', {
+		'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
+		'role': 'progressbar',
+		'aria-valuenow' : value,
+		'aria-valuemin' : "1",
+		'aria-valuemax' : "11",
+		'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
+			+ (100*value/corefactor.highValue) + '%;',
+		'text' : value }));
+
+	cell.append($('<div />', {'text': corefactor.name }));
+	cell.append(progress); 
+	row.append(cell);
+	return row;
+}
+
+
+clientPortal.prototype.getLegend = function() {
 	var legend = $('<div />',{
 		'style' : 'max-width:480px;margin-left:auto;margin-right:auto;'
 	});
@@ -1500,11 +1580,9 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		})));
 		legend.append(div);
 	}
-	var footer = $('<tr />').append($('<td />', {'style':'background-color:#eee;'}).append(legend));
-	resultsDiv.append(footer);
-
-
+	return legend;
 }
+
 
 clientPortal.prototype.getBarClass = function(quartile) {
 	var barclass;
@@ -1529,23 +1607,7 @@ clientPortal.prototype.getBarClass = function(quartile) {
 }
 
 clientPortal.prototype.initRespondantGraderTables = function() {
-	var thePortal = this;
-	this.rEvaluators = $('#evaluationstable').DataTable( {
-		responsive: true,
-		order: [[ 0, 'desc' ]],
-		rowId: 'id',
-		dom: 't',
-		columns: [
-		          { responsivePriority: 1, className: 'text-left', title: 'Question', data: 'question.questionText'},
-		          { responsivePriority: 2, className: 'text-left', title: 'Response', data: 'response.responseMedia',
-		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data)} },
-		          { responsivePriority: 4, className: 'text-left', title: 'Status', data: 'completed', render : function ( data, type, row ) {
-		        	  return row.completed + ' of ' + row.evaluators;
-		          }},
-		          { responsivePriority: 3, className: 'details-control', title: 'Grades', orderable: false, defaultContent : '', data : null }
-		         ]
-	});
-	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.	
+	var thePortal = this;	
 	this.rReferences = $('#referencetable').DataTable( {
 		responsive: true,
 		order: [[ 0, 'desc' ]],

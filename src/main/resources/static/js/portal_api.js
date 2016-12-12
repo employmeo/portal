@@ -222,6 +222,17 @@ function getAllResponses(grader) {
 	});
 }
 
+function getGradeableResponses(respondant) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "grader/"+respondant.id+"/allresponses",
+		success: function(data) {
+			respondant.gradeableresponses = data;
+		}
+	});
+}
+
 function getRespondantGraders(thePortal) {	
 	return $.ajax({
 		type: "GET",
