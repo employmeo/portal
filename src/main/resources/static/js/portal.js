@@ -3,9 +3,10 @@ Chart.defaults.global.defaultFontSize = 16;
 Chart.defaults.global.defaultFontFamily = '"Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif';
 
 /* start: create the app */
-clientPortal = function() {
+clientPortal = function(version) {
     this.body = $('body');
     this.leftcol = $('.left_col');
+    this.version = version;
     
 	this.urlParams = {};
 	this.user = {};
@@ -47,13 +48,13 @@ clientPortal.prototype.init = function() {
 
 clientPortal.prototype.showLoginForm = function () {
 	$('#wait').toggleClass('hidden');
-  	var imagenum = Math.floor(Math.random()*12+1);
+  	var imagenum = Math.floor(Math.random()*11+1);
   	$('#mainbody').addClass('coverpage');
 	$('#mainbody').css('background-image',"url('/images/background-" + imagenum + ".jpg')");
 	if (this.urlParams.hasOwnProperty('hash')){
-		$('#login').load('/components/reset.htm');		
+		$('#login').load('/components/reset.htm?version='+this.version);		
 	} else {
-		$('#login').load('/components/login.htm');		
+		$('#login').load('/components/login.htm?version='+this.version);		
 	}
 }
 
@@ -71,8 +72,8 @@ clientPortal.prototype.loginSuccess = function(data) {
 	$('#portal').toggleClass('hidden');
   	$('#mainbody').removeClass('coverpage');
 	$('#mainbody').css('background-image','');
-	$('#leftnav').load('/components/left.htm');
-	$('#topnav').load('/components/top.htm');
+	$('#leftnav').load('/components/left.htm?version='+this.version);
+	$('#topnav').load('/components/top.htm?version='+this.version);
 	if (!this.urlParams.component) this.urlParams.component = 'dash';
 
 	if (this.urlParams.respondantUuid != null) {
@@ -2022,7 +2023,7 @@ clientPortal.prototype.showComponent = function(component) {
 	this.sidebar.find('.current-page').removeClass('current-page');
 	this.sidebar.find('ul').children('li').children('ul').slideUp(0);
 	this.sidebar.find('.active').removeClass('active');
-	$('#mainpanel').load('/components/'+component+'.htm');
+	$('#mainpanel').load('/components/'+component+'.htm?version='+this.version);
 	
     this.sidebar.find("a[data-component='" + component + "']").parent('li').addClass('current-page');
     this.sidebar.find('a').filter(function () {
