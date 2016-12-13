@@ -1099,7 +1099,9 @@ clientPortal.prototype.updateHistory = function(historyData) {
 clientPortal.prototype.renderApplicantDetails = function() {
 	$('#applicantprofile').removeClass('hidden');
 	var profile = this.getProfile(this.respondant.profileRecommendation);
-	$('#compositescore').text(Math.round(this.respondant.compositeScore.toFixed(2)));
+	var composite = 'NA';
+	if (this.respondant.compositeScore) composite = this.respondant.compositeScore.toFixed(2);
+	$('#compositescore').text(composite);
 	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
 	$('#candidateemail').text(this.respondant.person.email);
 	$('#candidateaddress').text(this.respondant.person.address);
@@ -1107,7 +1109,7 @@ clientPortal.prototype.renderApplicantDetails = function() {
 	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
 	$('#applicantscore').empty();
 	$('#applicantscore').append($('<div>',{'style':'float:left;'}).append(portal.getProfileBadge(profile)));
-	$('#applicantscore').append($('<div>',{'style':'float:right;'}).append(this.respondant.compositeScore.toFixed(2)));
+	$('#applicantscore').append($('<div>',{'style':'float:right;'}).append(composite));
 	$('#applicantscore').append($('<div>',{'style':'text-align:center;'}).append(profile.labels[0]));
 }
 
