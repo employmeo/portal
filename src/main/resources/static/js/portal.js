@@ -615,13 +615,13 @@ clientPortal.prototype.showRespondantGradeables = function() {
 			$('#gradeablescontainer').empty();
 			$('#gradeablescontainer').html(thePortal.renderAudioDetail(thePortal.respondant, thePortal.respondant.gradeableresponses));
 			$('div.container','#gradeablescontainer').slideDown();
-			if ((portal.respondant.gradeableresponses != null) && (portal.respondant.gradeableresponses > 0)) $('#evaluations').removeClass('hidden');
+			if ((thePortal.respondant.gradeableresponses != null) && (thePortal.respondant.gradeableresponses.length > 0)) $('#evaluations').removeClass('hidden');
 			})	
 	} else {
 		$('#gradeablescontainer').empty();
 		$('#gradeablescontainer').html(thePortal.renderAudioDetail(thePortal.respondant, thePortal.respondant.gradeableresponses));
 		$('div.container','#gradeablescontainer').slideDown();
-		if ((portal.respondant.gradeableresponses != null) && (portal.respondant.gradeableresponses > 0)) $('#evaluations').removeClass('hidden');
+		if ((thePortal.respondant.gradeableresponses != null) && (thePortal.respondant.gradeableresponses.length > 0)) $('#evaluations').removeClass('hidden');
 	}
 }
 
