@@ -666,7 +666,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 			var radioLike =	$('<input />', {
 				'id'   : 'radiobox-' + criterion.questionId +"-1",
 				'type' : 'radio', 'class' : 'thumbs-up', 'name' : 'gradeValue',
-				'onChange' : 'portal.submitGrade('+this.grader.id+','+criterion.questionId+');', 'value' :  '11'});
+				'onChange' : 'this.form.submit()', 'value' :  '11'});
 			if (11 == grade.gradeValue) radioLike.prop('checked', true);
 			like.append(radioLike);
 			like.append($('<label />', {
@@ -1498,7 +1498,7 @@ clientPortal.prototype.renderScoreDetail = function(score) {
 		'aria-valuemax' : "11",
 		'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
 			+ (100*value/corefactor.highValue) + '%;',
-		'text' : value }));
+		'text' : value.toFixed(1) }));
 
 	var namediv = $('<div />', {
 		'class' : 'text-left',
@@ -1555,7 +1555,7 @@ clientPortal.prototype.renderSimpleScore = function(score) {
 		'aria-valuemax' : "11",
 		'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
 			+ (100*value/corefactor.highValue) + '%;',
-		'text' : value }));
+		'text' : value.toFixed(1) }));
 
 	cell.append($('<div />', {'text': corefactor.name }));
 	cell.append(progress); 
