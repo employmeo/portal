@@ -3,7 +3,7 @@ Chart.defaults.global.defaultFontSize = 16;
 Chart.defaults.global.defaultFontFamily = '"Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif';
 
 /* start: create the app */
-clientPortal = function(version) {
+function clientPortal(version) {
     this.body = $('body');
     this.leftcol = $('.left_col');
     this.version = version;
@@ -608,21 +608,102 @@ clientPortal.prototype.showGradesPanel = function() {
 	}
 }
 
-clientPortal.prototype.showRespondantGradeables = function() {
+clientPortal.prototype.initRespondantGradeables = function() {
 	var thePortal = this;
 	if (!this.respondant.gradeableresponses) {
-		$.when(getGradeableResponses(thePortal.respondant)).done(function () {
-			$('#gradeablescontainer').empty();
-			$('#gradeablescontainer').html(thePortal.renderAudioDetail(thePortal.respondant, thePortal.respondant.gradeableresponses));
-			$('div.container','#gradeablescontainer').slideDown();
-			if ((thePortal.respondant.gradeableresponses != null) && (thePortal.respondant.gradeableresponses.length > 0)) $('#evaluations').removeClass('hidden');
-			})	
+		$.when(getGradeableResponses(thePortal.respondant)).done(function () {thePortal.showRespondantGradeables();});
 	} else {
-		$('#gradeablescontainer').empty();
-		$('#gradeablescontainer').html(thePortal.renderAudioDetail(thePortal.respondant, thePortal.respondant.gradeableresponses));
-		$('div.container','#gradeablescontainer').slideDown();
-		if ((thePortal.respondant.gradeableresponses != null) && (thePortal.respondant.gradeableresponses.length > 0)) $('#evaluations').removeClass('hidden');
+		this.showRespondantGradeables();
 	}
+}
+
+clientPortal.prototype.showRespondantGradeables = function() {
+	$('#gradeablescontainer').empty();
+	$('#gradeablescontainer').html(this.renderAudioDetail(this.respondant, this.respondant.gradeableresponses));
+	$('div.container','#gradeablescontainer').slideDown();
+	this.renderOtherScoresIn('Graded','gradedresults');
+	if ((this.respondant.gradeableresponses != null) && (this.respondant.gradeableresponses.length > 0)) $('#evaluations').removeClass('hidden');	
+}
+
+clientPortal.prototype.initRespondantReferences = function() {
+	var thePortal = this;
+	this.rReferences = $('#referencetable').DataTable( {
+        "paging" : false, "filter" : false, "ordering" : false, "info" : false, "responsive" : true,
+		order: [[ 0, 'desc' ]],
+		rowId: 'id',
+		columns: [
+		          { responsivePriority: 1, className: 'text-left', title: 'Reference Name', data: 'person' ,
+		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
+		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
+		        	  	if (data == 10) return 'Complete'; if (data == 20) return 'Declined'; return 'Incomplete';}},
+		          { responsivePriority: 4, className: 'details-control', title: 'Responses' }
+		         ]
+	});
+	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
+	
+	if (!this.respondant.graders) {
+		$.when(getRespondantGraders(thePortal)).done(function () {thePortal.showRespondantReferences();});
+	} else {
+		this.showRespondantReferences();
+	}
+}
+
+clientPortal.prototype.showRespondantReferences = function() {
+	this.renderOtherScoresIn('Reference Scores','referenceresults');
+	var references = [];
+	for (var key in this.respondant.graders) {
+		if (this.respondant.graders[key].type >= 100) references.push(this.respondant.graders[key]);
+	}
+	$('#referencetable').dataTable().fnClearTable();
+	if (references.length > 0) {
+		var thePortal = this;
+		$('#referencetable').dataTable().fnAddData(references);
+		this.rReferences.$('td.details-control').click(function (){
+			var td = this;
+			var tr = $(this).closest('tr');
+	        var row = thePortal.rReferences.row( tr );
+	        if ( row.child.isShown() ) {
+	            row.child.hide();
+	            tr.removeClass('shown');
+	        } else {
+	        	var grader = row.data();
+	            row.child('<i class="fa fa-spinner fa-spin"></i>').show();
+	            tr.addClass('shown');
+	    		if (!grader.grades) {
+	    			$.when(getGrades(grader)).done(function () {thePortal.showReferenceResponses(td);});
+	    		} else {
+	    			thePortal.showReferenceResponses(td);
+	    		}
+	        }
+		});
+		$('#references').removeClass('hidden');	
+		if (this.renderOtherScoresIn('Personal Ratings','personalratings') > 0) $('#selfevaluation').removeClass('hidden');	
+	}
+}
+
+clientPortal.prototype.showReferenceResponses = function(td) {
+	var tr = $(td).closest('tr');
+    var myrow = this.rReferences.row( tr );
+	var count = 0;
+	var grader = myrow.data();
+	var table = $('<table />',{'class' : 'table table-condensed'});
+	for (var key in grader.grades) {
+		var grade = grader.grades[key];
+		count++;
+		console.log(grade);
+		var row = $('<tr />');
+		row.append($('<td />',{'text': grade.questionText}));
+		row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeText || grade.gradeValue || ''}));
+		table.append(row);
+	}
+    myrow.child(table.wrap("<div />").parent().html()).show();
+}
+
+clientPortal.prototype.getRespondantGraderById = function(id) {
+	for (var key in this.respondant.graders) {
+		if (id == this.respondant.graders[key].id) return this.respondant.graders[key];
+	}
+	return null;
 }
 
 clientPortal.prototype.createGradeForm = function (criterion) {
@@ -687,7 +768,8 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 		default:
 			ansdiv.addClass('stars');
 			for (var i=5;i>0;i--) {
-				var ans = 2 *i;
+				var ans = 2*i;
+				if (criterion.direction < 0) ans = 10 - 2*i;
 				var star =$('<input/>',{
 					'class' : 'star star-' + i,
 					'id' : 'star-' + i + '-' + criterion.questionId,
@@ -787,8 +869,6 @@ clientPortal.prototype.ignoreGrader = function(graderId) {
 	
 }
 	
-
-
 clientPortal.prototype.checkGraderStatus = function(updatedGrader) {
 	if (updatedGrader.id == this.grader.id) {
 		$('#gradecompletion').text(this.grader.grades.length + ' of ' + this.grader.criteria.length + ' Completed');		
@@ -1405,7 +1485,7 @@ clientPortal.prototype.prepPersonalMessage = function(score) {
 clientPortal.prototype.renderAssessmentScore = function(detail) {
 	var thePortal = this;
 	var scores = this.respondant.respondantScores;
-
+	var excludeGroups = ['Hidden','Graded','Personal Ratings','Reference Scores'];
 	if ((scores == null) || (scores.length == 0)) {
 		$('#criticaltraitscores').addClass('hidden');
 		$('#assessmentscores').addClass('hidden');
@@ -1421,9 +1501,10 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		$('#assessmentname').text(this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
 		$('#assessmentdate').text(new Date(this.respondant.createdDate).toDateString());
 		scores.sort(function(a,b) {
-			var aGroup = thePortal.getCorefactorBy(a.corefactorId).displayGroup;
-			var bGroup = thePortal.getCorefactorBy(b.corefactorId).displayGroup;
-			return aGroup.localeCompare(bGroup);
+			var aCf = thePortal.getCorefactorBy(a.corefactorId);
+			var bCf = thePortal.getCorefactorBy(b.corefactorId);
+			if (aCf.displayGroup.localeCompare(bCf.displayGroup) !=0) return aCf.displayGroup.localeCompare(bCf.displayGroup);
+			return aCf.name.localeCompare(bCf.name);
 		});
 	}
 	
@@ -1437,7 +1518,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		var value = scores[key].value;
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
 		if (detail) {
-			if ((corefactor.displayGroup == 'Graded') || (corefactor.displayGroup == 'Hidden')) continue;
+			if (excludeGroups.indexOf(corefactor.displayGroup) != -1) continue;
 			if ((detail) && (displaygroup != corefactor.displayGroup)) {
 				displaygroup = corefactor.displayGroup;
 				var grouprow = $('<tr />');
@@ -1448,7 +1529,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 			resultsDiv.append(this.renderScorePersonalMessage(scores[key]));	
 		} else {
 			resultsDiv.append(this.renderSimpleScore(scores[key]))
-			if (counter >= 5) break;
+			if (counter >= 4) break;
 		}
 		counter++;
 		
@@ -1462,26 +1543,28 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 
 }
 
-clientPortal.prototype.renderGradedScores = function() {
+clientPortal.prototype.renderOtherScoresIn = function(type, location) {
 	var thePortal = this;
 	var scores = this.respondant.respondantScores;
 	
-	var resultsDiv = $('#gradedresults');
+	var resultsDiv = $('#'+location);
 	resultsDiv.empty();
 	var counter = 0;
 	for (var key=0;key<scores.length;key++) {	
 		var value = scores[key].value;
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
-		if (corefactor.displayGroup != 'Graded') continue;
+		if (corefactor.displayGroup != type) continue;
 		resultsDiv.append(this.renderScoreDetail(scores[key]));
 		resultsDiv.append(this.renderScorePersonalMessage(scores[key]));	
 		counter++;	
 	}
 
 	if (counter == 0){
-		$('#gradedresults').append($('<tr />').append($('<th />',{'class' : 'text-center', 'html' : '<h4>No Scores Available</h4>'})));
-	}	
+		$('#'+location).append($('<tr />').append($('<th />',{'class' : 'text-center', 'html' : '<h4>No Scores Available</h4>'})));
+	}
+	return counter;
 }
+
 
 clientPortal.prototype.renderScoreDetail = function(score) {
 	var value = score.value;
@@ -1608,7 +1691,7 @@ clientPortal.prototype.getBarClass = function(quartile) {
 	}
 	return barclass;
 }
-
+/*
 clientPortal.prototype.initRespondantGraderTables = function() {
 	var thePortal = this;	
 	this.rReferences = $('#referencetable').DataTable( {
@@ -1616,17 +1699,11 @@ clientPortal.prototype.initRespondantGraderTables = function() {
 		order: [[ 0, 'desc' ]],
 		rowId: 'id',
 		columns: [
-		          { responsivePriority: 3, className: 'text-left', title: 'Date', data: 'createdDate', render: function ( data, type, row) {
-		        	  return moment(data).format('MM-DD-YY');
-		          }},
-		          { responsivePriority: 1, className: 'text-left', title: 'Candidate', data: 'respondant.person' ,
+		          { responsivePriority: 1, className: 'text-left', title: 'Reference', data: 'person' ,
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
 		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
-		        	  	if (data == 10) return 'Complete'; if (data == 1) return 'New'; return 'Started';
-		          }},
-		          { responsivePriority: 3, className: 'text-left', title: 'Question', data: 'question.questionText'},
-		          { responsivePriority: 4, className: 'text-left', title: 'Response', data: 'response.responseMedia',
-		        	  render : function ( data, type, row ) {return thePortal.renderAudioLink(row, data).wrap("<div />").parent().html()} }
+		        	  	if (data == 10) return 'Complete'; if (data == 20) return 'Declined'; return 'Incomplete';}},
+		          { responsivePriority: 4, className: 'details-control', title: 'Response' }
 		         ]
 	});
 	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
@@ -1719,7 +1796,8 @@ clientPortal.prototype.updateRespondantGraderTables = function() {
 		$('#refrences').removeClass('hidden');	
 	} 
 }
-
+*/
+/*
 clientPortal.prototype.renderEvaluationsDetail = function(data) {
 	
 	var criteria = data.criteria;
@@ -1744,7 +1822,7 @@ clientPortal.prototype.renderEvaluationsDetail = function(data) {
 	}
     return table.wrap("<div />").parent().html();	
 }
-
+*/
 clientPortal.prototype.updateGradesTable = function(grades) {
 	$('#gradetable').empty();
 	$('#gradefooter').empty();
