@@ -519,7 +519,7 @@ clientPortal.prototype.updateGradersTable = function(data) {
 	var thePortal = this;	
 	if (this.myGraders.content != null) {
 		$('#graders').dataTable().fnClearTable();
-		$('#graders').dataTable().fnAddData(this.myGraders.content);
+		if (this.myGraders.content.length > 0) $('#graders').dataTable().fnAddData(this.myGraders.content);
 		this.gTable.$('tr').click(function (){
 			thePortal.gTable.$('tr.selected').each(function () {
 				$(this).removeClass('selected');
@@ -1059,8 +1059,9 @@ clientPortal.prototype.searchRespondants = function() {
 
 clientPortal.prototype.updateRespondantsTable = function() {	
 	var thePortal = this;
+	if (!this.searchResults.content) return;
+	$('#respondants').dataTable().fnClearTable();
 	if (this.searchResults.content.length > 0) {
-		$('#respondants').dataTable().fnClearTable();
 		$('#respondants').dataTable().fnAddData(this.searchResults.content);
 		this.rTable.$('tr').click(function (){
 			thePortal.rTable.$('tr.selected').removeClass('selected');
