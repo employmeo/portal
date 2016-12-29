@@ -17,6 +17,9 @@ public class RespondantSearchParams {
 	public Long locationId;
 
 	public Long positionId;
+	
+	@Value("1")
+	public int type;
 
 	public Date fromdate;
 

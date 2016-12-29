@@ -12,7 +12,5 @@ public class ApplicantInvitation {
   public Long positionId;
   public String country_short;
   public String formatted_address;
-  
-  public ApplicantInvitation() {
-  }
+
 }

@@ -18,10 +18,8 @@ import com.employmeo.data.model.AccountSurvey;
 import com.employmeo.data.model.Location;
 import com.employmeo.data.model.Position;
 import com.employmeo.data.model.User;
-import com.employmeo.data.repository.AccountRepository;
-import com.employmeo.data.repository.AccountSurveyRepository;
-import com.employmeo.data.repository.LocationRepository;
-import com.employmeo.data.repository.PositionRepository;
+import com.employmeo.data.service.AccountService;
+import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
 import com.talytica.common.service.EmailService;
 import com.talytica.portal.PortalPasswordEncoder;
@@ -39,11 +37,11 @@ import io.swagger.annotations.ApiResponses;
 @Api( value="/1/signup", produces=MediaType.APPLICATION_JSON, consumes=MediaType.APPLICATION_JSON)
 public class SignUpResource {
 	private static final Logger log = LoggerFactory.getLogger(SignUpResource.class);
-	private static final int DEFAULT_ACCOUNT_TYPE = 1;
-	private static final int DEFAULT_ACCOUNT_STATUS = 1;
-	private static final long DEFAULT_SURVEY_ID = 10l; //Worker Reliability, (Truncated)
-	private static final String DEFAULT_POSITION_NAME = "Employee";
-	private static final String DEFAULT_POSITION_DESC = "Skilled, motivated and productive employees are employees are essential to the success of a business";
+	private static final int DEFAULT_ACCOUNT_TYPE = Account.TYPE_TRIAL_SMB;
+	private static final int DEFAULT_ACCOUNT_STATUS = Account.STATUS_NEW;
+	//private static final long DEFAULT_SURVEY_ID = 10l; //Worker Reliability, (Truncated)
+	//private static final String DEFAULT_POSITION_NAME = "Employee";
+	//private static final String DEFAULT_POSITION_DESC = "Skilled, motivated and productive employees are employees are essential to the success of a business";
 	private static final int DEFAULT_USER_TYPE = 1;
 	private static final int DEFAULT_USER_STATUS = 1;
 
@@ -52,18 +50,12 @@ public class SignUpResource {
 	
 	@Autowired
 	UserService userService;
+
+	@Autowired
+	AccountService accountService;
 	
 	@Autowired
-	AccountRepository accountRepository;
-	
-	@Autowired
-	PositionRepository positionRepository;
-	
-	@Autowired
-	LocationRepository locationRepository;
-	
-	@Autowired
-	AccountSurveyRepository accountSurveyRepository;
+	AccountSurveyService accountSurveyService;
 	
 	@Autowired
 	EmailService emailService; 
@@ -85,7 +77,7 @@ public class SignUpResource {
 		log.info("Looked for {} and found {}", request.email, user);
 		if (user != null) return USER_EXISTS;
 		
-		Account account = accountRepository.findByAccountName(request.accountName);
+		Account account = accountService.getAccountByName(request.accountName);
 		log.info("Looked for {} and found {}", request.accountName, account);
 		if (account != null) return ACCOUNT_EXISTS;
 		
@@ -93,14 +85,25 @@ public class SignUpResource {
 		account.setAccountName(request.accountName);
 		account.setAccountStatus(DEFAULT_ACCOUNT_STATUS);
 		account.setAccountType(DEFAULT_ACCOUNT_TYPE);
-		Account savedAccount = accountRepository.save(account);
+		Account savedAccount = accountService.save(account);
 
+		/*
+		 * Removed Position & Assessment defaults
 		Position defaultPosition = new Position();
 		defaultPosition.setAccount(savedAccount);
 		defaultPosition.setAccountId(savedAccount.getId());
 		defaultPosition.setPositionName(DEFAULT_POSITION_NAME);
 		defaultPosition.setDescription(DEFAULT_POSITION_DESC);
-		Position savedPosition = positionRepository.save(defaultPosition);
+		Position savedPosition = accountService.save(defaultPosition);
+		
+		AccountSurvey accountSurvey = new AccountSurvey();
+		accountSurvey.setAccount(savedAccount);
+		accountSurvey.setAccountId(savedAccount.getId());
+		accountSurvey.setSurveyId(DEFAULT_SURVEY_ID);
+		AccountSurvey savedAccountSurvey = accountSurveyService.save(accountSurvey);
+		savedAccount.setDefaultPositionId(savedPosition.getId());
+		savedAccount.setDefaultAsId(savedAccountSurvey.getId());
+		*/
 		
 		Location defaultLocation = new Location();
 		defaultLocation.setAccount(savedAccount);
@@ -109,18 +112,10 @@ public class SignUpResource {
 		defaultLocation.setLocationName(request.address);
 		defaultLocation.setLatitude(request.lat);
 		defaultLocation.setLongitude(request.lng);
-		Location savedLocation = locationRepository.save(defaultLocation);
-		
-		AccountSurvey accountSurvey = new AccountSurvey();
-		accountSurvey.setAccount(savedAccount);
-		accountSurvey.setAccountId(savedAccount.getId());
-		accountSurvey.setSurveyId(DEFAULT_SURVEY_ID);
-		AccountSurvey savedAccountSurvey = accountSurveyRepository.save(accountSurvey);
-		
+		Location savedLocation = accountService.save(defaultLocation);
+
 		savedAccount.setDefaultLocationId(savedLocation.getId());
-		savedAccount.setDefaultPositionId(savedPosition.getId());
-		savedAccount.setDefaultAsId(savedAccountSurvey.getId());
-		Account updatedAccount = accountRepository.save(savedAccount);
+		Account updatedAccount = accountService.save(savedAccount);
 		
 		user = new User();
 		user.setAccount(updatedAccount);
@@ -142,7 +137,7 @@ public class SignUpResource {
 		savedUser.setAccount(updatedAccount);
 		log.debug("Created new account {} for user {}", savedAccount, savedUser);
 
-		emailService.sendForgotPass(savedUser);
+		emailService.sendVerifyAccount(savedUser);
 		
 		return Response.status(Status.CREATED).entity(savedUser).build();
 	}

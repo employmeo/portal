@@ -64,7 +64,7 @@ public class DashboardResource {
 		if (params.positionId >= 1) positionId = params.positionId;
 
 		Page<Respondant> respondants = respondantService.getBySearchParams( params.accountId, LOWEST_STATUS, HIGHEST_STATUS,
-				locationId, positionId, from, to, 1, 500);	
+				locationId, positionId, Respondant.TYPE_APPLICANT, from, to, 1, 500);	
 		
 		List<String> labels = Arrays.asList("unscored", PositionProfile.PROFILE_A, PositionProfile.PROFILE_B,
 				PositionProfile.PROFILE_C, PositionProfile.PROFILE_D);

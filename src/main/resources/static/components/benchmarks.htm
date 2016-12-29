@@ -1,0 +1,60 @@
+<div class="row">
+	<div class="col-xs-12 col-sm-3 col-md-3">
+		<h3>Benchmarking</h3>
+	</div>
+	<div class="col-md-9 col-sm-9 col-xs-12 pull-right">
+		<form class="form-inline pull-right" id='refinequery'>
+			<div class="form-group">
+				<select class="form-control" id="benchmarkId" name="benchmarkId" onChange='portal.changeBenchmarkTo(this.value)'>
+				</select>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="row content">
+	<div class="col-sm-12">
+		<div class="x_panel">
+			<div class="x_title">
+				<h3 id='positionname'></h3>
+			</div>
+			<div class="x_content">
+				<div class='row'>
+					<div class='col-xs-4'>Type: <span id='benchmarktype'></span></div>
+					<div class='col-xs-4'>Invited: <span id='invited'></span></div>
+					<div class='col-xs-4'>
+					  Status: <span id='benchmarkstatus'></span>
+					  <button id='resumebutton' onclick='portal.showComponent("welcome");'>Continue Setup</button>
+					</div>
+				</div>
+				<hr>
+				<div class='alert bg-info' id='benchmarklinks'>
+					<table class='table' id='assessmentlinks' width="100%"></table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row content">
+	<div class="col-sm-12">
+		<div class="x_panel" id='respondantspanel'>
+			<div class="waiting hidden" id="waitingmodal">
+				<i class="fa fa-spinner fa-spin"></i>
+			</div>
+			<div class="x_title">
+				<h4>Response Status</h4>
+			</div>
+			<div class="x_content">
+				<table id="benchmarkrespondants" class="table display table-condensed" width='100%'>
+
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	portal.updateBenchmarkSelect(true);
+});
+</script>

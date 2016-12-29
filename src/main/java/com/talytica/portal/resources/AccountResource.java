@@ -24,9 +24,11 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Account;
 import com.employmeo.data.model.AccountSurvey;
+import com.employmeo.data.model.Benchmark;
 import com.employmeo.data.model.Location;
 import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
+import com.employmeo.data.service.AccountSurveyService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.employmeo.data.model.PositionProfile;
 
@@ -47,6 +49,9 @@ public class AccountResource {
 
 	@Autowired
 	private AccountService accountService;
+
+	@Autowired
+	private AccountSurveyService accountSurveyService;
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -116,9 +121,9 @@ public class AccountResource {
 	@GET
 	@Path("/{id}/locations")
 	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the account by provided Id", response = Location.class, responseContainer = "List")
+	@ApiOperation(value = "Gets the locations for provided account Id", response = Location.class, responseContainer = "List")
 	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Account found"),
+	     @ApiResponse(code = 200, message = "Locations found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getLocations(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
@@ -134,12 +139,38 @@ public class AccountResource {
 		}
 	}	
 
+	@POST
+	@Path("/{id}/location")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Saves the provided location", response = Location.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Location Saved"),
+	     @ApiResponse(code = 404, message = "No such Account found")
+	   })	
+	public Response saveLocation(
+			@ApiParam(value = "account id") @PathParam("id") @NotNull Long id,
+			@ApiParam(value = "Location") @NotNull Location location) {
+		
+		Account account = accountService.getAccountById(id);
+		if (null == account) return Response.status(Status.NOT_FOUND).build();
+		if (null == location.getAccountId()) location.setAccountId(id);
+		
+		Location savedLocation = accountService.save(location);
+		log.debug("Saved location with id {}", savedLocation.getId());
+		if (account.getDefaultLocationId() == null) {
+			account.setDefaultLocationId(savedLocation.getId());
+			accountService.save(account);
+		}
+		return Response.status(Status.OK).entity(savedLocation).build();
+	}	
+	
 	@GET
 	@Path("/{id}/positions")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the account by provided Id", response = Position.class, responseContainer = "List")
 	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Account found"),
+	     @ApiResponse(code = 200, message = "Positions Found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getPositions(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
@@ -153,14 +184,40 @@ public class AccountResource {
 		} else {
 			return Response.status(Status.NOT_FOUND).build();
 		}
-	}	
-
+	}
+	
+	@POST
+	@Path("/{id}/position")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Saves the provided position", response = Position.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Position Saved"),
+	     @ApiResponse(code = 404, message = "No such Account found")
+	   })	
+	public Response savePosition(
+			@ApiParam(value = "account id") @PathParam("id") @NotNull Long id,
+			@ApiParam(value = "Position") @NotNull Position position) {
+		
+		Account account = accountService.getAccountById(id);
+		if (null == account) return Response.status(Status.NOT_FOUND).build();
+		if (null == position.getAccountId()) position.setAccountId(id);
+		
+		Position savedPosition = accountService.save(position);
+		log.debug("Saved Position with ID {}", savedPosition.getId());
+		if (account.getDefaultPositionId() == null) {
+			account.setDefaultPositionId(savedPosition.getId());
+			accountService.save(account);
+		}
+		return Response.status(Status.OK).entity(savedPosition).build();
+	}
+	
 	@GET
 	@Path("/{id}/assessments")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the assessments for provided accountId", response = AccountSurvey.class, responseContainer = "List")
 	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Account found"),
+	     @ApiResponse(code = 200, message = "Assessments found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getAssessments(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
@@ -175,7 +232,53 @@ public class AccountResource {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 	}	
+	
+	@PUT
+	@Path("/{id}/assessment")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Saves the provided assessment configuration", response = AccountSurvey.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Assessment Saved"),
+	     @ApiResponse(code = 404, message = "No such Account found")
+	   })	
+	public Response saveAccountSurvey(
+			@ApiParam(value = "account id") @PathParam("id") @NotNull Long id,
+			@ApiParam(value = "Account Survey") @NotNull AccountSurvey accountSurvey) {
+		
+		Account account = accountService.getAccountById(id);
+		if (null == account) return Response.status(Status.NOT_FOUND).build();
+		if (null == accountSurvey.getAccountId()) accountSurvey.setAccountId(id);
+		
+		AccountSurvey savedAccountSurvey = accountSurveyService.save(accountSurvey);
+		log.debug("Saved Account Survey with ASID {}", savedAccountSurvey.getId());
+		if (account.getDefaultAsId() == null) {
+			account.setDefaultAsId(accountSurvey.getId());
+			accountService.save(account);
+		}
+		return Response.status(Status.OK).entity(savedAccountSurvey).build();
+	}
 
+	@GET
+	@Path("/{id}/benchmarks")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets the new or inprogress benchmarking for provided accountId", response = Benchmark.class, responseContainer = "List")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Benchmarks found"),
+	     @ApiResponse(code = 404, message = "No such Account found")
+	   })	
+	public Response getBenchmarks(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+		log.debug("Requested benchmarks for account id {}", id);	
+		Account account = accountService.getAccountById(id);
+		log.debug("Returning profiles for account id {}", id);
+		
+		if(null != account) {		
+			return Response.status(Status.OK).entity(accountService.getIncompleteBenchmarksByAccountId(id)).build();
+		} else {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+	}
+	
 	@GET
 	@Path("/{id}/profiles")
 	@Produces(MediaType.APPLICATION_JSON)

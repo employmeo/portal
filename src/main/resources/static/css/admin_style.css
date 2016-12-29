@@ -310,6 +310,150 @@ input.namecheck:checked+label.namecheck {
 	font-weight: bold;
 }
 
+
+
+/***
+ *
+ *  Better Radio and Checkboxes
+ *
+ */
+
+
+input.cleancheck, input.cleanradio { display: none; }
+label.cleancheck:before, label.cleanradio:before {
+  font-family: 'FontAwesome';
+  color: #337ab7;
+  transition: all .2s;
+  padding: 3px;
+}
+
+label.cleancheck:before {
+	content: '\f096';
+}
+
+label.cleanradio:before {
+	content: '\f10c';
+}
+	
+input.cleancheck:checked+label.cleancheck:before {
+	content: '\f046';
+}
+
+input.cleanradio:checked+label.cleanradio:before {
+	content: '\f192';
+}
+
+/***
+ *
+ *  Styles for file-uploader
+ *
+ */
+
+.fileupload {
+	font-weight: bold;
+	text-align: center;
+	padding-bottom: 5px;
+	color: #555;
+	border: 2px dashed #555;
+	border-radius: 7px;
+	cursor: default;
+}
+
+.fileupload input,
+.fileupload i,
+.fileupload.has-file input + label,
+.fileupload.has-file .empty,
+.filename,
+.fileerror {
+	display: none;
+}
+
+.fileupload input + label {
+    color: white;
+    padding: 5px;
+    font-weight: 500;
+    background-color: #337ab7;
+    display: inline-block;
+}
+
+.fileupload:before {
+    content: "\f019";
+    font-family: FontAwesome;
+    position: relative;
+    color: rgba(51, 122, 183, 0.5);
+    font-size: 40px;
+    padding: 5px;
+    display:block;
+}
+
+.fileupload input:focus + label,
+.inputfile:focus + label,
+.fileupload input + label:hover {
+    background-color: #2e6da4;
+}
+
+.fileupload.is-dragover {
+  background-color: #F7F7F7;
+}
+
+.fileupload.has-file {
+  background-color: #ccffcc;
+}
+
+.fileupload.has-file:before {
+	content: "\f05d";
+    color: #22ff22;
+}
+
+.fileupload.has-file i,
+.fileupload.has-file .filename {
+  display: inline;
+}
+
+.fileupload.has-error {
+  background-color: #cc8888;
+}
+
+.fileupload.has-error .fileerror {
+  display: block;
+}
+
+.fileupload.has-error:before {
+	content: "\f071";
+    color: #dd4444;
+}
+
+/***
+ *
+ *  Styles for setup-wizard
+ *
+ */
+
+
+.wizard {
+	position: relative;
+}
+
+.wizard-steps { overflow: hidden; position: relative; margin-top: 20px; }
+
+.wizard-progress { position: absolute; top: 24px; left: 0; width: 100%; height: 1px; background: #ddd; }
+.wizard-progress-line { position: absolute; top: 0; left: 0; height: 1px; background: #66ccff; }
+
+.wizard-step { position: relative; float: left; width: 33.333333%; padding: 0 5px; text-align:center;}
+
+.wizard-step-icon {
+	display: inline-block; width: 40px; height: 40px; margin-top: 4px; background: #ddd;
+	font-size: 16px; color: #fff; line-height: 40px;
+	-moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%;
+}
+.wizard-step.activated .wizard-step-icon {
+	background: #fff; border: 1px solid #66ccff; color: #66ccff; line-height: 38px;
+}
+.wizard-step.active .wizard-step-icon {
+	width: 48px; height: 48px; margin-top: 0; background: #66ccff; font-size: 22px; line-height: 48px;
+}
+
+
 /***
  *
  *  Styles for data tables
