@@ -2463,9 +2463,14 @@ clientPortal.prototype.parseFileToTable = function(file, tablename) {
 						'class' : 'text-muted'});	
 				}
 			}
+
 			if (requiredHeaders.length > 0) {
 				$('#fileuploaddiv').addClass('has-error');
 				$('#fileuploaddiv .fileerror').text('Missing Fields: ' + requiredHeaders);
+				thePortal.uploadresults = null;
+			} else if (results.data.length < 10) {
+				$('#fileuploaddiv').addClass('has-error');
+				$('#fileuploaddiv .fileerror').text(results.data.length + ' record(s) in set. At least 10 are required');
 				thePortal.uploadresults = null;
 			} else {
 				$('#fileuploaddiv').addClass('has-success');

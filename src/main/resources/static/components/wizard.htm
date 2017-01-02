@@ -76,8 +76,9 @@
 							<label class="h4 cleancheck" for="simplecheck">Simple</label>
 						</div>
 						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Simple" will provide a unique link
-								that you can send to all of your employees.</p>
+							<p class="h4">Choosing "Simple" will benchmark your employees against 
+							    the general population. Talytica will provide a unique link for you 
+							    to send to a group of <strong>at least 10</strong> employees.</p>
 						</div>
 					</div>
 					<div class='form-group'>
@@ -88,9 +89,10 @@
 							<label class="h4 cleancheck" for="performancecheck">Performance</label>
 						</div>
 						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Performance" will provide two unique
-								links. One to send to only your top performing employees. The
-								second, to send to all of the rest.</p>
+							<p class="h4">Choosing "Performance" will benchmark employees against top
+							    performers in addition to the general population. Talytica will
+							    provide one link to send to <strong>at least 5</strong> top performers,
+							    and another to send to <strong>at least 5</strong> other employees.</p>
 						</div>
 					</div>
 					<div class='form-group'>
@@ -101,16 +103,16 @@
 							<label class="h4 cleancheck" for="detailedcheck">Detailed</label>
 						</div>
 						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Detailed" allows you to provide a
-								list of employees, mark them as as top performer, and follow up
-								to ensure they have completed the assessment.</p>
+							<p class="h4">Choosing "Detailed" allows you to provide a list of employees
+							    with email addresses so Talytica can send individual email invitations,
+							    and help you follow up to ensure participants complete the benchmark.</p>
 						</div>
 					</div>
 					<div id='detailedbenchmark' style='display: none;'>
 						<div class='col-xs-12 col-sm-6'>
-							<p>Please prepare a CSV (comma separated) file, with a list
-								of the employees you wish to include. The file should have a
-								header row, and these four columns:</p>
+							<p>Please prepare a CSV (comma separated) file, with a list of 
+							   <strong>at least 10</strong> employees you wish to include. 
+							    The file should have a header row, and these four columns:</p>
 							<ul>
 								<li><strong>firstName</strong> - Employee First name</li>
 								<li><strong>lastName</strong> - Employee Last name</li>
@@ -160,15 +162,15 @@
 						<table class='table' id='assessmentlinks' width='100%'></table>
 						<div class="form-group">
 							<hr>
-							<p class="h4">Once you've emailed links to your employees,
-								return here, enter the number of employees that you have
+							<p class="h4">Once you email links to <strong>at least 10</strong>
+								employees, return here, enter the number of employees that you have
 								included in the benchmark and click "Confirm Send" below.</p>
 							<hr>
 						</div>
 					</div>					
 					<div class="form-group form-inline text-center" id="invitations">
 						<label for="invited" class="control-label input-lg">Number of employees to be invited:</label>
-						<input type="text" name="invited" id="invited" class="text-right form-control input-lg" required>
+						<input type="number" min='10' name="invited" id="invited" class="text-right form-control input-lg" required>
 					</div>
 					<hr>
 					<div class="form-group text-center">

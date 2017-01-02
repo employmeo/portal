@@ -326,10 +326,10 @@ public class BenchmarkWizardResource {
 		
 		for (Map.Entry<Population, Set<Respondant>> pair : populationSets.entrySet()) {			 
 			HashMap<Long, List<Double>> scoresByCorefactor = new HashMap<Long, List<Double>>();
+			log.debug("Population {} has {} members", pair.getKey().getName(),pair.getValue().size());
 			pair.getKey().setSize(pair.getValue().size());
+			if (pair.getValue().size() < 3) continue; // not enough to create a population
 			Population population = populationService.save(pair.getKey());
-			log.debug("Population {} has {} members",population.getName(),population.getSize());
-			
 			for (Respondant respondant : pair.getValue()) {
 				for (RespondantScore rs : respondant.getRespondantScores()) {
 					if (!scoresByCorefactor.containsKey(rs.getId().getCorefactorId())) {
