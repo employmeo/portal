@@ -58,6 +58,7 @@ public class ApplicantInvitationResource {
 			    @ApiParam("Assessment Order") ApplicantInvitation invitation) {
 		// Collect expected input fields
 		AccountSurvey as = accountSurveyService.getAccountSurveyById(invitation.asid);
+		
 		// Perform business logic
 		Person applicant = new Person();
 		applicant.setEmail(invitation.email);
@@ -75,13 +76,15 @@ public class ApplicantInvitationResource {
 		respondant.setAccount(as.getAccount());
 		respondant.setAccountSurvey(as);
 		respondant.setAccountSurveyId(as.getId());
-
+		if ((invitation.sample != null) && (invitation.sample)) {
+			respondant.setType(Respondant.TYPE_SAMPLE); // allow for "sample" invites.
+		}
+		
 		respondant.setLocationId(as.getAccount().getDefaultLocationId());
 		if (invitation.locationId != null) respondant.setLocationId(invitation.locationId);
 		respondant.setPositionId(as.getAccount().getDefaultPositionId());
 		if (invitation.positionId != null) respondant.setPositionId(invitation.positionId);
 
-		
 	    Respondant savedRespondant = respondantService.save(respondant);   
 	    emailService.sendEmailInvitation(savedRespondant);
 	    
@@ -102,6 +105,7 @@ public class ApplicantInvitationResource {
 	    Respondant respondant = respondantService.getRespondantById(respondantId);
 	    if (respondant.getRespondantStatus() <= Respondant.STATUS_STARTED) {
 	    	respondant.setRespondantStatus(Respondant.STATUS_REMINDED);
+	    	respondantService.save(respondant);
 	    	emailService.sendEmailReminder(respondant);
 	    }
 	    return Response.status(Status.OK).build();

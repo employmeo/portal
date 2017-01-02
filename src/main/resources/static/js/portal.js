@@ -42,6 +42,7 @@ function clientPortal(version) {
 	this.dashApplicants = null;
 	this.dashHires = null;
 	this.cfBarChart = null;
+	this.benchmarkCharts = [];
 	
 	//tables:
 	this.gTable = null;
@@ -194,7 +195,10 @@ clientPortal.prototype.updateBenchmarkSelect = function (detail) {
 			text : this.position.positionName + ' Benchmark'
 		}));
 	});
-	if (detail) this.changeBenchmarkTo($('#benchmarkId').val());
+	if (this.benchmark) $('#benchmarkId').val(this.benchmark.id);
+	if (detail) {
+		 this.changeBenchmarkTo($('#benchmarkId').val());
+	}
 }
 
 clientPortal.prototype.initializeDatePicker = function (callback) {
@@ -716,7 +720,6 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 	for (var key in grader.grades) {
 		var grade = grader.grades[key];
 		count++;
-		console.log(grade);
 		var row = $('<tr />');
 		row.append($('<td />',{'text': grade.questionText}));
 		row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeText || grade.gradeValue || ''}));
@@ -1055,12 +1058,13 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'Remind Again',
-				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.sendApplicantReminder();'
+				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
 			break;
 		case 11: // ungraded
 		case 13: // scored - not predicted
 		case 15: // predicted
+			if (respondant.type != 1) break; // only view candidates
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'View Detail',
@@ -1138,9 +1142,16 @@ clientPortal.prototype.setRespondantTo = function(respondantId) {
 clientPortal.prototype.sendApplicantReminder = function(respondantId) {
 	var thePortal = this;
 	$.when(sendInviteReminder(respondantId)).done(function () {
-		var resp = thePortal.rTable.row('#'+respondantId).data();	
-		if (resp.respondantStatus < 6) resp.respondantStatus = 6;
-		thePortal.rTable.row('#'+respondantId).data(resp).draw();	
+		var resp;
+		if (thePortal.rTable) resp = thePortal.rTable.row('#'+respondantId).data();
+		if (resp) {
+			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
+			thePortal.rTable.row('#'+respondantId).data(resp).draw();		
+		} else {
+			resp = thePortal.brTable.row('#'+respondantId).data();
+			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
+			thePortal.brTable.row('#'+respondantId).data(resp).draw();	
+		}
 	})
 }
 
@@ -1160,6 +1171,15 @@ clientPortal.prototype.updateSurveyFields = function() {
 }
 
 clientPortal.prototype.initSettingsPage = function() {
+	$('#accountname').text(this.user.account.accountName);
+	$('#accountlocation').text(this.getLocationBy(this.user.account.defaultLocationId).street1);
+	switch (this.user.account.accountType) {
+		case 100: $('#accounttype').text('Free Trial'); break;
+		case 200: $('#accounttype').text('Circle'); break;
+		case 300: $('#accounttype').text('Triangle'); break;
+		case 400: $('#accounttype').text('Square'); break;
+		default: $('#accounttype').text('Enterprise'); break;
+	}		
 	this.initLocationTable();
 	this.initPositionTable();
 	this.initAssessmentTable();
@@ -1222,9 +1242,7 @@ clientPortal.prototype.initAssessmentTable = function(){
 		columns: [{ title: 'ID', data: 'id'},
 		          { title: 'Name', data: 'displayName', render : function(data,type,row) {
 		        	  return row.overRideDisplayName || data;}},
-		          { title: 'Static Link', data: 'uuId', render : function(data,type,row) {
-		        		  if (!row.staticLinkView) return 'Not Available';
-		        		  return 'http://assessment.talytica.com/?&asUuid='+data; }}
+		          { title: 'Static Link', data: 'permalink'}
 		          ],
 		createdRow : function (row, data, dataIndex) {
 		    $(row).click(function (){
@@ -1243,6 +1261,20 @@ clientPortal.prototype.initAssessmentTable = function(){
 //Section for search respondants / build respondants table
 clientPortal.prototype.showBenchmarkRespondants = function() {
 	var thePortal = this;
+	var completed = 0;
+	for (var key in this.benchmark.respondants) if (this.benchmark.respondants[key].respondantStatus >= 10) completed++;
+	$('#completed').text(completed);
+	var participationrate = 100*(completed) / (this.benchmark.invited || 1)
+	$('#participationrate').text(participationrate.toFixed(0)+'%');
+	
+	if ((participationrate >= 80) || completed >= 20) {
+		$('#completed').addClass('text-success');
+		$('#participationrate').addClass('text-success');
+		$('#calculatebutton').removeClass('hidden');
+	} else {
+		$('#completed').addClass('text-danger');
+		$('#participationrate').addClass('text-danger');
+	}
 	this.brTable = $('#benchmarkrespondants').DataTable( {
 		responsive: true, destroy: true,
 		data: this.benchmark.respondants,
@@ -1576,33 +1608,79 @@ clientPortal.prototype.produceHistogram = function(prediction) {
 
 clientPortal.prototype.changePositionTo = function(id) {	
 	this.position = this.getPositionBy(id);
-	this.position.data = getStubDataForRoleBenchmark(); /// replace with REST call or pull from other var
 
 	$('#positionname').text(this.position.positionName);
 	$('#positiondesc').text(this.position.description);
+	/*
+	this.position.data = getStubDataForRoleBenchmark(); /// replace with REST call or pull from other var
 	$('#div_applicant_count').html(this.position.data.role_benchmark.applicant_count);
 	$('#div_hire_count').html(this.position.data.role_benchmark.hire_count);
 	$('#div_hire_rate').html(Math.round((
 			this.position.data.role_benchmark.hire_count/
 			this.position.data.role_benchmark.applicant_count)*100)+'%');		
 
-	//this.updatePositionModelDetails(this.position.data.role_benchmark);
+	this.updatePositionModelDetails(this.position.data.role_benchmark);
 	this.updateGradesTable(this.position.data.role_benchmark.role_grade);
 	this.updateCriticalFactorsChart();
+	*/
 }
 
-clientPortal.prototype.changeBenchmarkTo = function(id) {	
+clientPortal.prototype.changeBenchmarkTo = function(id) {
+	// reset the benchmarks page
+	for (var key in this.benchmarkCharts) {
+		this.benchmarkCharts[key].destroy();
+		this.benchmarkCharts.splice[key,0];
+	}
+	$('#factors_barchart').empty();
+	$('#benchmarklinks').addClass('hidden');
+	$('#resumebutton').addClass('hidden');
+	$('#respondantspanel').addClass('hidden');
+	$('#completed').removeClass();
+	$('#participationrate').removeClass();
+	$('#calculatebutton').addClass('hidden');
+	
 	this.benchmark = this.getBenchmarkBy(id);
-	$('#positionname').text('Benchmark for Position: ' + this.benchmark.position.positionName);
-	$('#invited').text(this.benchmark.invited);
-
-	if (this.benchmark.status >= 300) {
-		$('#benchmarkstatus').text('In Progress');
-		if (this.benchmark.type == 300) { 
-			// Detailed
-			$('#benchmarklinks').addClass('hidden');
+	if (!this.benchmark) return;
+	
+	$('#positionname').text(this.benchmark.position.positionName);
+	$('#invited').text(this.benchmark.invited || 0);
+	$('#completed').text(this.benchmark.participantCount || 0);
+	var participationrate = 100*(this.benchmark.participantCount || 0) / (this.benchmark.invited || 1)
+	$('#participationrate').text(participationrate.toFixed(0)+'%');
+	$('#createddate').text(moment(this.benchmark.createdDate).format('MM/DD/YYYY'));
+	
+	switch (this.benchmark.type) {
+		case 100:
+			$('#benchmarktype').text('Simple');
+			$('#benchmarklinks').removeClass('hidden');
+			break;
+		case 200:
+			$('#benchmarktype').text('Performance');
+			$('#benchmarklinks').removeClass('hidden');
+			break;
+		case 300:
 			$('#benchmarktype').text('Detailed');
-		} else {
+			break;
+		default:
+			$('#benchmarktype').text('Other');
+			break;
+	}
+	
+	switch (this.benchmark.status) {
+		case 100:
+		case 200: // In Setup.
+			$('#benchmarkstatus').text('In Setup');
+			$('#resumebutton').removeClass('hidden');
+		break;
+		case 300: // In Progress
+			$('#benchmarkstatus').text('In Progress');
+			$('#respondantspanel').removeClass('hidden');
+			if (this.benchmark.respondants) {
+				this.showBenchmarkRespondants();
+			} else {
+				var thePortal = this;
+				$.when(getBenchmarkRespondants(thePortal)).done(function (){thePortal.showBenchmarkRespondants()});
+			}
 			$('#assessmentlinks').DataTable({
 				destroy: true, info: false, sort: false, paging: false, filter: false, responsive: true,
 				data: this.benchmark.accountSurveys,
@@ -1612,24 +1690,13 @@ clientPortal.prototype.changeBenchmarkTo = function(id) {
 				           {title: 'Link', data: 'permalink'}
 				]
 			});
-			$('#benchmarklinks').removeClass('hidden');
-			$('#benchmarktype').text('Simple');
-			if (this.benchmark.type == 200) $('#benchmarktype').text('Performance');
-		}
-		$('#resumebutton').addClass('hidden');
-		$('#respondantspanel').removeClass('hidden');
-		if (this.benchmark.respondants) {
-			this.showBenchmarkRespondants();
-		} else {
-			var thePortal = this;
-			$.when(getBenchmarkRespondants(thePortal)).done(function (){thePortal.showBenchmarkRespondants()});
-		}
-	} else {
-		$('#benchmarkstatus').text('In Setup');
-		$('#respondantspanel').addClass('hidden');
-		$('#resumebutton').removeClass('hidden');
+		break;
+		default:
+			$('#benchmarkstatus').text('Completed');
+			this.showBenchmarkCharts();
+		break;
+				
 	}
-
 }
 
 clientPortal.prototype.showAllDetails = function() {
@@ -1686,11 +1753,9 @@ clientPortal.prototype.prepPersonalMessage = function(score) {
 	}
 	var pm = message;
 	
-	
 	if (pm != null) {
 		pm = pm.replace(new RegExp("\\[FNAME\\]","g"),this.respondant.person.firstName);
-		pm = pm.replace(new RegExp("\\[LNAME\\]","g"),this.respondant.person.lastName);
-	
+		pm = pm.replace(new RegExp("\\[LNAME\\]","g"),this.respondant.person.lastName);	
 		pm = pm.replace(new RegExp("\\[CHESHE\\]","g"),"This candidate");
 		pm = pm.replace(new RegExp("\\[LHESHE\\]","g"),"this candidate");
 		pm = pm.replace(new RegExp("\\[CHIMHER\\]","g"),"Him or her");
@@ -1890,7 +1955,6 @@ clientPortal.prototype.getLegend = function() {
 	return legend;
 }
 
-
 clientPortal.prototype.getBarClass = function(quartile) {
 	var barclass;
 	switch (quartile) {
@@ -1913,6 +1977,20 @@ clientPortal.prototype.getBarClass = function(quartile) {
 	return barclass;
 }
 
+clientPortal.prototype.getProfileBadge = function(profile) {
+	var div = $('<div />', {
+		'class':'profilesquare',
+		'data-toggle' : 'tooltip',
+		'title' : profile.labels[0]
+			}).addClass(profile.profileClass);
+	var icon = $('<i />', {'class':'fa'}).addClass(profile.profileIcon);
+	$(div).append(icon);
+	return div;
+}	
+
+
+/*
+ * Remove all of below, and replace with "benchmark" concept.
 clientPortal.prototype.updateGradesTable = function(grades) {
 	$('#gradetable').empty();
 	$('#gradefooter').empty();
@@ -1968,17 +2046,6 @@ clientPortal.prototype.updateGradesTable = function(grades) {
 	var el = document.querySelector('#gradefooter');
 	el.appendChild(tr0);
 }
-
-clientPortal.prototype.getProfileBadge = function(profile) {
-	var div = $('<div />', {
-		'class':'profilesquare',
-		'data-toggle' : 'tooltip',
-		'title' : profile.labels[0]
-			}).addClass(profile.profileClass);
-	var icon = $('<i />', {'class':'fa'}).addClass(profile.profileIcon);
-	$(div).append(icon);
-	return div;
-}	
 
 clientPortal.prototype.initCriticalFactorsChart = function() {
 	if (this.cfBarChart != null) this.cfBarChart.destroy();
@@ -2066,7 +2133,7 @@ clientPortal.prototype.initCriticalFactorsChart = function() {
   	  	};
 	this.cfBarChart = new Chart(ctx, barChartConfig);
 }
-	
+
 clientPortal.prototype.updateCriticalFactorsChart = function() {
 	var factors = stubCorefactors(this.corefactors);
 
@@ -2082,25 +2149,150 @@ clientPortal.prototype.updateCriticalFactorsChart = function() {
 		row.append($('<td />',{ text : this.displayGroup }));		
 		$('#corefactorlist').append(row);
 	});
-	
+
 	var chartLabels = [];
-	var chartData0 = []; 
-	var chartData1 = [];
-	
-	for (var i = 0; i < factors.length;i++) {
-		// randomize the pm score - 
-		chartLabels.push(factors[i].name);
-		chartData0.push(factors[i].score-2*Math.random());
-		chartData1.push(factors[i].score+1*Math.random());
+	var chartData = [];
+	chartData[0] = {
+				label : 'applicants',
+		        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+		        borderColor: 'rgba(150, 150, 150, 0.8)',
+		  		borderWidth: 2,
+		  		data : []
+			};
+	chartData[1] = {
+				label : 'employees',
+  	  	  		backgroundColor: 'rgba(0, 200, 0, 0.8)',
+  	  	  		borderColor: 'rgba(0, 150, 0, 0.8)',
+		  		borderWidth: 2,
+		  		data: []
 	}
-	
+	for (var i = 0; i < factors.length;i++) {
+			// randomize the pm score - 
+			chartLabels.push(factors[i].name);
+			chartData[0].data.push(factors[i].score-2*Math.random());
+			chartData[1].data.push(factors[i].score+1*Math.random());
+	}		
+
 	this.cfBarChart.config.data.labels = chartLabels;	
-	this.cfBarChart.config.data.datasets[0].data = chartData0;
-	this.cfBarChart.config.data.datasets[1].data = chartData1;
+	this.cfBarChart.config.data.datasets = chartData;
+
 	this.cfBarChart.update();
+}
+*/
+
+clientPortal.prototype.showBenchmarkCharts = function() {
+	if (!this.benchmark.populations || (this.benchmark.populations.length == 0)) return;
+	
+	this.benchmark.populations.sort(function(a,b) {
+		return a.size < b.size; // reverse order of size
+	});
+	var factors = [];
+	
+	this.benchmark.populations[0].populationScores.sort(function(a,b){
+		return a.significance < b.significance; // order of increasing significance
+	});
+	
+	var groups = [{title : 'Critical Factors',
+	               displayGroups: ['Traits', 'Skills & Abilities'],
+	               type: 'bar'},
+	              {title : 'Cultural Fit',
+	               displayGroups: ['Motivations', 'Interests'],
+	               type: 'radar'}];
+
+	for (var item in groups) {
+		group = groups[item];
+	    var chartLabels = [];
+		var chartData = [];
+		chartData[0] = {
+				label : 'General Population',
+		        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+			    borderColor: 'rgba(150, 150, 150, 0.8)',
+			  	borderWidth: 2,
+			  	data : []
+			};
+		for (var key in this.benchmark.populations) {
+			if (!this.benchmark.populations[key].targetValue) continue; // exclude the "false" populations
+			var profile = this.getProfile(this.benchmark.populations[key].profile);
+			var dataSet = {
+				label : this.benchmark.populations[key].name,
+	  	  		backgroundColor: profile.overlay,
+	  	  		borderColor: profile.color,
+		  		borderWidth: 2,
+		  		data: []
+			};
+			var scores = this.benchmark.populations[key].populationScores;
+			for (var i in scores) {
+				var cf = this.getCorefactorBy(scores[i].corefactorId);
+				if (group.displayGroups.indexOf(cf.displayGroup) == -1) continue; // include only for group
+				if (chartLabels.indexOf(cf.name) == -1) {
+					chartLabels.push(cf.name);
+					chartData[0].data[chartLabels.indexOf(cf.name)] = cf.meanScore.toFixed(1);
+				}
+				dataSet.data[chartLabels.indexOf(cf.name)] = scores[i].mean.toFixed(1);
+			}
+			chartData.push(dataSet);			
+		}
+		if (chartLabels.length == 0) continue;
+		
+		var panel = $('<div />', {'class':'x_panel'}).append(
+				$('<div />', {'class':'x_title'}).append(
+						$('<h3 />', {'class':'text-center','text':group.title})
+				));
+		panel.append($('<div />',{'class':'x_content'}).append($('<canvas />', {
+			id : 'factorschart_'+item, style : 'min-height:320px;'})));	
+		$('#factors_barchart').append(panel);
+
+		var chart = new Chart(document.querySelector("#factorschart_"+item).getContext("2d"), {
+		    type: group.type,
+	  	    data: { labels: chartLabels, datasets: chartData },
+		  	options: {
+		  	   	responsive: true,
+		  	    maintainAspectRatio: false,
+		  	    legend: {position: 'top', labels: {boxWidth: 12 }},
+		  	    scales: {
+		  	        xAxes: [{stacked: false, gridLines: {display:false}, display: true }],
+		  	        yAxes: [{ticks: {
+		               		min: 1,
+		               		max: 11,
+		               		beginAtZero : true
+		  	        	},
+		            	stacked: false, gridLines: {display:false}, display: false
+		  	        }],
+		  	        showScale: false
+		  	    },
+	  	  	    animation: {
+	  	  	    	duration: 200,
+	  	    	  	onComplete: function () {
+	  	    	  	    // render the value of the chart above the bar
+	  	    	  		
+	  	    	  	    var ctx = this.chart.ctx;
+	  	    	  	    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
+	  	    	  	    ctx.fillStyle = this.chart.config.options.defaultFontColor;
+	  	    	  	    ctx.textAlign = 'center';
+	  	    	  	    ctx.textBaseline = 'bottom';
+	  	    	  	    var fontVar = 'normal 16px "Helvetica Neue", Roboto, Arial';
+	    	    	  	if (this.chart.width < 600) fontVar = 'bold 14px "Helvetica Neue", Roboto, Arial';
+	  	    	  	    this.data.datasets.forEach(function (dataset) {
+	  	    	  	        for (var i = 0; i < dataset.data.length; i++) {
+  	    	  	        		var meta;
+  	    	  	        		for (var key in dataset._meta) meta = dataset._meta[key];
+	  	    	  	        	if (meta && !meta.hidden) {
+	  	    	  	                var model = meta.data[i]._model;
+	  	    	  	                ctx.font = fontVar;
+	  	    	  	                ctx.fillText(dataset.data[i], model.x, model.y - 0);
+	  	    	  	        	}
+	  	    	  	        }
+	  	    	  	    });
+	  	    	  	}
+		  	    }
+		  	}
+		});
+		this.benchmarkCharts.push(chart);
+	}	
 }
 
 clientPortal.prototype.initSetupWizard = function() {
+	if (this.benchmark && this.benchmark.status >=300) this.benchmark=null; //remove  
 	if (!this.benchmark) for (var key in this.benchmarkList) {
 		if (this.benchmarkList[key].status <= 200) {
 			this.benchmark = this.benchmarkList[key];
@@ -2115,7 +2307,7 @@ clientPortal.prototype.initSetupWizard = function() {
 		var thePortal = this;
 		$.when(getAssessmentOptions(thePortal)).done(function(){thePortal.showAssessmentOptions();});
 	} else {
-		thePortal.showAssessmentOptions();
+		this.showAssessmentOptions();
 	}
 }
 
@@ -2175,10 +2367,12 @@ clientPortal.prototype.setupWizardStepTwo = function() {
 	$('#setupwizardline').css('width','50%');
 	$('#wizard_benchmark').removeClass('hidden');
 	$('#setupwizardtwo').addClass('active');
+	$('#bmname').text(this.benchmark.position.positionName);
 	$('#wait').addClass('hidden');
 	// check if benchmark already(s) has assessments 
-	if (this.benchmark.accountSurveys.length>0) return this.setupWizardStepThree(); 
 	this.benchmarkConfig = {};
+	if (this.benchmark.accountSurveys.length>0) return this.setupWizardStepThree(); 
+
 };
 
 clientPortal.prototype.setupWizardSelectBenchmark = function () {
@@ -2231,6 +2425,12 @@ clientPortal.prototype.completeSetupWizard = function() {
 	$('#wait').removeClass('hidden');
 	sendBenchmark(this);
 };
+
+clientPortal.prototype.calculateBenchmark = function() {
+	$('#wait').removeClass('hidden');
+	calculateBenchmark(this);
+};
+
 
 clientPortal.prototype.parseFileToTable = function(file, tablename) {	
 	var requiredHeaders = ['firstName','lastName','email','topPerformer'];
@@ -2359,12 +2559,12 @@ clientPortal.prototype.showComponent = function(component) {
 	this.sidebar.find('.active').removeClass('active');
 
     notifications = []; // eventually, we'll do this a better way.
-    if (this.benchmark && component != 'welcome' && this.benchmark.status <300) {
+    if (this.benchmark && component != 'wizard' && this.benchmark.status <300) {
     	var notification = {};
     	notification.id = this.benchmark.id;
     	notification.text = 'Reminder - you have not completed initial benchmarking. ';
        	notification.link = 'Click Here to Return';
-       	notification.component = 'welcome';
+       	notification.component = 'wizard';
        	notifications.push(notification);
     }
     

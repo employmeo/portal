@@ -441,6 +441,30 @@ input.cleanradio:checked+label.cleanradio:before {
 
 .wizard-step { position: relative; float: left; width: 33.333333%; padding: 0 5px; text-align:center;}
 
+ul.wizard-step-list  {
+	margin-left: 15%;
+    margin-right: 15%;
+    padding-left: 50px;
+    padding-bottom: 14px;
+    border: 1px solid #66ccff;
+    width: 70%;
+    text-align: left;
+}
+.wizard-step-list li {
+	padding-left: 15px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	vertical-align:middle;
+}
+.wizard-step-list .fa-li:before 
+{
+	text-align: center;
+	display: inline-block; width: 40px; height: 40px; margin-top: 4px;
+	font-size: 16px;
+	-moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%;
+	background: #fff; border: 1px solid #66ccff; color: #66ccff; line-height: 38px;
+}
+
 .wizard-step-icon {
 	display: inline-block; width: 40px; height: 40px; margin-top: 4px; background: #ddd;
 	font-size: 16px; color: #fff; line-height: 40px;
@@ -453,6 +477,37 @@ input.cleanradio:checked+label.cleanradio:before {
 	width: 48px; height: 48px; margin-top: 0; background: #66ccff; font-size: 22px; line-height: 48px;
 }
 
+.wizard-step span {
+	padding-left: 55px;
+	font-size: large;
+}
+
+/***
+ *
+ *  Styles for sidebar footer
+ *
+ */
+
+.sidebar-footer {
+    background-color:#172d44;
+}
+.sidebar-footer h2{
+    font-size: 16px;
+    padding-left:5px;
+    color:white;
+}
+.sidebar-footer .tab-pane {
+    padding-left: 5px;
+    display: none;
+}
+.sidebar-footer .tab-pane span {
+    color: #66ccff;
+    font-style: italic;
+}
+.sidebar-footer .tab-pane.active {
+    display: block;
+    color: white;
+}
 
 /***
  *
@@ -475,4 +530,11 @@ tr.shown td.details-control {
   }
 }
 
+@media (max-width: 1200px) {
+ul.wizard-step-list  {
+	margin-left: 1%;
+    margin-right: 1%;
+    width: 98%;
+}
+}
 }

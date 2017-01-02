@@ -14,9 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Account;
-import com.employmeo.data.model.AccountSurvey;
 import com.employmeo.data.model.Location;
-import com.employmeo.data.model.Position;
 import com.employmeo.data.model.User;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
@@ -39,9 +37,6 @@ public class SignUpResource {
 	private static final Logger log = LoggerFactory.getLogger(SignUpResource.class);
 	private static final int DEFAULT_ACCOUNT_TYPE = Account.TYPE_TRIAL_SMB;
 	private static final int DEFAULT_ACCOUNT_STATUS = Account.STATUS_NEW;
-	//private static final long DEFAULT_SURVEY_ID = 10l; //Worker Reliability, (Truncated)
-	//private static final String DEFAULT_POSITION_NAME = "Employee";
-	//private static final String DEFAULT_POSITION_DESC = "Skilled, motivated and productive employees are employees are essential to the success of a business";
 	private static final int DEFAULT_USER_TYPE = 1;
 	private static final int DEFAULT_USER_STATUS = 1;
 
@@ -86,24 +81,6 @@ public class SignUpResource {
 		account.setAccountStatus(DEFAULT_ACCOUNT_STATUS);
 		account.setAccountType(DEFAULT_ACCOUNT_TYPE);
 		Account savedAccount = accountService.save(account);
-
-		/*
-		 * Removed Position & Assessment defaults
-		Position defaultPosition = new Position();
-		defaultPosition.setAccount(savedAccount);
-		defaultPosition.setAccountId(savedAccount.getId());
-		defaultPosition.setPositionName(DEFAULT_POSITION_NAME);
-		defaultPosition.setDescription(DEFAULT_POSITION_DESC);
-		Position savedPosition = accountService.save(defaultPosition);
-		
-		AccountSurvey accountSurvey = new AccountSurvey();
-		accountSurvey.setAccount(savedAccount);
-		accountSurvey.setAccountId(savedAccount.getId());
-		accountSurvey.setSurveyId(DEFAULT_SURVEY_ID);
-		AccountSurvey savedAccountSurvey = accountSurveyService.save(accountSurvey);
-		savedAccount.setDefaultPositionId(savedPosition.getId());
-		savedAccount.setDefaultAsId(savedAccountSurvey.getId());
-		*/
 		
 		Location defaultLocation = new Location();
 		defaultLocation.setAccount(savedAccount);

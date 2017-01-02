@@ -1,196 +1,32 @@
 <div class="col-xs-12 text-center">
-	<h3>Account Setup</h3>
+	<h3>Welcome to Talytica</h3>
+	<h3><span class='small'> the fair, simple, effective way to hire</span></h3>
 </div>
 <div class="col-xs-12">
 	<div class="x_panel">
 		<div class="x_content">
-			<div class='wizard' role='tablist'>
-				<div class="wizard-progress">
-					<div id='setupwizardline' class="wizard-progress-line"
-						data-now-value="16.7" data-number-of-steps="3"
-						style="width: 16.7%;"></div>
-				</div>
-				<div id='setupwizardone' class="wizard-step active">
-					<div class="wizard-step-icon">
-						<i class="fa fa-briefcase"></i>
-					</div>
-					<p>Describe Position</p>
-				</div>
-				<div id='setupwizardtwo' class="wizard-step">
-					<div class="wizard-step-icon">
-						<i class="fa fa-users"></i>
-					</div>
-					<p>Select Benchmark</p>
-				</div>
-				<div id='setupwizardthree' class="wizard-step">
-					<div class="wizard-step-icon">
-						<i class="fa fa-paper-plane"></i>
-					</div>
-					<p>Send to Employees</p>
-				</div>
-			</div>
-			<div class='clearfix'></div>
-			<div id='wizard_position'>
-				<hr>
-				<h3 class="text-center">To get started, tell us about the
-					position you are hiring for</h3>
-				<hr>
-				<form class='form form-horizontal' id='wizard-position'
-					action='javascript:portal.setupWizardPosition();'>
-					<div class="form-group">
-						<label for='positionName' class='control-label col-xs-12 col-sm-2'>Position
-							Name:</label>
-						<div class='col-xs-12 col-sm-10'>
-							<input type="text" class="form-control" required
-								name='positionName' id='positionName'
-								placeholder='Role or Job Title' />
-						</div>
-					</div>
-					<div class="form-group" id='assessmentgroup'>
-						<label class='control-label col-xs-12 col-sm-2'>Choose an
-							assessment</label>
-						<div class='col-xs-12 col-sm-10'>
-							<table id='assessmentoptions'
-								class="table table-condensed table-hover"></table>
-						</div>
-					</div>
-					<div class='clearfix'></div>
-					<hr>
-					<div class="form-group text-right">
-						<button type='submit' class='btn btn-primary'>Continue</button>
-					</div>
-				</form>
-			</div>
-			<div id='wizard_benchmark' class='hidden'>
-				<hr>
-				<h3 class="text-center">Next, select how you will benchmark
-					your employees.</h3>
-				<hr>
-				<form class='form form-horizontal' id='wizard-benchmark'
-					action='javascript:portal.setupWizardBenchmark();'>
-					<div class='form-group'>
-						<div class='col-xs-3 col-lg-2'>
-							<input type="radio" name="choice" id="simplecheck"
-								class="cleancheck"
-								onchange='portal.setupWizardSelectBenchmark();' value=100>
-							<label class="h4 cleancheck" for="simplecheck">Simple</label>
-						</div>
-						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Simple" will provide a unique link
-								that you can send to all of your employees.</p>
-						</div>
-					</div>
-					<div class='form-group'>
-						<div class='col-xs-3 col-lg-2'>
-							<input type="radio" name="choice" id="performancecheck"
-								class="cleancheck"
-								onchange='portal.setupWizardSelectBenchmark();' value=200>
-							<label class="h4 cleancheck" for="performancecheck">Performance</label>
-						</div>
-						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Performance" will provide two unique
-								links. One to send to only your top performing employees. The
-								second, to send to all of the rest.</p>
-						</div>
-					</div>
-					<div class='form-group'>
-						<div class='col-xs-3 col-lg-2'>
-							<input type="radio" name="choice" id="detailedcheck"
-								class="cleancheck"
-								onchange='portal.setupWizardSelectBenchmark();' value=300>
-							<label class="h4 cleancheck" for="detailedcheck">Detailed</label>
-						</div>
-						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Detailed" allows you to provide a
-								list of employees, mark them as as top performer, and follow up
-								to ensure they have completed the assessment.</p>
-						</div>
-					</div>
-					<div id='detailedbenchmark' style='display: none;'>
-						<div class='col-xs-12 col-sm-6'>
-							<p>Please prepare a CSV (comma separated) file, with a list
-								of the employees you wish to include. The file should have a
-								header row, and these four columns:</p>
-							<ul>
-								<li><strong>firstName</strong> - Employee First name</li>
-								<li><strong>lastName</strong> - Employee Last name</li>
-								<li><strong>email</strong> - Employee email address</li>
-								<li><strong>topPerformer</strong> - True / False indication
-									if employee is one of top performers</li>
-							</ul>
-							<p>Column Headers are Case Sensitive.</p>
-							<div class="fileupload" id='fileuploaddiv'>
-								<input type='file' class='form-control' id='csvFile'
-									name='csvFile' accept=".csv, text/csv,application/vnd.ms-excel"
-									onchange='portal.parseFileToTable(this.files[0],"benchmark");'>
-								<label for='csvFile'>Chose a file</label> <span class='empty'>or
-									drag one here</span> <i class='fa fa-times-circle'
-									onclick='portal.clearFileUpload("benchmark");'></i> <span
-									class='filename'>name</span> <span class='fileerror'>error</span>
-							</div>
-						</div>
-						<div class='col-xs-12 col-sm-6'>
-							<h4 class='text-center'>Data Preview</h4>
-							<table id='benchmark' class='table table-condensed'>
-							</table>
-						</div>
-					</div>
-					<div class='clearfix'></div>
-					<hr>
-					<div class="form-group text-right">
-						<button type='submit' id='uploadbutton'
-							class='btn btn-primary' disabled>Continue</button>
-					</div>
-				</form>
-			</div>
-			<div id='wizard_send' class='hidden'>
-				<hr>
-				<h3 class="text-center">Ok. Ready to Send.</h3>
-				<hr>
-				<p class="h4">
-					Before sending, you can configure your benchmark a little more if
-					you would like. Visit the <a href='#'
-						onclick='portal.showComponent("settings");'>settings page</a> to
-					edit the introduction and thank you messages that your employees
-					will see when they take the assessment.
+				<p class="lead text-center">
+					Thank you for choosing Talytica. To get started, let's create a benchmark for the position you want to fill. Creating a benchmark takes three simple steps.
 				</p>
+				<ul class='wizard-step-list lead fa-ul'>
+				<li><i class="fa-li fa fa-briefcase"></i>Select an assessment that best suits the position you are hiring for.</li>
+				<li><i class="fa-li fa fa-user"></i>Decide which employees should participate in calibrating the assessment.</li>
+				<li><i class="fa-li fa fa-envelope"></i>Send send out links to the employees participating.</li>
+				</ul>
+				<div class="clearfix"></div>
 				<hr>
-				<form class="form form-horizontal" action='javascript:portal.completeSetupWizard();'>
-					<div class='bg-info alert' id='benchmarklinks'>
-						<table class='table' id='assessmentlinks' width='100%'></table>
-						<div class="form-group">
-							<hr>
-							<p class="h4">Once you've emailed links to your employees,
-								return here, enter the number of employees that you have
-								included in the benchmark and click "Confirm Send" below.</p>
-							<hr>
-						</div>
-					</div>					
-					<div class="form-group form-inline text-center" id="invitations">
-						<label for="invited" class="control-label input-lg">Number of employees to be invited:</label>
-						<input type="text" name="invited" id="invited" class="text-right form-control input-lg" required>
+					<div class="row text-center">
+						<button type="button" class="btn btn-primary btn-lg" onclick="portal.showComponent('wizard');">Get Started</button>
 					</div>
-					<hr>
-					<div class="form-group text-center">
-						<button type="submit" class="btn btn-primary" id="completeWizard">Confirm Send</button>
-					</div>
-				</form>
-			</div>
+				<hr>
+				<p class="text-center h4">
+						Remember, you can reach us at (424) 625-5857 if you need help.					
+				</p>
 		</div>
 	</div>
 </div>
 <script type='text/javascript'>
-	$(document).ready(function() {
-		$('.fileupload').on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
-				e.preventDefault();
-				e.stopPropagation();
-			}).on('dragover dragenter', function(e) {
-				$(this).addClass('is-dragover');
-			}).on('dragleave dragend drop', function() {
-				$(this).removeClass('is-dragover');
-			}).on('drop', function(e) {
-				portal.parseFileToTable(e.originalEvent.dataTransfer.files[0],'benchmark');
-		});
-		portal.initSetupWizard();
-	});
+$(document).ready(function() {
+	if (this.benchmarkList && this.benchmarkList.length >=1) portal.showComponent('benchmarks');
+});
 </script>

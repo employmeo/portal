@@ -1,36 +1,106 @@
-	    <div class="left_col scroll-view">
-          <div class="navbar nav_title" style="border: 0;">
-            <a href="#" data-component='dash' onClick="portal.showComponent('dash');" class="site_title"><span>
-              <img height="55px" width="auto" src="/images/tal-logo-sm.png" alt="Talytica"></span></a>
-          </div>
-          <div class="clearfix"></div>
-          <br>
-          <!-- sidebar menu -->
-          <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
-            <div class="menu_section">
-              <ul class="nav side-menu">
-                <li class="active"><a href="#" data-component='dash' onClick="portal.showComponent('dash');"><i class="fa fa-tachometer"></i> Dashboard</a>
-                </li>
-                <li><a><i class="fa fa-users"></i> Candidates <span class="fa fa-chevron-down"></span></a>
-                  <ul class="nav child_menu" style="display: block;">
-                    <li><a href="#" data-component='invite_applicant' onClick="portal.showComponent('invite_applicant');">Send Assessment</a></li>
-                    <li><a href="#" data-component='completed_applications' onClick="portal.showComponent('completed_applications');">Candidate Search</a></li>                  
-                  </ul>
-                <li><a href="#" data-component='positions' onClick="portal.showComponent('positions');"><i class="fa fa-briefcase"></i> Positions</a></li>
-                <li><a href="#" data-component='grading' onClick="portal.showComponent('grading');"><i class="fa fa-pencil-square-o"></i> Evaluations</a></li>
-                <li><a><i class="fa fa-gears"></i> Administration <span class="fa fa-chevron-down"></span></a>
-                    <ul class="nav child_menu" style="display: none;">
-                		<li><a href="#" data-component='assessments' onClick="portal.showComponent('assessments');"><i class="fa fa-clipboard"></i> Assessments</a></li>
-                		<li><a href="#" data-component='settings' onClick="portal.showComponent('settings');"><i class="fa fa-clipboard"></i> Settings</a></li>
-                		<li><a href="#" data-component='myaccount' onClick="portal.showComponent('myaccount');"><i class="fa fa-clipboard"></i> My Account</a></li>
-                    </ul>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <!-- /sidebar menu -->
-        </div>
-        <script>
+
+<div class="left_col scroll-view">
+	<div class="navbar nav_title" style="border: 0;">
+		<a href="#" data-component='dash'
+			onClick="portal.showComponent('dash');" class="site_title"><span>
+				<img height="55px" width="auto" src="/images/tal-logo-sm.png"
+				alt="Talytica">
+		</span></a>
+	</div>
+	<div class="clearfix"></div>
+	<br>
+	<!-- sidebar menu -->
+	<div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+		<div class="menu_section">
+			<ul class="nav side-menu">
+				<li class="active"><a href="#" data-component='dash'
+					onClick="portal.showComponent('dash');"><i
+						class="fa fa-tachometer"></i> Dashboard</a></li>
+				<li><a><i class="fa fa-users"></i> Candidates <span
+						class="fa fa-chevron-down"></span></a>
+					<ul class="nav child_menu" style="display: block;">
+						<li><a href="#" data-component='invite_applicant'
+							onClick="portal.showComponent('invite_applicant');"><i
+								class="fa fa-envelope"></i> Send Assessment</a></li>
+						<li><a href="#" data-component='completed_applications'
+							onClick="portal.showComponent('completed_applications');"><i
+								class="fa fa-search"></i> Candidate Search</a></li>
+					</ul>
+				<li><a><i class="fa fa-tasks"></i> Benchmarking <span
+						class="fa fa-chevron-down"></span></a>
+					<ul class="nav child_menu" style="display: none;">
+						<li><a href="#" data-component='benchmarks'
+							onClick="portal.showComponent('benchmarks');"><i
+								class="fa fa-wrench"></i> Manage Benchmarks</a></li>
+						<li><a href="#" data-component='wizard'
+							onClick="portal.showComponent('wizard');"><i
+								class="fa fa-sliders"></i> Setup Benchmark</a></li>
+					</ul></li>
+				<li><a href="#" data-component='grading'
+					onClick="portal.showComponent('grading');"><i
+						class="fa fa-pencil-square-o"></i> Evaluations</a></li>
+				<li><a><i class="fa fa-gears"></i> Administration <span class="fa fa-chevron-down"></span></a>
+					<ul class="nav child_menu" style="display: none;">
+						<li><a href="#" data-component='settings'
+							onClick="portal.showComponent('settings');"><i
+								class="fa fa-cog"></i> Settings</a></li>
+						<li><a href="#" data-component='myaccount'
+							onClick="portal.showComponent('myaccount');"><i
+								class="fa fa-user"></i> My Account</a></li>
+					</ul></li>
+			</ul>
+		</div>
+	</div>
+	<!-- /sidebar menu -->
+	<!-- call us -->
+	<div class="profile"></div>
+	<!-- /call us -->
+	<div class="sidebar-footer" role='tabpanel'>
+		<h2>Need Help <i class='fa fa-question-circle'></i></h2>
+		<div class='tabcontent'>
+			<div role="tabpanel" id="phone_pane" aria-labelledby="phone-tab"
+				class="tab-pane fade active in">
+				<span>Call us (9am-9pm ET weekdays):</span>
+				<h3>(424) 625-5857</h3>
+			</div>
+			<div role="tabpanel" id="email_pane" aria-labelledby="email-tab"
+				class="tab-pane fade in">
+				<span>email us, any time at:</span><h3>info@talytica.com</h3>
+			</div>
+			<div role="tabpanel" id="manager_pane" aria-labelledby="manager-tab"
+				class="tab-pane fade in">
+				<span>Your account manager is:</span>
+				<h3>Tom Austin</h3>
+			</div>
+			<div role="tabpanel" id="help_pane" aria-labelledby="help-tab"
+				class="tab-pane fade in">
+			</div>
+		</div>
+		<div role='tablist'>
+			<a data-toggle="tab" role='tab' id='phone-tab' href='#phone_pane'
+				data-placement="top" aria-expanded='true'
+				title="" data-original-title="Help"> <span
+				class="active glyphicon glyphicon-phone-alt" aria-hidden="true"></span>
+			</a>
+			<a data-toggle="tab" id='email-tab' href='#email_pane'
+				data-placement="top" role='tab' aria-expanded='false'
+				title="" data-original-title="Help"> <span
+				class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+			</a>
+			<a data-toggle="tab" id='manager-tab' href='#manager_pane'
+				data-placement="top" role='tab' aria-expanded='false'
+				title="" data-original-title="Help"> <span
+				class="glyphicon glyphicon-user" aria-hidden="true"></span>
+			</a>
+			<a data-toggle="tab" role='tab' id='help-tab' href='#help_pane'
+				data-placement="top" aria-expanded='false'
+				title="" data-original-title="Help"> <span
+				class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+			</a>
+		</div>
+	</div>
+</div>
+<script>
     	$(document).ready(function() {
     		portal.readyLeftNav();
     	});

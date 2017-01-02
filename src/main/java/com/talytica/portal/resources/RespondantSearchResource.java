@@ -53,7 +53,7 @@ public class RespondantSearchResource {
 		Long locationId = null;
 		if (search.locationId >= 1) locationId = search.locationId;
 		Long positionId = null;
-		if (search.positionId >= 1) positionId = search.positionId;		
+		if (search.positionId >= 1) positionId = search.positionId;	
 		
 		if ((search.pagenum > 0) && (search.pagesize > 0)) {
 			return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, locationId, positionId, search.type, from, to, search.pagenum, search.pagesize);

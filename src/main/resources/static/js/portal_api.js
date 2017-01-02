@@ -173,7 +173,7 @@ function newBenchmark(thePortal) {
 		{
   			thePortal.benchmark = data;
   			thePortal.benchmarkList.push(thePortal.benchmark);
-  			Array.prototype.push.apply(thePortal.surveyList, data.accountSurveys);
+  			Array.prototype.push.apply(thePortal.assessmentList, data.accountSurveys);
   			thePortal.positionList.push(data.position);
 		}
 	});
@@ -214,6 +214,19 @@ function sendBenchmark(thePortal) {
   			thePortal.showComponent('benchmarks');
 		},
 		complete: function() {$('#wait').addClass('hidden');}
+	});
+}
+
+function calculateBenchmark(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "benchmarkwizard/"+thePortal.benchmark.id+"/complete",
+		success: function(data)
+		{
+  			for (var key in data) thePortal.benchmark[key] = data[key];
+  			thePortal.showComponent('benchmarks');
+		}
 	});
 }
 

@@ -2,7 +2,11 @@ package com.talytica.portal.resources;
 
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.validation.constraints.NotNull;
@@ -16,22 +20,32 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.math3.distribution.TDistribution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Account;
 import com.employmeo.data.model.AccountSurvey;
 import com.employmeo.data.model.Benchmark;
+import com.employmeo.data.model.Corefactor;
+import com.employmeo.data.model.Outcome;
 import com.employmeo.data.model.Person;
+import com.employmeo.data.model.Population;
+import com.employmeo.data.model.PopulationScore;
+import com.employmeo.data.model.PopulationScorePK;
 import com.employmeo.data.model.Position;
 import com.employmeo.data.model.Respondant;
+import com.employmeo.data.model.RespondantScore;
 import com.employmeo.data.model.Survey;
 
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
+import com.employmeo.data.service.CorefactorService;
 import com.employmeo.data.service.PersonService;
+import com.employmeo.data.service.PopulationService;
 import com.employmeo.data.service.RespondantService;
 import com.employmeo.data.service.SurveyService;
 import com.talytica.common.service.EmailService;
@@ -66,9 +80,17 @@ public class BenchmarkWizardResource {
 	private static final String DEFAULT_THANKYOU = 
 			"<h4>THANK YOU</h4><p>Thank you for completing the calibration. Please click the &ldquo;Submit&rdquo; button, " +
 	        "below.</p><p>If requested to confirm your participation, you can provide this code: [CONFIRMATION_CODE].</p>";
+
+	private static final Long TOPPERFORMERTARGET = 4l; // for now.
+	private static final Long GETSHIREDTARGET = 1l; // for now.
+
 	
-	private static final String SIMPLE_VIEW = "benchmark.htm"; 
-	private static final String TOP_PERFORMER_VIEW = "benchmark.htm"; 
+	@Value("benchmark.htm")
+	private String SIMPLE_VIEW; 
+	@Value("topperformer.htm")
+	private String TOP_PERFORMER_VIEW; 
+	@Value("4701d03f-ee00-4c13-86a6-3b26107e0b05")
+	private String BENCHMARK_EMAIL_TEMPLATE_ID;
 	
 
 	@Autowired
@@ -92,6 +114,13 @@ public class BenchmarkWizardResource {
 	@Autowired
 	SurveyService surveyService;
 
+	// Put these elsewhere...
+	@Autowired
+	CorefactorService corefactorService;
+
+	@Autowired
+	PopulationService populationService;
+	
 	@GET
 	@Path("/{id}/options")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -187,22 +216,22 @@ public class BenchmarkWizardResource {
 				person.setFirstName(emp.firstName);
 				person.setLastName(emp.lastName);
 				Person savedPerson = personService.save(person);
-				Respondant bm = new Respondant();
-				bm.setAccount(account);
-				bm.setAccountId(account.getId());
-				bm.setAccountSurvey(savedAccountSurvey);
-				bm.setAccountSurveyId(savedAccountSurvey.getId());
-				bm.setBenchmarkId(benchmark.getId());
-				bm.setPerson(savedPerson);
-				bm.setPersonId(savedPerson.getId());
-				bm.setPosition(position);
-				bm.setPositionId(position.getId());
-				bm.setRespondantStatus(Respondant.STATUS_CREATED);
-				bm.setType(Respondant.TYPE_BENCHMARK);
-				respondants.add(respondantService.save(bm));
-				if (emp.topPerformer) {
-					//save outcome = top performer?
-				}
+				Respondant bmr = new Respondant();
+				bmr.setAccount(account);
+				bmr.setAccountId(account.getId());
+				bmr.setAccountSurvey(savedAccountSurvey);
+				bmr.setAccountSurveyId(savedAccountSurvey.getId());
+				bmr.setBenchmarkId(benchmark.getId());
+				bmr.setPerson(savedPerson);
+				bmr.setPersonId(savedPerson.getId());
+				bmr.setPosition(position);
+				bmr.setPositionId(position.getId());
+				bmr.setRespondantStatus(Respondant.STATUS_CREATED);
+				bmr.setType(Respondant.TYPE_BENCHMARK);
+				Respondant respondant = respondantService.save(bmr);
+				respondants.add(respondant);
+				respondantService.addOutcomeToRespondant(respondant, GETSHIREDTARGET, true);				
+				if (emp.topPerformer) respondantService.addOutcomeToRespondant(respondant, TOPPERFORMERTARGET, true);
 			}
 			benchmark.setInvited(respondants.size());
 		}
@@ -243,6 +272,115 @@ public class BenchmarkWizardResource {
 		}
 		return Response.status(Status.CREATED).entity(savedBenchmark).build();		
 	}
+
+	// Logically, this needs to move to integration app at some point.
+	
+	@GET
+	@Path("/{id}/complete")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Completes Benchmarking Process", response = Benchmark.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 201, message = "Benchmark Sent"),
+	     @ApiResponse(code = 400, message = "Error Setting Up Benchmark")})
+	public Response completeBenchmark(@ApiParam("benchmark id") @PathParam("id") Long benchmarkId) {
+		Benchmark benchmark = accountService.getBenchmarkById(benchmarkId);
+
+		Set<Respondant> respondants = respondantService.getCompletedForBenchmarkId(benchmark.getId());
+		
+		HashMap<String, Population> populations = new HashMap<String, Population>();
+		HashMap<Population, Set<Respondant>> populationSets = new HashMap<Population, Set<Respondant>>();
+		for (Population pop : benchmark.getPopulations()) { // in case of a redo.
+			populations.put(pop.getName(),pop);
+			populationSets.put(pop, new HashSet<Respondant>());
+		}
+		
+		for (Respondant respondant : respondants) {
+			Set<Outcome> outcomes = respondantService.getOutcomesForRespondant(respondant.getId());
+			for (Outcome outcome : outcomes) {
+				String popName = outcome.getPredictionTarget().getLabel();
+				if (!outcome.getValue()) popName+= " (false)";
+				Population population = populations.get(popName);
+				if (population == null) {
+					population = new Population();
+					if (!outcome.getValue()) { // if negative - e.g. not top performer
+						population.setProfile("profile_c");
+					} else if (outcome.getPredictionTarget().getPredictionTargetId() != 1) {
+						population.setProfile("profile_a"); // top performer
+					} else {
+						population.setProfile("profile_b"); // avg performer
+					}
+					population.setTargetId(outcome.getPredictionTarget().getPredictionTargetId());
+					population.setTarget(outcome.getPredictionTarget());
+					population.setTargetValue(outcome.getValue());
+					population.setBenchmark(benchmark);
+					population.setBenchmarkId(benchmarkId);
+					population.setName(popName);
+					populations.put(popName, population);
+					Set<Respondant> set = new HashSet<Respondant>();
+					populationSets.put(population, set);
+					log.debug("New Population {} ", popName);
+				}
+				populationSets.get(population).add(respondant);
+			}
+		}
+		
+		for (Map.Entry<Population, Set<Respondant>> pair : populationSets.entrySet()) {			 
+			HashMap<Long, List<Double>> scoresByCorefactor = new HashMap<Long, List<Double>>();
+			pair.getKey().setSize(pair.getValue().size());
+			Population population = populationService.save(pair.getKey());
+			log.debug("Population {} has {} members",population.getName(),population.getSize());
+			
+			for (Respondant respondant : pair.getValue()) {
+				for (RespondantScore rs : respondant.getRespondantScores()) {
+					if (!scoresByCorefactor.containsKey(rs.getId().getCorefactorId())) {
+						List<Double> scores = new ArrayList<Double>();
+						scoresByCorefactor.put(rs.getId().getCorefactorId(),scores);
+					}
+					scoresByCorefactor.get(rs.getId().getCorefactorId()).add(rs.getValue());
+				}
+			}
+			
+			for (Map.Entry<Long, List<Double>> cfSet : scoresByCorefactor.entrySet()) {
+				Corefactor cf = corefactorService.findCorefactorById(cfSet.getKey());
+				List<Double> set = cfSet.getValue();
+				log.debug("{} has {} scores", cf.getName(), set.size());
+				PopulationScore ps = new PopulationScore();
+				PopulationScorePK pspk = new PopulationScorePK();
+				pspk.setPopulationId(population.getId());
+				pspk.setCorefactorId(cf.getId());
+				ps.setId(pspk);
+				ps.setCorefactor(cf);
+				ps.setPopulation(population);
+				ps.setCount(set.size());
+				ps.setMean(average(set));
+				ps.setDeviation(deviation(set, ps.getMean()));
+				Double tval = Math.abs(ps.getMean() - cf.getMeanScore()) / (ps.getDeviation()/Math.sqrt(set.size()));
+				TDistribution tdist = new TDistribution(ps.getCount() - 1);
+				ps.setSignificance(2*tdist.cumulativeProbability(tval)-1.0d);
+				population.getPopulationScores().add(populationService.save(ps));
+			}
+			log.debug("created {} scores for {}", population.getPopulationScores().size(), population.getName());
+		}
+		benchmark.setStatus(Benchmark.STATUS_COMPLETED);
+		benchmark.setParticipantCount(respondants.size());		
+		benchmark.setCompletedDate(new Date());		
+		Benchmark savedBenchmark = accountService.save(benchmark);
+		return Response.status(Status.CREATED).entity(savedBenchmark).build();		
+	}
+		
+	private Double average(List<Double> set) {
+		Double sum = 0d;
+		for (Double val : set) {sum += val;}
+		if (!set.isEmpty()) return sum/set.size();
+		return sum;
+	}
+	
+	private Double deviation(List<Double> set, Double mean) {
+		Double sum = 0d;
+		for (Double val : set) {sum += Math.pow((val - mean),2);}
+		if (!set.isEmpty()) return Math.sqrt(sum/set.size());
+		return sum;
+	}
 	
 	private AccountSurvey accountSurveyFromBenchmark(Benchmark benchmark) {
 
@@ -256,6 +394,7 @@ public class BenchmarkWizardResource {
 		accountSurvey.setSurvey(survey);
 		accountSurvey.setPreambleText(DEFAULT_PREAMBLE);
 		accountSurvey.setThankyouText(DEFAULT_THANKYOU);
+		accountSurvey.setInviteTemplateId(BENCHMARK_EMAIL_TEMPLATE_ID);
 		accountSurvey.setBenchmarkId(benchmark.getId());
 		accountSurvey.setType(AccountSurvey.TYPE_BENCHMARK);
 		

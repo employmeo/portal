@@ -273,7 +273,7 @@ public class AccountResource {
 		log.debug("Returning profiles for account id {}", id);
 		
 		if(null != account) {		
-			return Response.status(Status.OK).entity(accountService.getIncompleteBenchmarksByAccountId(id)).build();
+			return Response.status(Status.OK).entity(accountService.getBenchmarksByAccountId(id)).build();
 		} else {
 			return Response.status(Status.NOT_FOUND).build();
 		}

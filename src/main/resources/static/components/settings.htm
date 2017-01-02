@@ -6,8 +6,22 @@
 <div class="row">
 	<div class="x_panel">
 		<div class="x_content">
-			<div class="" role="tabpanel">
-				<ul id="settingsTab" class="nav nav-tabs bar_tabs" role="tablist">
+			<div class="row content">
+	<div class="col-xs-8 col-sm-9">
+		<h2 id='accountname'>name</h2>
+		<span id='accountlocation'>location</span>
+	</div>
+	<div class="col-xs-4 col-sm-3">
+		<div class="tile-stats text-center">
+			<span>Type</span>
+			<h2 id='accounttype'>Free Trial</h2>
+		</div>
+	</div>
+</div>
+</div></div></div>
+
+<div class="row">
+				<ul id="settingsTab" class="nav nav-tabs bar_tabs" style='margin-bottom:0px;'role="tablist">
 					<li role="presentation" class="active"><a href="#tab_assessments"
 						role="tab" id="assessments-tab" data-toggle="tab"
 						aria-expanded="false"> <i class="fa fa-clipboard"></i> <span
@@ -24,20 +38,18 @@
 							class="fa fa-building"></i> <span
 							class="visible-md-inline visible-lg-inline"> Locations</span>
 					</a></li>
-					<!-- Removed This For Now -- <li role="presentation" class=""><a href="#tab_general"
-						role="tab" id="general-tab" data-toggle="tab" aria-expanded="true">
-							<i class="fa fa-wrench"></i> <span
-							class="visible-md-inline visible-lg-inline"> General</span>
-					</a></li> -->
 				</ul>
+	<div class="x_panel">
+		<div class="x_content">
+			<div class="" role="tabpanel">
 				<div id="settingsContent" class="tab-content">
 					<div role="tabpanel" class="tab-pane fade active in" id="tab_assessments"
 						aria-labelledby="assessments-tab">
 						<h3 class='text-center'>Assessments</h3>
 						<table class="table table-condensed table-hover"
 							id='assessmentstable' width="100%"></table>
-						<hr>
 						<div id='editassessment' style='display: none;'>
+							<hr>
 							<div class="text-center">
 								<h3>Assessment Details</h3>
 							</div>
@@ -131,6 +143,7 @@
 							type="button" class="btn btn-primary">Add Position</button>
 						</div>
 						<div id='editposition' style='display: none;'>
+						<hr>
 						<div class="text-center"><h3><span id='positionaction'></span> Position</h3></div>
 							<form class="form form-horizontal form-label-left"
 								id="positionUpdate" name="positionUpdate"
@@ -168,8 +181,8 @@
 							type="button" class="btn btn-primary">
 							Add Location</button>
 						</div>
-							<hr>
 						<div id='editlocation' style='display: none;'>
+							<hr>
 						<div class="text-center"><h3><span id='locationaction'></span> Location</h3></div>
 							<form class="form form-horizontal form-label-left"
 								id="locationUpdate" name="locationUpdate"
@@ -200,55 +213,6 @@
 							</form>
 						</div>
 					</div>
-					<!-- Removed This For Now -- <div role="tabpanel" class="tab-pane fade in" id="tab_general"
-						aria-labelledby="general-tab">
-						<h4 class='text-center'>General Settings</h4>
-						<form class="form form-horizontal form-label-left"
-							name="accountUpdate" action='javascript:portal.updateAccount();'>
-							<fieldset id='accountfields'>
-								<div class="row form-group">
-									<label class="control-label col-xs-3" for="accountName">Account
-										Name</label>
-									<div class="col-xs-9">
-										<input type="text" class="form-control" id="accountName"
-											name="accountName" />
-									</div>
-								</div>
-								<div class="row form-group">
-									<label class="control-label col-xs-3" for="accountName">Assessment
-										Redirect</label>
-									<div class="col-xs-9">
-										<input type="text" class="form-control" id="defaultRedirect"
-											name="defaultRedirect" />
-									</div>
-								</div>
-								<div class="row form-group">
-									<label class="control-label col-xs-3" for="defaultLocationId">Default
-										Location</label>
-									<div class="col-xs-9">
-										<select class="form-control" id="defaultLocationId"
-											name="defaultLocationId"></select>
-									</div>
-								</div>
-								<div class="row form-group">
-									<label class="control-label col-xs-3" for="defaultPositionId">Default
-										Position</label>
-									<div class="col-xs-9">
-										<select class="form-control" id="defaultPositionId"
-											name="defaultPositionId"></select>
-									</div>
-								</div>
-								<div class="row form-group">
-									<label class="control-label col-xs-3" for="defaultAsId">Default
-										Assessment</label>
-									<div class="col-xs-9">
-										<select class="form-control" id="defaultAsId"
-											name="defaultAsId"></select>
-									</div>
-								</div>
-							</fieldset>
-						</form>
-					</div> -->
 				</div>
 
 			</div>
