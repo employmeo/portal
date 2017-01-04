@@ -5,9 +5,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.ToString;
 
 @Data
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
 public class GraderParams {
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 

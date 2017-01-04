@@ -217,7 +217,7 @@ function sendBenchmark(thePortal) {
 	});
 }
 
-function calculateBenchmark(thePortal) {
+function calcBenchmark(thePortal) {
 	return $.ajax({
 		type: "GET",
 		async: true,
@@ -226,7 +226,9 @@ function calculateBenchmark(thePortal) {
 		{
   			for (var key in data) thePortal.benchmark[key] = data[key];
   			thePortal.showComponent('benchmarks');
-		}
+  			
+		},
+		complete: function() {$('#wait').addClass('hidden');}
 	});
 }
 

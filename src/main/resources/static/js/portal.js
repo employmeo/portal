@@ -1859,15 +1859,19 @@ clientPortal.prototype.renderScoreDetail = function(score) {
 	var cell = $('<td />');
 	var quartile = Math.floor(4*value/11);
 	
-	var progress = $('<div />', {'class' : 'progress', 'style' : 'height:30px;margin-top:10px;margin-bottom:0px' }).append($('<div />', {
-		'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
-		'role': 'progressbar',
-		'aria-valuenow' : value,
-		'aria-valuemin' : "1",
-		'aria-valuemax' : "11",
-		'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
-			+ (100*value/corefactor.highValue) + '%;',
-		'text' : value.toFixed(1) }));
+	var progress = $('<div />', {
+		'class' : 'progress', 
+		'id' : 'progress_' + corefactor.id,
+		'style' : 'height:30px;margin-top:10px;margin-bottom:0px' 
+			}).append($('<div />', {
+			'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
+			'role': 'progressbar',
+			'aria-valuenow' : value,
+			'aria-valuemin' : "1",
+			'aria-valuemax' : "11",
+			'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
+				+ (100*value/corefactor.highValue) + '%;',
+			'text' : value.toFixed(1) }));
 
 	var namediv = $('<div />', {
 		'class' : 'text-left',
@@ -1894,6 +1898,40 @@ clientPortal.prototype.renderScoreDetail = function(score) {
 
 	row.append(cell);
 	return row;
+}
+
+clientPortal.prototype.addBenchmarksToScoreDetail = function() {
+	var benchmark;
+	for (var key in this.benchmarkList) {
+		if (this.benchmarkList[key].positionId == this.respondant.positionId) benchmark = this.benchmarkList[key];
+	}
+	if (!benchmark || (benchmark.populations.length ==0)) return;
+
+	var counter = 0;
+	for (var key in benchmark.populations) {
+		if (!benchmark.populations[key].targetValue) continue;
+		counter++;
+		var profile = this.getProfile(benchmark.populations[key].profile);
+		var scores = benchmark.populations[key].populationScores;
+		for (var i=0;i<scores.length;i++) {
+			var circle = $('<div />', {
+				'class' : profile.profileClass + ' benchmark hidebm-'+counter,
+				'text'  : scores[i].mean.toFixed(1),
+				'style' : '--val:'+(100*(scores[i].mean-1)/11)+'%;'
+			});
+			$('#progress_'+scores[i].corefactorId).append(circle);
+		}
+		var displaybm = $('<div />', {
+			'class': 'selectbm-'+ counter,
+			'onclick' : '$("#scorescolumn").toggleClass("showbm-'+counter+'");'
+			});
+		displaybm.append($('<button />', {'class' : 'pull-left benchmark ' + profile.profileClass})
+				.append($('<i />', {'class' : 'fa ' + profile.profileIcon})));
+		displaybm.append($('<span />',{'text':benchmark.populations[key].name}));
+		$('#benchmarkgroups').append(displaybm);
+	}
+
+	if (counter > 0) $('#benchmarks').removeClass('hidden');
 }
 
 clientPortal.prototype.renderScorePersonalMessage = function(score) {
@@ -2193,7 +2231,7 @@ clientPortal.prototype.showBenchmarkCharts = function() {
 	});
 	
 	var groups = [{title : 'Critical Factors',
-	               displayGroups: ['Traits', 'Skills & Abilities'],
+	               displayGroups: ['Personality Traits', 'Skills and Abilities'],
 	               type: 'bar'},
 	              {title : 'Cultural Fit',
 	               displayGroups: ['Motivations', 'Interests'],
@@ -2428,7 +2466,7 @@ clientPortal.prototype.completeSetupWizard = function() {
 
 clientPortal.prototype.calculateBenchmark = function() {
 	$('#wait').removeClass('hidden');
-	calculateBenchmark(this);
+	calcBenchmark(this);
 };
 
 

@@ -56,7 +56,13 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-8 col-sm-8 col-xs-12">
+		<div id='scorescolumn' class="col-md-8 col-sm-8 col-xs-12">
+			<div id="benchmarks" class="x_panel">
+				<div class="x_content" style="line-height: 26px;">
+					<div class="col-xs-12 col-sm-2">Compare to:</div>
+					<div class='col-xs-12 col-sm-10 text-center' id='benchmarkgroups'></div>
+				</div>
+			</div>
 			<div id='predictionpanel' class='x_panel hidden'>
 				<div class="x_title">
 					<h3>Predictions
@@ -158,6 +164,7 @@
 	portal.renderAssessmentScore(true);
 	portal.initRespondantGradeables();
 	portal.initRespondantReferences();
+	portal.addBenchmarksToScoreDetail();
 	portal.activateUIElements();
 	if (portal.searchResults != null) $('#backtosearch').toggleClass('hidden');
 </script>

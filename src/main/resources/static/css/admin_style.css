@@ -20,6 +20,74 @@ audio {
 /* 
  * Custom Stuff
  */
+ 
+
+.benchmark {
+    width: 26px;
+    height: 26px;
+    -moz-border-radius: 50%; 
+    -webkit-border-radius: 50%; 
+    border-radius: 50%;
+    border-width: 2px;
+    border-color: #ffffff;
+    border-style: solid;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 24px;
+}
+
+.progress .benchmark {
+	margin-top: 2px;
+    --val: 0%;
+    margin-left: -moz-calc(var(--val) - 13px);
+    margin-left: -webkit-calc(var(--val)- 13px);
+    margin-left: -o-calc(var(--val) - 13px);
+    margin-left: calc(var(--val) - 13px);
+    z-index: 99;
+    position: absolute;
+}
+
+
+.benchmark.hidebm-1, .benchmark.hidebm-2,
+.benchmark.hidebm-3, .benchmark.hidebm-4
+{
+	display: none;
+}
+
+.showbm-1 .benchmark.hidebm-1, .showbm-2 .benchmark.hidebm-2,
+.showbm-3 .benchmark.hidebm-3, .showbm-4 .benchmark.hidebm-4
+{
+    display: block;
+}
+
+.selectbm-1, .selectbm-2,
+.selectbm-3, .selectbm-4 {
+	display:inline-block;
+    float:right;
+    text-align:left;
+    margin-left:10px;
+    cursor: pointer;
+}
+
+.showbm-1 .selectbm-1, .showbm-2 .selectbm-2,
+.showbm-3 .selectbm-3, .showbm-4 .selectbm-4 {
+    text-decoration: underline;
+}
+
+.selectbm-1 .benchmark, .selectbm-2 .benchmark,
+.selectbm-3 .benchmark, .selectbm-4 .benchmark {
+    margin-bottom: 0px;
+    line-height: 20px;
+    opacity: .5;
+}
+
+.showbm-1 .selectbm-1 .benchmark,
+.showbm-2 .selectbm-2 .benchmark,
+.showbm-3 .selectbm-3 .benchmark,
+.showbm-4 .selectbm-4 .benchmark {
+    opacity: 1;
+}
 
 .square  {
     float:left;

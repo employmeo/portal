@@ -2,24 +2,26 @@ package com.talytica.portal.objects;
 
 import java.util.Date;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
 public class RespondantSearchParams {
 
-	@Value("-1")
-	public int statusLow;
+	public int statusLow = -1;
 
-	@Value("99")
-	public int statusHigh;
+	public int statusHigh = 99;
 
 	public Long accountId;
 
 	public Long locationId;
 
 	public Long positionId;
-	
-	@Value("1")
-	public int type;
+
+	public int type = 1;
 
 	public Date fromdate;
 
