@@ -14,9 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Account;
+import com.employmeo.data.model.AccountSubscription;
+import com.employmeo.data.model.AccountType;
 import com.employmeo.data.model.Location;
 import com.employmeo.data.model.User;
 import com.employmeo.data.service.AccountService;
+import com.employmeo.data.service.AccountSubscriptionService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
 import com.talytica.common.service.EmailService;
@@ -35,7 +38,7 @@ import io.swagger.annotations.ApiResponses;
 @Api( value="/1/signup", produces=MediaType.APPLICATION_JSON, consumes=MediaType.APPLICATION_JSON)
 public class SignUpResource {
 	private static final Logger log = LoggerFactory.getLogger(SignUpResource.class);
-	private static final int DEFAULT_ACCOUNT_TYPE = Account.TYPE_TRIAL_SMB;
+	private static final AccountType DEFAULT_ACCOUNT_TYPE = AccountType.TRIAL;
 	private static final int DEFAULT_ACCOUNT_STATUS = Account.STATUS_NEW;
 	private static final int DEFAULT_USER_TYPE = 1;
 	private static final int DEFAULT_USER_STATUS = 1;
@@ -48,6 +51,9 @@ public class SignUpResource {
 
 	@Autowired
 	AccountService accountService;
+	
+	@Autowired
+	AccountSubscriptionService accountSubscriptionService;
 	
 	@Autowired
 	AccountSurveyService accountSurveyService;
@@ -81,6 +87,8 @@ public class SignUpResource {
 		account.setAccountStatus(DEFAULT_ACCOUNT_STATUS);
 		account.setAccountType(DEFAULT_ACCOUNT_TYPE);
 		Account savedAccount = accountService.save(account);
+		
+		AccountSubscription accountSubscription = accountSubscriptionService.setDefaultTrialPlan(savedAccount);
 		
 		Location defaultLocation = new Location();
 		defaultLocation.setAccount(savedAccount);
