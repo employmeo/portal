@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.employmeo.data.model.Account;
 import com.employmeo.data.model.Location;
@@ -58,6 +59,7 @@ public class SignUpResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
 	@ApiOperation(value = "Signs Up a New company / user", response = User.class)
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 201, message = "Account and User Created"),
