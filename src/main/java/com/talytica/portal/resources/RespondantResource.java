@@ -60,6 +60,21 @@ public class RespondantResource {
 		}
 	}	
 	
+	@GET
+	@Path("/bybenchmark/{benchmarkId}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets the list of respondants for provided benchmarktId", response = Respondant.class, responseContainer = "List")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Benchmarks found"),
+	     @ApiResponse(code = 404, message = "No such Account found")
+	   })	
+	public Response getBenchmarkRespondants(@ApiParam(value = "benchmark id") @PathParam("benchmarkId") @NotNull Long benchmarkId) {
+		log.debug("Requested benchmark respondants for benchmark id {}", benchmarkId);		
+
+		return Response.status(Status.OK).entity(respondantService.getByBenchmarkId(benchmarkId)).build();
+		
+	}	
+	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)

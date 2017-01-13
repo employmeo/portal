@@ -68,6 +68,21 @@ function getPositions(thePortal) {
 	});
 }
 
+function savePosition(position) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "account/"+position.accountId+"/position",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(position),
+		success: function(data)	{ position.id = data.id; }
+	});
+}
+
 function getLocations(thePortal) {
 	return $.ajax({
 		type: "GET",
@@ -80,6 +95,21 @@ function getLocations(thePortal) {
 	});
 }
 
+function saveLocation(location) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "account/"+location.accountId+"/location",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(location),
+		success: function(data)	{ location.id = data.id; }
+	});
+}
+
 function getAssessments(thePortal) {
 	return $.ajax({
 		type: "GET",
@@ -89,6 +119,130 @@ function getAssessments(thePortal) {
 		{
   			thePortal.assessmentList = data;
 		}
+	});
+}
+
+function getAssessmentOptions(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "benchmarkwizard/"+thePortal.user.userAccountId+"/options",
+		success: function(data)
+		{
+  			thePortal.assessmentOptions = data;
+		}
+	});
+}
+
+function getBenchmarks(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "account/"+thePortal.user.userAccountId+"/benchmarks",
+		success: function(data)
+		{
+  			thePortal.benchmarkList = data;
+		}
+	});
+}
+
+function getBenchmarkRespondants(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "respondant/bybenchmark/"+thePortal.benchmark.id,
+		success: function(data)
+		{
+  			thePortal.benchmark.respondants = data;
+		}
+	});
+}
+
+function newBenchmark(thePortal) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "benchmarkwizard/start",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(thePortal.benchmarkRequest),
+		success: function(data)
+		{
+  			thePortal.benchmark = data;
+  			thePortal.benchmarkList.push(thePortal.benchmark);
+  			Array.prototype.push.apply(thePortal.assessmentList, data.accountSurveys);
+  			thePortal.positionList.push(data.position);
+		}
+	});
+}
+
+function configureBenchmark(thePortal) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "benchmarkwizard/"+thePortal.benchmark.id+"/setup",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(thePortal.benchmarkConfig),
+		success: function(data)
+		{
+  			for (var key in data) thePortal.benchmark[key] = data[key];
+		}
+	});
+}
+
+function sendBenchmark(thePortal) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "benchmarkwizard/"+thePortal.benchmark.id+"/send",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(thePortal.benchmarkConfig),
+		success: function(data)
+		{
+  			for (var key in data) thePortal.benchmark[key] = data[key];
+  			thePortal.showComponent('benchmarks');
+		},
+		complete: function() {$('#wait').addClass('hidden');}
+	});
+}
+
+function calcBenchmark(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "benchmarkwizard/"+thePortal.benchmark.id+"/complete",
+		success: function(data)
+		{
+  			for (var key in data) thePortal.benchmark[key] = data[key];
+  			thePortal.showComponent('benchmarks');
+  			
+		},
+		complete: function() {$('#wait').addClass('hidden');}
+	});
+}
+
+function saveAssessment(assessment) {
+	return $.ajax({
+		type: "PUT",
+		async: true,
+		url: servicePath + "account/"+assessment.accountId+"/assessment",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(assessment)
 	});
 }
 

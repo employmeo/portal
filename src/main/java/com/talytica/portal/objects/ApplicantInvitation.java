@@ -1,5 +1,12 @@
 package com.talytica.portal.objects;
 
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
 public class ApplicantInvitation {
   public Long asid;
   public String email;
@@ -12,7 +19,6 @@ public class ApplicantInvitation {
   public Long positionId;
   public String country_short;
   public String formatted_address;
-  
-  public ApplicantInvitation() {
-  }
+  public Boolean sample; // to allow for 'sample' invitations.
+
 }

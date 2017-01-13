@@ -1,0 +1,244 @@
+<div class="row">
+	<div class="col-xs-12">
+		<h3>Account Settings</h3>
+	</div>
+</div>
+<div class="row">
+	<div class="x_panel">
+		<div class="x_content">
+			<div class="row content">
+	<div class="col-xs-8 col-sm-9">
+		<h2 id='accountname'>name</h2>
+		<span id='accountlocation'>location</span>
+	</div>
+	<div class="col-xs-4 col-sm-3">
+		<div class="tile-stats text-center">
+			<span>Type</span>
+			<h2 id='accounttype'>Free Trial</h2>
+		</div>
+	</div>
+</div>
+</div></div></div>
+
+<div class="row">
+				<ul id="settingsTab" class="nav nav-tabs bar_tabs" style='margin-bottom:0px;'role="tablist">
+					<li role="presentation" class="active"><a href="#tab_assessments"
+						role="tab" id="assessments-tab" data-toggle="tab"
+						aria-expanded="false"> <i class="fa fa-clipboard"></i> <span
+							class="visible-md-inline visible-lg-inline"> Assessments</span>
+					</a></li>
+					<li role="presentation" class=""><a href="#tab_positions"
+						role="tab" id="positions-tab" data-toggle="tab"
+						aria-expanded="false"> <i class="fa fa-briefcase"></i> <span
+							class="visible-md-inline visible-lg-inline"> Positions</span>
+					</a></li>
+					<li role="presentation" class=""><a
+						href="#tab_locations" role="tab" id="locations-tab"
+						data-toggle="tab" aria-expanded="false"> <i
+							class="fa fa-building"></i> <span
+							class="visible-md-inline visible-lg-inline"> Locations</span>
+					</a></li>
+				</ul>
+	<div class="x_panel">
+		<div class="x_content">
+			<div class="" role="tabpanel">
+				<div id="settingsContent" class="tab-content">
+					<div role="tabpanel" class="tab-pane fade active in" id="tab_assessments"
+						aria-labelledby="assessments-tab">
+						<h3 class='text-center'>Assessments</h3>
+						<table class="table table-condensed table-hover"
+							id='assessmentstable' width="100%"></table>
+						<div id='editassessment' style='display: none;'>
+							<hr>
+							<div class="text-center">
+								<h3>Assessment Details</h3>
+							</div>
+							<div class="row form-group well">
+								<div class="col-xs-12 col-sm-12 col-md-6">
+									<div class="x_panel" style="height: 200px; overflow: auto;">
+										<div class="x_content">
+											Total Questions: <span id="questiontotal"></span> <span
+												id="assessmentdesc"></span>
+										</div>
+									</div>
+								</div>
+								<div class="col-xs-12 col-sm-6 col-md-3">
+									<div class="x_panel" style="height: 200px;">
+										<div class="x_title">
+											<h4>Completion Rate</h4>
+										</div>
+										<div class="x_content text-center">
+											<span class="chart" id="completionguage" data-percent="0">
+												<span style="line-height: 100px; font-size: 30px;"
+												class="percent"></span>
+											</span>
+										</div>
+									</div>
+								</div>
+								<div class="col-xs-12 col-sm-6 col-md-3">
+									<div class="x_panel" style="height: 200px;">
+										<div class="x_title">
+											<h4>Time to Complete</h4>
+										</div>
+										<div class="x_content text-center">
+											<span id="assessmenttime" style="font-size: 55px;"></span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<hr>
+							<h2 class="text-center">Configure Assessment</h2>
+							<form class="form form-horizontal form-label-left"
+								id="assessmentUpdate" name="assessmentUpdate"
+								action="javascript:portal.updateAssessment();">
+								<fieldset id='assessmentfields'>
+									<input type="hidden" class="form-control" id="assessmentId" />
+									<div class="row form-group">
+										<label class="control-label col-xs-3"
+											for="overRideDisplayName">Nick Name</label>
+										<div class="col-xs-9">
+											<input type="text" class="form-control"
+												id="overRideDisplayName" name="overRideDisplayName" />
+										</div>
+									</div>
+									<div class="row form-group">
+										<label class="control-label col-xs-3" for="preambleText">Preamble
+											Text</label>
+										<div class="col-xs-9">
+											<textarea class="form-control" id="preambleText"
+												name="preambleText"></textarea>
+										</div>
+									</div>
+									<div class="row form-group">
+										<label class="control-label col-xs-3" for="thankyouText">Thank
+											You Text</label>
+										<div class="col-xs-9">
+											<textarea class="form-control" id="thankyouText"
+												name="thankyouText"></textarea>
+										</div>
+									</div>
+									<div class="row form-group">
+										<label class="control-label col-xs-3"
+											for="overRideRedirectPage">Redirect</label>
+										<div class="col-xs-9">
+											<input type="text" class="form-control"
+												id="overRideRedirectPage" name="overRideRedirectPage" />
+										</div>
+									</div>
+									<div class="row form-group text-center">
+										<button type="submit" class="btn btn-primary"
+											id="assessmentUpdateSave">Save</button>
+									</div>
+								</fieldset>
+							</form>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane fade in" id="tab_positions"
+						aria-labelledby="positions-tab">
+						<h3 class='text-center'>Positions</h3>
+						<table class="table table-condensed table-hover"
+							id='positionstable' width="100%"></table>
+						<div class="row form-group text-center">
+						<button onclick='$("#positionUpdate")[0].reset();$("#editposition").slideDown();$("#positionaction").text("Add");'
+							type="button" class="btn btn-primary">Add Position</button>
+						</div>
+						<div id='editposition' style='display: none;'>
+						<hr>
+						<div class="text-center"><h3><span id='positionaction'></span> Position</h3></div>
+							<form class="form form-horizontal form-label-left"
+								id="positionUpdate" name="positionUpdate"
+								action="javascript:portal.updatePosition();">
+								<input type="hidden" class="form-control" id="positionId" />
+									<div class="row form-group">
+										<label class="control-label col-xs-3"
+											for="positionName">Name</label>
+										<div class="col-xs-9">
+											<input type="text" class="form-control"
+												id="positionName" name="positionName" />
+										</div>
+									</div>
+									<div class="row form-group">
+										<label class="control-label col-xs-3" for="description">Position Description</label>
+										<div class="col-xs-9">
+											<textarea class="form-control" id="description"
+												name="description"></textarea>
+										</div>
+									</div>
+								<div class="row form-group text-center">
+									<button type="submit" class="btn btn-primary"
+										id="positionUpdateSubmit">Save</button>
+								</div>
+							</form>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane fade in"
+						id="tab_locations" aria-labelledby="locations-tab">
+						<h3 class='text-center'>Locations</h3>
+						<table class="table table-condensed table-hover"
+							id='locationstable' width="100%"></table>
+						<div class="row form-group text-center">
+							<button onclick='$("#locationUpdate")[0].reset();$("#editlocation").slideDown();$("#locationaction").text("Add");'
+							type="button" class="btn btn-primary">
+							Add Location</button>
+						</div>
+						<div id='editlocation' style='display: none;'>
+							<hr>
+						<div class="text-center"><h3><span id='locationaction'></span> Location</h3></div>
+							<form class="form form-horizontal form-label-left"
+								id="locationUpdate" name="locationUpdate"
+								action="javascript:portal.updateLocation();">
+							<input type="hidden" class="form-control" id="locationId"/>
+						    <input type='hidden' id='lat' name='lat'>
+						    <input type='hidden' id='lng' name='lng'>
+						    <input type='hidden' id='formatted_address' name='formatted_address'>
+						    <input type='hidden' id='country_short' name='country_short'>
+									<div class="row form-group">
+										<label class="control-label col-xs-3"
+											for="locationName">Name</label>
+										<div class="col-xs-9">
+											<input type="text" class="form-control"
+												id="locationName" name="locationName" />
+										</div>
+									</div>
+									<div class="row form-group">
+										<label class="control-label col-xs-3" for="street1">Address</label>
+										<div class="col-xs-9">
+											<input class="form-control" id="street1" name="street1" />
+										</div>
+									</div>
+								<div class="row form-group text-center">
+									<button type="submit" class="btn btn-primary"
+										id="locationUpdateSubmit">Save</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {
+		portal.initSettingsPage();
+		$('#street1').geocomplete({details:'form'});
+		tinymce.remove();
+		tinymce.init({
+			selector : 'textarea',
+			menubar : false
+		});
+
+		$('#completionguage').easyPieChart({
+			easing : 'easeOutBounce',
+			lineWidth : '10',
+			barColor : '#75BCDD',
+			scaleColor : false,
+			size : $('#completionguage').width(),
+			onStep : function(from, to, percent) {
+				$(this.el).find('.percent').text(Math.round(percent));
+			}
+		});
+
+	});
+</script>

@@ -1,0 +1,32 @@
+<div class="col-xs-12 text-center">
+	<h3>Welcome to Talytica</h3>
+	<h3><span class='small'> the fair, simple, effective way to hire</span></h3>
+</div>
+<div class="col-xs-12">
+	<div class="x_panel">
+		<div class="x_content">
+				<p class="lead text-center">
+					Thank you for choosing Talytica. To get started, let's create a benchmark for the position you want to fill. Creating a benchmark takes three simple steps.
+				</p>
+				<ul class='wizard-step-list lead fa-ul'>
+				<li><i class="fa-li fa fa-briefcase"></i>Select an assessment that best suits the position you are hiring for.</li>
+				<li><i class="fa-li fa fa-user"></i>Decide which employees should participate in calibrating the assessment.</li>
+				<li><i class="fa-li fa fa-envelope"></i>Send send out links to the employees participating.</li>
+				</ul>
+				<div class="clearfix"></div>
+				<hr>
+					<div class="row text-center">
+						<button type="button" class="btn btn-primary btn-lg" onclick="portal.showComponent('wizard');">Get Started</button>
+					</div>
+				<hr>
+				<p class="text-center h4">
+						Remember, you can reach us at (424) 625-5857 if you need help.					
+				</p>
+		</div>
+	</div>
+</div>
+<script type='text/javascript'>
+$(document).ready(function() {
+	if (this.benchmarkList && this.benchmarkList.length >=1) portal.showComponent('benchmarks');
+});
+</script>

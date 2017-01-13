@@ -1,0 +1,108 @@
+<div class="row">
+	<div class="col-xs-6">
+		<h3>Manage Benchmarks</h3>
+	</div>
+	<form class="col-xs-6 form-inline text-right" id='refinequery'>
+		<div class="form-group">
+			<select class="form-control input-lg" id="benchmarkId"
+				name="benchmarkId" onChange='portal.changeBenchmarkTo(this.value)'>
+			</select>
+		</div>
+	</form>
+	<div class='clearfix'></div>
+	<hr>
+</div>
+<div class="row content">
+	<div class="col-xs-12">
+		<div class="x_panel">
+			<div class="x_title">
+				<h3 id='positionname'></h3>
+			</div>
+			<div class="x_content">
+			<div class="row content">
+	<div class="col-xs-4 col-sm-2">
+		<div class="tile-stats text-center">
+			<span>Type</span>
+			<h2 id='benchmarktype'></h2>
+		</div>
+	</div>
+	<div class="col-xs-4 col-sm-2">
+		<div class="tile-stats text-center">
+			<span>Status</span>
+			<h2 id='benchmarkstatus'></h2>
+		</div>
+	</div>
+	<div class="col-xs-4 col-sm-2">
+		<div class="tile-stats text-center">
+			<span>Created</span>
+			<h2 id='createddate'></h2>
+		</div>
+	</div>
+	<div class="col-xs-4 col-sm-2">
+		<div class="tile-stats text-center">
+			<span>Invited</span>
+			<h2 id="invited"></h2>
+		</div>
+	</div>
+	<div class="col-xs-4 col-sm-2">
+		<div class="tile-stats text-center">
+			<span>Completed</span>
+			<h2 id="completed"></h2>
+		</div>
+	</div>
+	<div class="col-xs-4 col-sm-2">
+		<div class="tile-stats text-center">
+			<span>Participation</span>
+			<h2 id="participationrate"></h2>
+		</div>
+	</div>
+</div>		
+				<div class='col-xs-12'>
+					<p id="positiondesc"></p>
+				</div>
+				<div class='col-xs-12 text-center lead hidden' id='resumebutton' >
+					<p>You haven't completed the setup of this benchmark</p>
+					<button class='btn btn-lg btn-primary' onclick="portal.showComponent('wizard');">Return to Setup</button>
+				</div>
+				<div class='alert bg-info' id='benchmarklinks'>
+					<table class='table' id='assessmentlinks' width="100%"></table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row content" id='respondantspanel'>
+			<div class='col-xs-12 text-center' >
+				<p style='font-style:italic;'>At least 80% participation, or 20 completed assessments needed to calculate benchmark.</p>
+			</div>
+<div class='col-xs-12 text-center' id='calculatebutton' >
+				<p class='lead'>You may now close and calculate the benchmark.
+				 <button class='btn btn-success' onclick="portal.calculateBenchmark();">Calculate</button></p>
+</div>
+	<div class="col-xs-12">
+		<div class="x_panel" >
+			<div class="waiting hidden" id="waitingmodal">
+				<i class="fa fa-spinner fa-spin"></i>
+			</div>
+			<div class="x_title">
+				<h4>Response Status</h4>
+				</div>
+			<div class="x_content">
+				<table id="benchmarkrespondants"
+					class="table display table-condensed" width='100%'>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Begin Position Core Factors Bar Chart -->
+<div class="row content">
+	<div class="col-xs-12" id="factors_barchart"></div>
+</div>
+<!-- End Position Core Factors Bar Chart -->
+<script type="text/javascript">
+	$(document).ready(function() {
+		portal.updateBenchmarkSelect(true);
+	});
+</script>

@@ -20,6 +20,74 @@ audio {
 /* 
  * Custom Stuff
  */
+ 
+
+.benchmark {
+    width: 26px;
+    height: 26px;
+    -moz-border-radius: 50%; 
+    -webkit-border-radius: 50%; 
+    border-radius: 50%;
+    border-width: 2px;
+    border-color: #ffffff;
+    border-style: solid;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 24px;
+}
+
+.progress .benchmark {
+	margin-top: 2px;
+    --val: 0%;
+    margin-left: -moz-calc(var(--val) - 13px);
+    margin-left: -webkit-calc(var(--val)- 13px);
+    margin-left: -o-calc(var(--val) - 13px);
+    margin-left: calc(var(--val) - 13px);
+    z-index: 99;
+    position: absolute;
+}
+
+
+.benchmark.hidebm-1, .benchmark.hidebm-2,
+.benchmark.hidebm-3, .benchmark.hidebm-4
+{
+	display: none;
+}
+
+.showbm-1 .benchmark.hidebm-1, .showbm-2 .benchmark.hidebm-2,
+.showbm-3 .benchmark.hidebm-3, .showbm-4 .benchmark.hidebm-4
+{
+    display: block;
+}
+
+.selectbm-1, .selectbm-2,
+.selectbm-3, .selectbm-4 {
+	display:inline-block;
+    float:right;
+    text-align:left;
+    margin-left:10px;
+    cursor: pointer;
+}
+
+.showbm-1 .selectbm-1, .showbm-2 .selectbm-2,
+.showbm-3 .selectbm-3, .showbm-4 .selectbm-4 {
+    text-decoration: underline;
+}
+
+.selectbm-1 .benchmark, .selectbm-2 .benchmark,
+.selectbm-3 .benchmark, .selectbm-4 .benchmark {
+    margin-bottom: 0px;
+    line-height: 20px;
+    opacity: .5;
+}
+
+.showbm-1 .selectbm-1 .benchmark,
+.showbm-2 .selectbm-2 .benchmark,
+.showbm-3 .selectbm-3 .benchmark,
+.showbm-4 .selectbm-4 .benchmark {
+    opacity: 1;
+}
 
 .square  {
     float:left;
@@ -310,6 +378,205 @@ input.namecheck:checked+label.namecheck {
 	font-weight: bold;
 }
 
+
+
+/***
+ *
+ *  Better Radio and Checkboxes
+ *
+ */
+
+
+input.cleancheck, input.cleanradio { display: none; }
+label.cleancheck:before, label.cleanradio:before {
+  font-family: 'FontAwesome';
+  color: #337ab7;
+  transition: all .2s;
+  padding: 3px;
+}
+
+label.cleancheck:before {
+	content: '\f096';
+}
+
+label.cleanradio:before {
+	content: '\f10c';
+}
+	
+input.cleancheck:checked+label.cleancheck:before {
+	content: '\f046';
+}
+
+input.cleanradio:checked+label.cleanradio:before {
+	content: '\f192';
+}
+
+/***
+ *
+ *  Styles for file-uploader
+ *
+ */
+
+.fileupload {
+	font-weight: bold;
+	text-align: center;
+	padding-bottom: 5px;
+	color: #555;
+	border: 2px dashed #555;
+	border-radius: 7px;
+	cursor: default;
+}
+
+.fileupload input,
+.fileupload i,
+.fileupload.has-file input + label,
+.fileupload.has-file .empty,
+.filename,
+.fileerror {
+	display: none;
+}
+
+.fileupload input + label {
+    color: white;
+    padding: 5px;
+    font-weight: 500;
+    background-color: #337ab7;
+    display: inline-block;
+}
+
+.fileupload:before {
+    content: "\f019";
+    font-family: FontAwesome;
+    position: relative;
+    color: rgba(51, 122, 183, 0.5);
+    font-size: 40px;
+    padding: 5px;
+    display:block;
+}
+
+.fileupload input:focus + label,
+.inputfile:focus + label,
+.fileupload input + label:hover {
+    background-color: #2e6da4;
+}
+
+.fileupload.is-dragover {
+  background-color: #F7F7F7;
+}
+
+.fileupload.has-file {
+  background-color: #ccffcc;
+}
+
+.fileupload.has-file:before {
+	content: "\f05d";
+    color: #22ff22;
+}
+
+.fileupload.has-file i,
+.fileupload.has-file .filename {
+  display: inline;
+}
+
+.fileupload.has-error {
+  background-color: #cc8888;
+}
+
+.fileupload.has-error .fileerror {
+  display: block;
+}
+
+.fileupload.has-error:before {
+	content: "\f071";
+    color: #dd4444;
+}
+
+/***
+ *
+ *  Styles for setup-wizard
+ *
+ */
+
+
+.wizard {
+	position: relative;
+}
+
+.wizard-steps { overflow: hidden; position: relative; margin-top: 20px; }
+
+.wizard-progress { position: absolute; top: 24px; left: 0; width: 100%; height: 1px; background: #ddd; }
+.wizard-progress-line { position: absolute; top: 0; left: 0; height: 1px; background: #66ccff; }
+
+.wizard-step { position: relative; float: left; width: 33.333333%; padding: 0 5px; text-align:center;}
+
+ul.wizard-step-list  {
+	margin-left: 15%;
+    margin-right: 15%;
+    padding-left: 50px;
+    padding-bottom: 14px;
+    border: 1px solid #66ccff;
+    width: 70%;
+    text-align: left;
+}
+.wizard-step-list li {
+	padding-left: 15px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	vertical-align:middle;
+}
+.wizard-step-list .fa-li:before 
+{
+	text-align: center;
+	display: inline-block; width: 40px; height: 40px; margin-top: 4px;
+	font-size: 16px;
+	-moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%;
+	background: #fff; border: 1px solid #66ccff; color: #66ccff; line-height: 38px;
+}
+
+.wizard-step-icon {
+	display: inline-block; width: 40px; height: 40px; margin-top: 4px; background: #ddd;
+	font-size: 16px; color: #fff; line-height: 40px;
+	-moz-border-radius: 50%; -webkit-border-radius: 50%; border-radius: 50%;
+}
+.wizard-step.activated .wizard-step-icon {
+	background: #fff; border: 1px solid #66ccff; color: #66ccff; line-height: 38px;
+}
+.wizard-step.active .wizard-step-icon {
+	width: 48px; height: 48px; margin-top: 0; background: #66ccff; font-size: 22px; line-height: 48px;
+}
+
+.wizard-step span {
+	padding-left: 55px;
+	font-size: large;
+}
+
+/***
+ *
+ *  Styles for sidebar footer
+ *
+ */
+
+.sidebar-footer {
+    background-color:#172d44;
+}
+.sidebar-footer h2{
+    font-size: 16px;
+    padding-left:5px;
+    color:white;
+}
+.sidebar-footer .tab-pane {
+    padding-left: 5px;
+    display: none;
+}
+.sidebar-footer .tab-pane span {
+    color: #66ccff;
+    font-style: italic;
+}
+.sidebar-footer .tab-pane.active {
+    display: block;
+    color: white;
+}
+
 /***
  *
  *  Styles for data tables
@@ -331,4 +598,11 @@ tr.shown td.details-control {
   }
 }
 
+@media (max-width: 1200px) {
+ul.wizard-step-list  {
+	margin-left: 1%;
+    margin-right: 1%;
+    width: 98%;
+}
+}
 }

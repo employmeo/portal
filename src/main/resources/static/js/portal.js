@@ -7,29 +7,53 @@ function clientPortal(version) {
     this.body = $('body');
     this.leftcol = $('.left_col');
     this.version = version;
-    
 	this.urlParams = {};
 	this.user = {};
-	this.assessmentList = {};
-	this.positionList = {};
-	this.locationList = {};
-	this.corefactors = {};
-	this.profiles = {};
+	
+	// Account Object Lists
+	this.assessmentList = [];
+	this.positionList = [];
+	this.locationList = [];
+	this.benchmarkList = [];
+	this.corefactors = [];
+	this.profiles = [];
 
-	this.respondant = {};
-	this.position = {};
-	this.location = {};
+	// data search params
 	this.respParams = {};
 	this.dashParams = {};
-	
+	this.graderParams = {};
+
+	// search results
 	this.dashResults = null;
 	this.searchResults = null;
 	this.lastTenResults = null;
+	this.myGraders = null;
+	
+	this.respondant = null;
+	this.position = null;
+	this.location = null;
+	this.assessment = null;
+	this.benchmark = null;
+	this.invitation = null;
+	this.signuprequest = null;
+	
+	// charts:
 	this.historyChart = null;
 	this.dashApplicants = null;
 	this.dashHires = null;
 	this.cfBarChart = null;
-	this.qTable = null;
+	this.benchmarkCharts = [];
+	
+	//tables:
+	this.gTable = null;
+	this.rRefereces == null;
+	this.rTable = null;
+	this.asTable = null;
+	this.locTable = null;
+	this.posTable = null;
+	
+	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
+	
 	this.init();
 }
 
@@ -69,6 +93,10 @@ clientPortal.prototype.loginSuccess = function(data) {
 	this.user = data;
 	var thePortal = this;
 	
+	// if account new / free trial... force welcome / setup page
+	if (1 == this.user.account.accountStatus) this.urlParams.component = 'welcome';
+	if (50 == this.user.account.accountStatus) this.urlParams.component = 'benchmarks';
+	
 	$('#portal').toggleClass('hidden');
   	$('#mainbody').removeClass('coverpage');
 	$('#mainbody').css('background-image','');
@@ -76,30 +104,21 @@ clientPortal.prototype.loginSuccess = function(data) {
 	$('#topnav').load('/components/top.htm?version='+this.version);
 	if (!this.urlParams.component) this.urlParams.component = 'dash';
 
-	if (this.urlParams.respondantUuid != null) {
-		$.when (getRespondantByUuid(thePortal, this.urlParams.respondantUuid),
-				getLocations(thePortal),
-				getPositions(thePortal),
-				getAssessments(thePortal),
-				getCorefactors(thePortal),
-				getProfiles(thePortal)).done(
-				function () {
+	$.when (getLocations(thePortal), getPositions(thePortal), getAssessments(thePortal),
+			getBenchmarks(thePortal), getCorefactors(thePortal), getProfiles(thePortal)).done(
+			function () {
+				if (thePortal.urlParams.respondantUuid) {
+					$.when(getRespondantByUuid(thePortal, thePortal.urlParams.respondantUuid)).done(
+						function () {
+							thePortal.showComponent(thePortal.urlParams.component);
+							$('#wait').toggleClass('hidden')
+						});				
+				} else {
 					thePortal.showComponent(thePortal.urlParams.component);
-					$('#wait').toggleClass('hidden');
+					$('#wait').toggleClass('hidden')						
 				}
-		);
-	} else {
-		$.when (getLocations(thePortal),
-				getPositions(thePortal),
-				getAssessments(thePortal),
-				getCorefactors(thePortal),
-				getProfiles(thePortal)).done(
-				function () {
-					thePortal.showComponent(thePortal.urlParams.component);
-					$('#wait').toggleClass('hidden');
-				}
-		);
-	}
+			}
+	);
 }
 
 clientPortal.prototype.loginFail = function(data) {
@@ -167,6 +186,19 @@ clientPortal.prototype.updatePositionSelect = function (detail) {
 		}));
 	});
 	if (detail) this.changePositionTo($('#positionId').val());
+}
+
+clientPortal.prototype.updateBenchmarkSelect = function (detail) {
+	$.each(	this.benchmarkList, function (index, value) {
+		$('#benchmarkId').append($('<option/>', { 
+			value: this.id,
+			text : this.position.positionName + ' Benchmark'
+		}));
+	});
+	if (this.benchmark) $('#benchmarkId').val(this.benchmark.id);
+	if (detail) {
+		 this.changeBenchmarkTo($('#benchmarkId').val());
+	}
 }
 
 clientPortal.prototype.initializeDatePicker = function (callback) {
@@ -355,14 +387,12 @@ clientPortal.prototype.refreshDashHires = function(data) {
 clientPortal.prototype.addHireRateBar = function(data) {
 
 	var rate = Math.round(100*data.data[4] / data.data[3]);
-
 	var profile = {
 			profileClass : data.profileClass,
 			profileIcon : data.profileIcon,
 			labels : [data.series]	
 	};
 	var badge = this.getProfileBadge(profile);
-
 	var progress =	$('<div />',{
 				'class' : 'progress-bar',
 				'role':'progress-bar',
@@ -690,7 +720,6 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 	for (var key in grader.grades) {
 		var grade = grader.grades[key];
 		count++;
-		console.log(grade);
 		var row = $('<tr />');
 		row.append($('<td />',{'text': grade.questionText}));
 		row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeText || grade.gradeValue || ''}));
@@ -902,6 +931,14 @@ clientPortal.prototype.getPositionBy = function(id) {
 	return null;
 }
 
+clientPortal.prototype.getBenchmarkBy = function(id) {
+	for (var key in this.benchmarkList) {
+		var benchmark = this.benchmarkList[key];
+		if (id == benchmark.id) return benchmark;
+	}
+	return null;
+}
+
 clientPortal.prototype.getLocationBy = function(id) {
 	for (var key in this.locationList) {
 		var location = this.locationList[key];
@@ -981,6 +1018,8 @@ clientPortal.prototype.initRespondantsTable = function() {
 
 clientPortal.prototype.getStatusText = function (status) {
 	switch (status) {
+		case 0:
+			return 'Created';
 		case 1:
 			return 'Invited';
 		case 5:
@@ -1019,18 +1058,20 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'Remind Again',
-				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.sendApplicantReminder();'
+				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
 			break;
 		case 11: // ungraded
 		case 13: // scored - not predicted
 		case 15: // predicted
+			if (respondant.type != 1) break; // only view candidates
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'View Detail',
 				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.showComponent("candidate_detail");'
 			}));
 			break;
+		case 0:  // created but not emailed (yet)
 		case 10: // completed
 		case 12: // graded, but not scored
 		default:
@@ -1101,17 +1142,23 @@ clientPortal.prototype.setRespondantTo = function(respondantId) {
 clientPortal.prototype.sendApplicantReminder = function(respondantId) {
 	var thePortal = this;
 	$.when(sendInviteReminder(respondantId)).done(function () {
-		var resp = thePortal.rTable.row('#'+respondantId).data();	
-		if (resp.respondantStatus < 6) resp.respondantStatus = 6;
-		thePortal.rTable.row('#'+respondantId).data(resp).draw();	
+		var resp;
+		if (thePortal.rTable) resp = thePortal.rTable.row('#'+respondantId).data();
+		if (resp) {
+			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
+			thePortal.rTable.row('#'+respondantId).data(resp).draw();		
+		} else {
+			resp = thePortal.brTable.row('#'+respondantId).data();
+			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
+			thePortal.brTable.row('#'+respondantId).data(resp).draw();	
+		}
 	})
 }
 
 //Section for looking at / manipulating assessments
 clientPortal.prototype.changeAssessmentTo = function(asid) {
 	this.assessment = this.getAssessmentBy(asid);
-	this.updateSurveyFields();
-	this.updateSurveyQuestions();		
+	this.updateSurveyFields();	
 }
 
 clientPortal.prototype.updateSurveyFields = function() {
@@ -1120,39 +1167,203 @@ clientPortal.prototype.updateSurveyFields = function() {
 	$('#assessmentdesc').html(this.assessment.survey.description);
 	$('#completionguage').data('easyPieChart').update(100*this.assessment.survey.completionPercent);  
 	$('#questiontotal').text(this.assessment.survey.surveyQuestions.length);
-	function msToTime(s) {
-		  var ms = s % 1000;
-		  s = (s - ms) / 1000;
-		  var secs = s % 60;
-		  s = (s - secs) / 60;
-		  var mins = s % 60;
-		  return + mins + ':' + (secs<10 ? '0':'') + secs;
-	}
+
 }
 
-clientPortal.prototype.initSurveyQuestionsTable = function() {
-	this.qTable = $('#questions').DataTable( {
-		responsive: true,
-		order: [[0, 'asc'],[ 1, 'asc' ]],
-		columns: [{ title: 'Sec', data: 'page'},
-		          { title: '#', data: 'sequence'},
-		          { title: 'Question', data: 'question.questionText'}],
-		          columnDefs: [{ responsivePriority: 2, targets: 2},
-		                       { responsivePriority: 4, targets: 1},
-		                       { responsivePriority: 6, targets: 0}]
-	});
-}	
+clientPortal.prototype.initSettingsPage = function() {
+	$('#accountname').text(this.user.account.accountName);
+	$('#accountlocation').text(this.getLocationBy(this.user.account.defaultLocationId).street1);
+	switch (this.user.account.accountType) {
+		case 100: $('#accounttype').text('Free Trial'); break;
+		case 200: $('#accounttype').text('Circle'); break;
+		case 300: $('#accounttype').text('Triangle'); break;
+		case 400: $('#accounttype').text('Square'); break;
+		default: $('#accounttype').text('Enterprise'); break;
+	}		
+	this.initLocationTable();
+	this.initPositionTable();
+	this.initAssessmentTable();
+}
 
-clientPortal.prototype.updateSurveyQuestions = function() {
-	if (this.qTable == null) this.initSurveyQuestionsTable();
-	this.qTable.clear();
-	$('#questions').dataTable().fnAddData(this.assessment.survey.surveyQuestions);
+clientPortal.prototype.initLocationTable = function() {
 	var thePortal = this;
-	this.qTable.$('tr').click(function (){
-		thePortal.qTable.$('tr.selected').removeClass('selected');
-		$(this).addClass('selected');
+	if (this.locTable) this.locTable.destroy();
+	this.locTable = $('#locationstable').DataTable( {
+		"paging" : true, "filter" : true, "ordering" : true, "info" : false, "responsive" : true,
+		rowId: 'id',
+		data: this.locationList,
+		columns: [{ title: 'ID', data: 'id'},
+		          { title: 'Location Name', data: 'locationName'},
+		          { title: 'Address', data: 'street1'}], 
+		createdRow : function (row, data, dataIndex) {
+		    $(row).click(function (){
+				thePortal.locTable.$('tr.selected').removeClass('selected');
+				$(this).addClass('selected');
+				var location = $('#locationstable').dataTable().fnGetData(this);
+				thePortal.putObjectInForm(location, 'locationUpdate');
+				$('#locationId').val(location.id);
+				$("#locationaction").text("Edit");
+				$('#editlocation').slideDown();
+			});
+		}
 	});
-	return
+}
+
+clientPortal.prototype.initPositionTable = function() {
+	var thePortal = this;
+	if (this.posTable) this.posTable.destroy();
+	this.posTable = $('#positionstable').DataTable( {
+		"paging" : false, "filter" : false, "ordering" : true, "info" : false, "responsive" : true,
+		rowId: 'id',
+		data: this.positionList,
+		columns: [{ title: 'ID', data: 'id'},
+		          { title: 'Position', data: 'positionName'},
+		          { title: 'Description', data: 'description'}],
+		createdRow : function (row, data, dataIndex) {
+		    $(row).click(function (){
+				thePortal.posTable.$('tr.selected').removeClass('selected');
+				$(this).addClass('selected');
+				var position = $('#positionstable').dataTable().fnGetData(this);
+				thePortal.putObjectInForm(position, 'positionUpdate');
+				$('#positionId').val(position.id);
+				$("#positionaction").text("Edit");
+				$('#editposition').slideDown();
+			});
+		}
+	});
+}
+
+clientPortal.prototype.initAssessmentTable = function(){
+	var thePortal = this;
+	this.asTable = $('#assessmentstable').DataTable( {
+		"paging" : false, "filter" : false, "ordering" : true, "info" : false, "responsive" : true,
+		rowId: 'id',
+		data: this.assessmentList,
+		columns: [{ title: 'ID', data: 'id'},
+		          { title: 'Name', data: 'displayName', render : function(data,type,row) {
+		        	  return row.overRideDisplayName || data;}},
+		          { title: 'Static Link', data: 'permalink'}
+		          ],
+		createdRow : function (row, data, dataIndex) {
+		    $(row).click(function (){
+				thePortal.asTable.$('tr.selected').removeClass('selected');
+				$(this).addClass('selected');
+				var assessment = $('#assessmentstable').dataTable().fnGetData(this);
+				thePortal.putObjectInForm (assessment, 'assessmentUpdate');
+				thePortal.changeAssessmentTo(assessment.id);	
+				$('#assessmentId').val(assessment.id);
+				$('#editassessment').slideDown();
+			});
+		}
+	});
+}
+
+//Section for search respondants / build respondants table
+clientPortal.prototype.showBenchmarkRespondants = function() {
+	var thePortal = this;
+	var completed = 0;
+	for (var key in this.benchmark.respondants) if (this.benchmark.respondants[key].respondantStatus >= 10) completed++;
+	$('#completed').text(completed);
+	var participationrate = 100*(completed) / (this.benchmark.invited || 1)
+	$('#participationrate').text(participationrate.toFixed(0)+'%');
+	
+	if ((participationrate >= 80) || completed >= 20) {
+		$('#completed').addClass('text-success');
+		$('#participationrate').addClass('text-success');
+		$('#calculatebutton').removeClass('hidden');
+	} else {
+		$('#completed').addClass('text-danger');
+		$('#participationrate').addClass('text-danger');
+	}
+	this.brTable = $('#benchmarkrespondants').DataTable( {
+		responsive: true, destroy: true,
+		data: this.benchmark.respondants,
+		rowId: 'id',
+		columns: [
+		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person',
+		        	  render : function ( data, type, row ) { return data.firstName + ' ' + data.lastName; }},
+			          { responsivePriority: 11, className: 'text-left', title: 'Email', data: 'person.email'},		        	  
+			      { responsivePriority: 8, className: 'text-left', title: 'Status', data: 'respondantStatus',
+			        	  render : function ( data, type, row ) { return thePortal.getStatusText(data);}},
+		          { responsivePriority: 5, className: 'text-left', title: 'Actions', data: 'respondantStatus', 
+		        	  render : function ( data, type, row ) { return thePortal.renderRespondantActions(row).html();}}
+		         ]
+	});
+}
+
+clientPortal.prototype.putObjectInForm = function (object, formid) {
+	$('#' + formid + ' :input').each(function( index ) {
+		if("TEXTAREA" == $(this)[0].tagName) {
+			var content = object[this.name] || '';
+			tinymce.get(this.id).setContent(content);
+		}
+		$(this).val(object[this.name]);
+	});
+}
+
+clientPortal.prototype.mergeObjectFromForm = function (object, formid) {
+	$('#' + formid + ' :input').each(function( index ) {
+		if (!this.name) return;
+		if("TEXTAREA" == $(this)[0].tagName) {
+			object[this.name] = tinymce.get(this.id).getContent();
+		} else {
+			if ($(this).val()) object[this.name] = $(this).val();
+			if (!$(this).val() && object[this.name]) object[this.name] = null;
+		}
+	});
+}
+
+clientPortal.prototype.updateAssessment = function() {
+	var thePortal = this;
+	var formname = 'assessmentUpdate';
+	var id = $('#assessmentId').val();
+	var assessment = this.getAssessmentBy(id);
+	this.mergeObjectFromForm(assessment, formname);
+	$.when(saveAssessment(assessment)).done(function(){
+		thePortal.asTable.$('tr.selected').removeClass('selected');
+		$('#assessmentstable').dataTable().fnClearTable();
+		$('#assessmentstable').dataTable().fnAddData(thePortal.assessmentList);
+		$('#editassessment').slideUp();
+		});
+}
+
+clientPortal.prototype.updateLocation = function() {
+	var thePortal = this;
+	var formname = 'locationUpdate';
+	var id = $('#locationId').val();
+	var location = {};
+	if ("Edit" == $('#locationaction').text()) {
+		location = this.getLocationBy(id);
+	} else {
+		location.accountId = this.user.userAccountId;
+		this.locationList.push(location);
+	}
+	this.mergeObjectFromForm(location, formname);
+	$.when(saveLocation(location)).done(function(){
+		$('#locationstable').dataTable().fnClearTable();
+		$('#locationstable').dataTable().fnAddData(thePortal.locationList);
+		$('#editlocation').slideUp();
+		});
+}
+
+clientPortal.prototype.updatePosition = function() {
+	var thePortal = this;
+	var formname = 'positionUpdate';
+	var id = $('#positionId').val();
+	var position = {};
+	if ("Edit" == $('#positionaction').text()) {
+		position = this.getPositionBy(id);
+	} else {
+		position.accountId = this.user.userAccountId;
+		this.positionList.push(position);
+	}
+	this.mergeObjectFromForm(position, formname);
+	$.when(savePosition(position)).done(function(){
+		thePortal.posTable.$('tr.selected').removeClass('selected');
+		$('#positionstable').dataTable().fnClearTable();
+		$('#positionstable').dataTable().fnAddData(thePortal.positionList);
+		$('#editposition').slideUp();
+		});
 }
 
 clientPortal.prototype.updateHistory = function(historyData) {
@@ -1175,7 +1386,6 @@ clientPortal.prototype.updateHistory = function(historyData) {
 		}
 	});
 }
-
 
 clientPortal.prototype.renderApplicantDetails = function() {
 	$('#applicantprofile').removeClass('hidden');
@@ -1398,20 +1608,97 @@ clientPortal.prototype.produceHistogram = function(prediction) {
 
 clientPortal.prototype.changePositionTo = function(id) {	
 	this.position = this.getPositionBy(id);
-	this.position.data = getStubDataForRoleBenchmark(); /// replace with REST call or pull from other var
 
 	$('#positionname').text(this.position.positionName);
 	$('#positiondesc').text(this.position.description);
+	/*
+	this.position.data = getStubDataForRoleBenchmark(); /// replace with REST call or pull from other var
 	$('#div_applicant_count').html(this.position.data.role_benchmark.applicant_count);
 	$('#div_hire_count').html(this.position.data.role_benchmark.hire_count);
 	$('#div_hire_rate').html(Math.round((
 			this.position.data.role_benchmark.hire_count/
 			this.position.data.role_benchmark.applicant_count)*100)+'%');		
 
-	//this.updatePositionModelDetails(this.position.data.role_benchmark);
+	this.updatePositionModelDetails(this.position.data.role_benchmark);
 	this.updateGradesTable(this.position.data.role_benchmark.role_grade);
 	this.updateCriticalFactorsChart();
+	*/
 }
+
+clientPortal.prototype.changeBenchmarkTo = function(id) {
+	// reset the benchmarks page
+	for (var key in this.benchmarkCharts) {
+		this.benchmarkCharts[key].destroy();
+		this.benchmarkCharts.splice[key,0];
+	}
+	$('#factors_barchart').empty();
+	$('#benchmarklinks').addClass('hidden');
+	$('#resumebutton').addClass('hidden');
+	$('#respondantspanel').addClass('hidden');
+	$('#completed').removeClass();
+	$('#participationrate').removeClass();
+	$('#calculatebutton').addClass('hidden');
+	
+	this.benchmark = this.getBenchmarkBy(id);
+	if (!this.benchmark) return;
+	
+	$('#positionname').text(this.benchmark.position.positionName);
+	$('#invited').text(this.benchmark.invited || 0);
+	$('#completed').text(this.benchmark.participantCount || 0);
+	var participationrate = 100*(this.benchmark.participantCount || 0) / (this.benchmark.invited || 1)
+	$('#participationrate').text(participationrate.toFixed(0)+'%');
+	$('#createddate').text(moment(this.benchmark.createdDate).format('MM/DD/YYYY'));
+	
+	switch (this.benchmark.type) {
+		case 100:
+			$('#benchmarktype').text('Simple');
+			$('#benchmarklinks').removeClass('hidden');
+			break;
+		case 200:
+			$('#benchmarktype').text('Performance');
+			$('#benchmarklinks').removeClass('hidden');
+			break;
+		case 300:
+			$('#benchmarktype').text('Detailed');
+			break;
+		default:
+			$('#benchmarktype').text('Other');
+			break;
+	}
+	
+	switch (this.benchmark.status) {
+		case 100:
+		case 200: // In Setup.
+			$('#benchmarkstatus').text('In Setup');
+			$('#resumebutton').removeClass('hidden');
+		break;
+		case 300: // In Progress
+			$('#benchmarkstatus').text('In Progress');
+			$('#respondantspanel').removeClass('hidden');
+			if (this.benchmark.respondants) {
+				this.showBenchmarkRespondants();
+			} else {
+				var thePortal = this;
+				$.when(getBenchmarkRespondants(thePortal)).done(function (){thePortal.showBenchmarkRespondants()});
+			}
+			$('#assessmentlinks').DataTable({
+				destroy: true, info: false, sort: false, paging: false, filter: false, responsive: true,
+				data: this.benchmark.accountSurveys,
+				rowId: 'id',
+				columns : [
+				           {title: 'Assessment', data: 'displayName'},
+				           {title: 'Link', data: 'permalink'}
+				]
+			});
+		break;
+		default:
+			$('#benchmarkstatus').text('Completed');
+			this.showBenchmarkCharts();
+		break;
+				
+	}
+}
+
 clientPortal.prototype.showAllDetails = function() {
 	for (i in this.respondant.respondantScores) {
 		var score = this.respondant.respondantScores[i];
@@ -1466,11 +1753,9 @@ clientPortal.prototype.prepPersonalMessage = function(score) {
 	}
 	var pm = message;
 	
-	
 	if (pm != null) {
 		pm = pm.replace(new RegExp("\\[FNAME\\]","g"),this.respondant.person.firstName);
-		pm = pm.replace(new RegExp("\\[LNAME\\]","g"),this.respondant.person.lastName);
-	
+		pm = pm.replace(new RegExp("\\[LNAME\\]","g"),this.respondant.person.lastName);	
 		pm = pm.replace(new RegExp("\\[CHESHE\\]","g"),"This candidate");
 		pm = pm.replace(new RegExp("\\[LHESHE\\]","g"),"this candidate");
 		pm = pm.replace(new RegExp("\\[CHIMHER\\]","g"),"Him or her");
@@ -1574,15 +1859,19 @@ clientPortal.prototype.renderScoreDetail = function(score) {
 	var cell = $('<td />');
 	var quartile = Math.floor(4*value/11);
 	
-	var progress = $('<div />', {'class' : 'progress', 'style' : 'height:30px;margin-top:10px;margin-bottom:0px' }).append($('<div />', {
-		'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
-		'role': 'progressbar',
-		'aria-valuenow' : value,
-		'aria-valuemin' : "1",
-		'aria-valuemax' : "11",
-		'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
-			+ (100*value/corefactor.highValue) + '%;',
-		'text' : value.toFixed(1) }));
+	var progress = $('<div />', {
+		'class' : 'progress', 
+		'id' : 'progress_' + corefactor.id,
+		'style' : 'height:30px;margin-top:10px;margin-bottom:0px' 
+			}).append($('<div />', {
+			'class': 'progress-bar '+this.getBarClass(quartile)+' progress-bar-striped',
+			'role': 'progressbar',
+			'aria-valuenow' : value,
+			'aria-valuemin' : "1",
+			'aria-valuemax' : "11",
+			'style' : 'line-height: 30px;font-size: 16px;font-weight: 700;width: ' 
+				+ (100*value/corefactor.highValue) + '%;',
+			'text' : value.toFixed(1) }));
 
 	var namediv = $('<div />', {
 		'class' : 'text-left',
@@ -1609,6 +1898,40 @@ clientPortal.prototype.renderScoreDetail = function(score) {
 
 	row.append(cell);
 	return row;
+}
+
+clientPortal.prototype.addBenchmarksToScoreDetail = function() {
+	var benchmark;
+	for (var key in this.benchmarkList) {
+		if (this.benchmarkList[key].positionId == this.respondant.positionId) benchmark = this.benchmarkList[key];
+	}
+	if (!benchmark || (benchmark.populations.length ==0)) return;
+
+	var counter = 0;
+	for (var key in benchmark.populations) {
+		if (!benchmark.populations[key].targetValue) continue;
+		counter++;
+		var profile = this.getProfile(benchmark.populations[key].profile);
+		var scores = benchmark.populations[key].populationScores;
+		for (var i=0;i<scores.length;i++) {
+			var circle = $('<div />', {
+				'class' : profile.profileClass + ' benchmark hidebm-'+counter,
+				'text'  : scores[i].mean.toFixed(1),
+				'style' : '--val:'+(100*(scores[i].mean-1)/11)+'%;'
+			});
+			$('#progress_'+scores[i].corefactorId).append(circle);
+		}
+		var displaybm = $('<div />', {
+			'class': 'selectbm-'+ counter,
+			'onclick' : '$("#scorescolumn").toggleClass("showbm-'+counter+'");'
+			});
+		displaybm.append($('<button />', {'class' : 'pull-left benchmark ' + profile.profileClass})
+				.append($('<i />', {'class' : 'fa ' + profile.profileIcon})));
+		displaybm.append($('<span />',{'text':benchmark.populations[key].name}));
+		$('#benchmarkgroups').append(displaybm);
+	}
+
+	if (counter > 0) $('#benchmarks').removeClass('hidden');
 }
 
 clientPortal.prototype.renderScorePersonalMessage = function(score) {
@@ -1670,7 +1993,6 @@ clientPortal.prototype.getLegend = function() {
 	return legend;
 }
 
-
 clientPortal.prototype.getBarClass = function(quartile) {
 	var barclass;
 	switch (quartile) {
@@ -1692,138 +2014,21 @@ clientPortal.prototype.getBarClass = function(quartile) {
 	}
 	return barclass;
 }
-/*
-clientPortal.prototype.initRespondantGraderTables = function() {
-	var thePortal = this;	
-	this.rReferences = $('#referencetable').DataTable( {
-		responsive: true,
-		order: [[ 0, 'desc' ]],
-		rowId: 'id',
-		columns: [
-		          { responsivePriority: 1, className: 'text-left', title: 'Reference', data: 'person' ,
-		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
-		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
-		        	  	if (data == 10) return 'Complete'; if (data == 20) return 'Declined'; return 'Incomplete';}},
-		          { responsivePriority: 4, className: 'details-control', title: 'Response' }
-		         ]
-	});
-	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
-	
-	if ((this.respondant !=null) && (this.respondant.graders != null)) {
-		this.updateRespondantGraderTables();	
-	} else if (this.respondant != null) {
-		$.when(getRespondantGraders(thePortal),getRespondantGrades(thePortal)).done( function () {
-				thePortal.updateRespondantGraderTables();}
-		);
-	}
-}
 
-clientPortal.prototype.updateRespondantGraderTables = function() {
-	var thePortal = this;
-	var evaluators = new Array();
-	var evaluations = new Array();
-	var referers = new Array();
-	var references = new Array();
-	for (key in this.respondant.graders) {
-		grader = this.respondant.graders[key];
-		grader.grades = new Array();
-		for (var i=0;i<this.respondant.grades.length;i++) {
-			if (grader.id == this.respondant.grades[i].graderId) grader.grades.push(this.respondant.grades[i]);
-		}
-		if (grader.type < 100) {
-			evaluators.push(grader);
-			Array.prototype.push.apply(evaluations, grader.grades);
-		} else {
-			referers.push(grader);
-			Array.prototype.push.apply(references, grader.grades);
-		}
-	}
+clientPortal.prototype.getProfileBadge = function(profile) {
+	var div = $('<div />', {
+		'class':'profilesquare',
+		'data-toggle' : 'tooltip',
+		'title' : profile.labels[0]
+			}).addClass(profile.profileClass);
+	var icon = $('<i />', {'class':'fa'}).addClass(profile.profileIcon);
+	$(div).append(icon);
+	return div;
+}	
 
-	if (evaluators.length > 0) {
-		var responses = new Array();
-		var criteria = {};
-		for (var i=0;i<evaluations.length;i++) {
-			if (!criteria.hasOwnProperty(evaluations[i].questionId)) criteria[(evaluations[i].questionId)] = new Array();
-			criteria[(evaluations[i].questionId)].push(evaluations[i])
-		}
-		for (var i=0;i<evaluators.length;i++) {
-		    if (responses[evaluators[i].responseId] == null) {
-		    	responses[evaluators[i].responseId] = {};
-		    	responses[evaluators[i].responseId].response = evaluators[i].response;
-		    	responses[evaluators[i].responseId].question = evaluators[i].question;
-		    	responses[evaluators[i].responseId].evaluators = 0;
-		    	responses[evaluators[i].responseId].completed = 0;
-		    	responses[evaluators[i].responseId].criteria = new Array();
-		    }
-		    if (evaluators[i].status <= 10) responses[evaluators[i].responseId].evaluators++;
-		    if (evaluators[i].status == 10) responses[evaluators[i].responseId].completed++;
-		    
-		    for (var key in evaluators[i].grades) {
-		    	if(responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId] == null) {
-		    		responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId] = {};
-		    		responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId].grades = new Array();
-		    		responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId].text =
-		    		    evaluators[i].grades[key].questionText;
-		    	}
-		    	responses[evaluators[i].responseId].criteria[evaluators[i].grades[key].questionId].grades.push(evaluators[i].grades[key]);
-		    }	    
-		}
-		
-		var tabledata = new Array();
-		for (var key in responses) {
-			tabledata.push(responses[key]);
-		}
-		$('#evaluationstable').dataTable().fnClearTable();
-		$('#evaluationstable').dataTable().fnAddData(tabledata);
-		$('#evaluations').removeClass('hidden');
-		this.rEvaluators.$('td.details-control').click(function (){
-	        var tr = $(this).closest('tr');
-	        var row = thePortal.rEvaluators.row( tr );
-	        if ( row.child.isShown() ) {
-	            row.child.hide();
-	            tr.removeClass('shown');
-	        }
-	        else {
-	            // Open this row
-	            row.child( thePortal.renderEvaluationsDetail(row.data())).show();
-	            tr.addClass('shown');
-	        }
-		});
-	} 
-	
-	if (references.length > 0) {
-		$('#referencetable').dataTable().fnClearTable();
-		$('#referencetable').dataTable().fnAddData(references);
-		$('#refrences').removeClass('hidden');	
-	} 
-}
-*/
+
 /*
-clientPortal.prototype.renderEvaluationsDetail = function(data) {
-	
-	var criteria = data.criteria;
-	if (criteria.length == 0) return 'Not evaluated yet';
-	var table = $('<table />', {'class' :'table table-condensed', 'style' :'margin:0px auto 0px auto;width:initial;'});
-	var titles = $('<tr />');
-	titles.append($('<th />',{ 'text' : 'Criteria'}));
-	titles.append($('<th />',{ 'class' : 'text-right', 'text' : 'Average Score'}));
-	table.append(titles);
-	for (var key in criteria) {
-		var row = $('<tr />');
-		var gradetotal = 0;
-		var gradecount = 0;
-		row.append($('<td />',{ 'text' : criteria[key].text}));
-		for (var i=0;i<criteria[key].grades.length;i++) {
-			gradetotal += criteria[key].grades[i].gradeValue;
-			gradecount++;
-		}
-		var average = gradetotal/gradecount;
-		row.append($('<td />',{ 'text' : average.toFixed(1), 'class' : 'text-right'}));
-		table.append(row);
-	}
-    return table.wrap("<div />").parent().html();	
-}
-*/
+ * Remove all of below, and replace with "benchmark" concept.
 clientPortal.prototype.updateGradesTable = function(grades) {
 	$('#gradetable').empty();
 	$('#gradefooter').empty();
@@ -1879,17 +2084,6 @@ clientPortal.prototype.updateGradesTable = function(grades) {
 	var el = document.querySelector('#gradefooter');
 	el.appendChild(tr0);
 }
-
-clientPortal.prototype.getProfileBadge = function(profile) {
-	var div = $('<div />', {
-		'class':'profilesquare',
-		'data-toggle' : 'tooltip',
-		'title' : profile.labels[0]
-			}).addClass(profile.profileClass);
-	var icon = $('<i />', {'class':'fa'}).addClass(profile.profileIcon);
-	$(div).append(icon);
-	return div;
-}	
 
 clientPortal.prototype.initCriticalFactorsChart = function() {
 	if (this.cfBarChart != null) this.cfBarChart.destroy();
@@ -1977,7 +2171,7 @@ clientPortal.prototype.initCriticalFactorsChart = function() {
   	  	};
 	this.cfBarChart = new Chart(ctx, barChartConfig);
 }
-	
+
 clientPortal.prototype.updateCriticalFactorsChart = function() {
 	var factors = stubCorefactors(this.corefactors);
 
@@ -1993,55 +2187,358 @@ clientPortal.prototype.updateCriticalFactorsChart = function() {
 		row.append($('<td />',{ text : this.displayGroup }));		
 		$('#corefactorlist').append(row);
 	});
-	
+
 	var chartLabels = [];
-	var chartData0 = []; 
-	var chartData1 = [];
-	
-	for (var i = 0; i < factors.length;i++) {
-		// randomize the pm score - 
-		chartLabels.push(factors[i].name);
-		chartData0.push(factors[i].score-2*Math.random());
-		chartData1.push(factors[i].score+1*Math.random());
+	var chartData = [];
+	chartData[0] = {
+				label : 'applicants',
+		        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+		        borderColor: 'rgba(150, 150, 150, 0.8)',
+		  		borderWidth: 2,
+		  		data : []
+			};
+	chartData[1] = {
+				label : 'employees',
+  	  	  		backgroundColor: 'rgba(0, 200, 0, 0.8)',
+  	  	  		borderColor: 'rgba(0, 150, 0, 0.8)',
+		  		borderWidth: 2,
+		  		data: []
 	}
-	
+	for (var i = 0; i < factors.length;i++) {
+			// randomize the pm score - 
+			chartLabels.push(factors[i].name);
+			chartData[0].data.push(factors[i].score-2*Math.random());
+			chartData[1].data.push(factors[i].score+1*Math.random());
+	}		
+
 	this.cfBarChart.config.data.labels = chartLabels;	
-	this.cfBarChart.config.data.datasets[0].data = chartData0;
-	this.cfBarChart.config.data.datasets[1].data = chartData1;
+	this.cfBarChart.config.data.datasets = chartData;
+
 	this.cfBarChart.update();
 }
+*/
 
+clientPortal.prototype.showBenchmarkCharts = function() {
+	if (!this.benchmark.populations || (this.benchmark.populations.length == 0)) return;
+	
+	this.benchmark.populations.sort(function(a,b) {
+		return a.size < b.size; // reverse order of size
+	});
+	var factors = [];
+	
+	this.benchmark.populations[0].populationScores.sort(function(a,b){
+		return a.significance < b.significance; // order of increasing significance
+	});
+	
+	var groups = [{title : 'Critical Factors',
+	               displayGroups: ['Personality Traits', 'Skills and Abilities'],
+	               type: 'bar'},
+	              {title : 'Cultural Fit',
+	               displayGroups: ['Motivations', 'Interests'],
+	               type: 'radar'}];
 
-
-//Payroll tools section
-clientPortal.prototype.uploadPayroll = function(e) {
-	$('#csvFile').parse({
-		config : {
-			header: true,
-			dynamicTyping: true,
-			complete: function(results, file) {
-				$('#payroll').DataTable( {
-					responsive: true,
-					data: results.data,
-					columns : [
-					           { title: 'Employee ID', data: 'employee'},
-					           { title: 'Raise Rate', data: 'RaiseRate'},
-					           { title: 'Total Hours', data: 'Total Hours' },
-					           { title: 'Tenure', data: 'Tenure' },
-					           { title: 'Monthly Hours', data: 'Monthly Hours' }
-					           ]
-
-				});
-
+	for (var item in groups) {
+		group = groups[item];
+	    var chartLabels = [];
+		var chartData = [];
+		chartData[0] = {
+				label : 'General Population',
+		        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+			    borderColor: 'rgba(150, 150, 150, 0.8)',
+			  	borderWidth: 2,
+			  	data : []
+			};
+		for (var key in this.benchmark.populations) {
+			if (!this.benchmark.populations[key].targetValue) continue; // exclude the "false" populations
+			var profile = this.getProfile(this.benchmark.populations[key].profile);
+			var dataSet = {
+				label : this.benchmark.populations[key].name,
+	  	  		backgroundColor: profile.overlay,
+	  	  		borderColor: profile.color,
+		  		borderWidth: 2,
+		  		data: []
+			};
+			var scores = this.benchmark.populations[key].populationScores;
+			for (var i in scores) {
+				var cf = this.getCorefactorBy(scores[i].corefactorId);
+				if (group.displayGroups.indexOf(cf.displayGroup) == -1) continue; // include only for group
+				if (chartLabels.indexOf(cf.name) == -1) {
+					chartLabels.push(cf.name);
+					chartData[0].data[chartLabels.indexOf(cf.name)] = cf.meanScore.toFixed(1);
+				}
+				dataSet.data[chartLabels.indexOf(cf.name)] = scores[i].mean.toFixed(1);
 			}
-		},
-		before : function(file, inputElem){},
-		error: function(err, file, inputElem, reason){},
-		complete : {}
+			chartData.push(dataSet);			
+		}
+		if (chartLabels.length == 0) continue;
+		
+		var panel = $('<div />', {'class':'x_panel'}).append(
+				$('<div />', {'class':'x_title'}).append(
+						$('<h3 />', {'class':'text-center','text':group.title})
+				));
+		panel.append($('<div />',{'class':'x_content'}).append($('<canvas />', {
+			id : 'factorschart_'+item, style : 'min-height:320px;'})));	
+		$('#factors_barchart').append(panel);
 
-	})
+		var chart = new Chart(document.querySelector("#factorschart_"+item).getContext("2d"), {
+		    type: group.type,
+	  	    data: { labels: chartLabels, datasets: chartData },
+		  	options: {
+		  	   	responsive: true,
+		  	    maintainAspectRatio: false,
+		  	    legend: {position: 'top', labels: {boxWidth: 12 }},
+		  	    scales: {
+		  	        xAxes: [{stacked: false, gridLines: {display:false}, display: true }],
+		  	        yAxes: [{ticks: {
+		               		min: 1,
+		               		max: 11,
+		               		beginAtZero : true
+		  	        	},
+		            	stacked: false, gridLines: {display:false}, display: false
+		  	        }],
+		  	        showScale: false
+		  	    },
+	  	  	    animation: {
+	  	  	    	duration: 200,
+	  	    	  	onComplete: function () {
+	  	    	  	    // render the value of the chart above the bar
+	  	    	  		
+	  	    	  	    var ctx = this.chart.ctx;
+	  	    	  	    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
+	  	    	  	    ctx.fillStyle = this.chart.config.options.defaultFontColor;
+	  	    	  	    ctx.textAlign = 'center';
+	  	    	  	    ctx.textBaseline = 'bottom';
+	  	    	  	    var fontVar = 'normal 16px "Helvetica Neue", Roboto, Arial';
+	    	    	  	if (this.chart.width < 600) fontVar = 'bold 14px "Helvetica Neue", Roboto, Arial';
+	  	    	  	    this.data.datasets.forEach(function (dataset) {
+	  	    	  	        for (var i = 0; i < dataset.data.length; i++) {
+  	    	  	        		var meta;
+  	    	  	        		for (var key in dataset._meta) meta = dataset._meta[key];
+	  	    	  	        	if (meta && !meta.hidden) {
+	  	    	  	                var model = meta.data[i]._model;
+	  	    	  	                ctx.font = fontVar;
+	  	    	  	                ctx.fillText(dataset.data[i], model.x, model.y - 0);
+	  	    	  	        	}
+	  	    	  	        }
+	  	    	  	    });
+	  	    	  	}
+		  	    }
+		  	}
+		});
+		this.benchmarkCharts.push(chart);
+	}	
 }
 
+clientPortal.prototype.initSetupWizard = function() {
+	if (this.benchmark && this.benchmark.status >=300) this.benchmark=null; //remove  
+	if (!this.benchmark) for (var key in this.benchmarkList) {
+		if (this.benchmarkList[key].status <= 200) {
+			this.benchmark = this.benchmarkList[key];
+			break;
+		}
+	}
+	if (this.benchmark)	return this.setupWizardStepTwo();
+	
+	// get assessments to choose from, and populate the table.
+	$('#wait').removeClass('hidden');
+	if (!this.assessmentOptions) {
+		var thePortal = this;
+		$.when(getAssessmentOptions(thePortal)).done(function(){thePortal.showAssessmentOptions();});
+	} else {
+		this.showAssessmentOptions();
+	}
+}
+
+clientPortal.prototype.showAssessmentOptions = function() {
+	this.assessmentChoices = $('#assessmentoptions').DataTable( {
+		destroy: true, paging: false, filter: false, responsive: true,
+		data: this.assessmentOptions,
+		rowId: 'id',
+		columns : [
+		           {title: 'Assessment', data: 'name', render: function (data, type, row){   	   
+		        	   var td = $('<td />');
+		        	   td.append($('<input />', {
+		        		   type : 'radio',
+		        		   name : 'surveyId',
+		        		   id : 'surveyId-' + row.id,
+		        		   'class' : 'cleanradio',
+		        		   value : row.id,
+		        	   }));
+		        	   td.append($('<label />', {
+		        		   for : 'surveyId-' + row.id,
+		        		   'class' : 'cleanradio',
+		        		   text : data
+		        	   }));
+		        	   return td.html();
+		        	   }},
+		           {title: 'Description', data: 'description', render: function (data, type, row){
+		        	   return '<div style="max-height:100px; overflow:auto;">'+data+'</div>';
+		        	   }},
+	        	   {title: 'Questions', data: 'surveyQuestions.length'},
+		           {title: 'Avg Time', data: 'completionTime', render: function (data, type, row){return msToTime(data);}}
+		]
+	});
+	$('#wait').addClass('hidden');
+}
+
+clientPortal.prototype.setupWizardPosition = function() {
+	var surveyId = $('#wizard-position :input[name=surveyId]:checked').val();
+	if (!surveyId) {
+		$('#assessmentgroup').addClass('has-error');
+		return false;
+	}
+	this.benchmarkRequest = {}; //get the position;
+	this.benchmarkRequest.positionName = $('#positionName').val();
+	this.benchmarkRequest.accountId = this.user.userAccountId;
+	this.benchmarkRequest.surveyId = surveyId;
+	
+	var thePortal = this;
+	$('#wait').removeClass('hidden');
+	$.when(newBenchmark(thePortal)).done(function(){thePortal.setupWizardStepTwo();})
+};
+
+clientPortal.prototype.setupWizardStepTwo = function() {
+	$('#setupwizardone').removeClass('active');
+	$('#setupwizardone').addClass('activated');
+	$('#wizard_position').addClass('hidden');
+	$('#setupwizardline').attr('data-now-value','50.0');
+	$('#setupwizardline').css('width','50%');
+	$('#wizard_benchmark').removeClass('hidden');
+	$('#setupwizardtwo').addClass('active');
+	$('#bmname').text(this.benchmark.position.positionName);
+	$('#wait').addClass('hidden');
+	// check if benchmark already(s) has assessments 
+	this.benchmarkConfig = {};
+	if (this.benchmark.accountSurveys.length>0) return this.setupWizardStepThree(); 
+
+};
+
+clientPortal.prototype.setupWizardSelectBenchmark = function () {
+	this.benchmarkConfig.type = $('#wizard-benchmark :input[name=choice]:checked').val();
+	$('#uploadbutton').prop('disabled',false);
+	if (this.benchmarkConfig.type != "300") {
+		$('#detailedbenchmark').slideUp(); 
+	} else {
+		$('#detailedbenchmark').slideDown();
+		if(!this.uploadresults || this.uploadresults.data.length == 0) $('#uploadbutton').prop('disabled',true);
+	}
+}
+
+clientPortal.prototype.setupWizardBenchmark = function() {
+	if (this.uploadresults && this.benchmarkConfig.type == "300") this.benchmarkConfig.invitees = this.uploadresults.data;
+	var thePortal = this;
+	$('#wait').removeClass('hidden');
+	$.when(configureBenchmark(thePortal)).done(function(){thePortal.setupWizardStepThree();})
+}
+
+clientPortal.prototype.setupWizardStepThree = function() {
+	$('#setupwizardtwo').removeClass('active');
+	$('#setupwizardtwo').addClass('activated');
+	$('#wizard_benchmark').addClass('hidden');
+	$('#setupwizardline').attr('data-now-value','83.3');
+	$('#setupwizardline').css('width','83.3%');
+	$('#setupwizardthree').addClass('active');
+	$('#wizard_send').removeClass('hidden');
+	$('#wait').addClass('hidden');
+	if(this.benchmark.type == 300) {
+		$('#invited').val(this.benchmark.invited);
+		$('#invited').prop('disabled',true);
+		$('#benchmarklinks').addClass('hidden');	
+	} else {
+		$('#assessmentlinks').DataTable({
+			destroy: true, info: false, sort: false, paging: false, filter: false, responsive: true,
+			data: this.benchmark.accountSurveys,
+			rowId: 'id',
+			columns : [
+			           {title: 'Assessment', data: 'displayName', 'class':'lead'},
+			           {title: 'Link', data: 'permalink', 'class':'lead'}
+			]
+		});
+		$('#completeWizard').text('Click to Confirm Send');
+	}	
+};
+
+clientPortal.prototype.completeSetupWizard = function() {
+	this.benchmarkConfig.invited = $('#invited').val();
+	$('#wait').removeClass('hidden');
+	sendBenchmark(this);
+};
+
+clientPortal.prototype.calculateBenchmark = function() {
+	$('#wait').removeClass('hidden');
+	calcBenchmark(this);
+};
+
+
+clientPortal.prototype.parseFileToTable = function(file, tablename) {	
+	var requiredHeaders = ['firstName','lastName','email','topPerformer'];
+	var acceptableformats = ['text/csv', 'application/vnd.ms-excel'];
+	$('#fileuploaddiv').addClass('has-file');
+	$('#fileuploaddiv .filename').text(file.name);
+	if (acceptableformats.indexOf(file.type) == -1) {
+		$('#fileuploaddiv').addClass('has-error');
+		$('#fileuploaddiv .fileerror').text('Invalid File Type');
+		return;
+	} else {
+		$('#fileuploaddiv').removeClass('has-error');		
+	}
+	var thePortal = this;
+	Papa.parse(file, {
+		header: true,
+		dynamicTyping: true,
+		complete: function(results, file) {
+			thePortal.uploadresults = results;
+			var headers = [];
+			for (var i=0;i<results.meta.fields.length;i++) {
+				var index = requiredHeaders.indexOf(results.meta.fields[i])
+				if (index != -1) {
+					headers.push({ title: results.meta.fields[i], data: results.meta.fields[i]});
+					requiredHeaders.splice(index,1);
+				} else {
+					headers.push({
+						title: 'Ignored: ' + results.meta.fields[i],
+						data: results.meta.fields[i],
+						'class' : 'text-muted'});	
+				}
+			}
+
+			if (requiredHeaders.length > 0) {
+				$('#fileuploaddiv').addClass('has-error');
+				$('#fileuploaddiv .fileerror').text('Missing Fields: ' + requiredHeaders);
+				thePortal.uploadresults = null;
+			} else if (results.data.length < 10) {
+				$('#fileuploaddiv').addClass('has-error');
+				$('#fileuploaddiv .fileerror').text(results.data.length + ' record(s) in set. At least 10 are required');
+				thePortal.uploadresults = null;
+			} else {
+				$('#fileuploaddiv').addClass('has-success');
+				thePortal.uploadresults = results;
+				$('#uploadbutton').prop('disabled',false);
+			}
+			
+			thePortal.fileUploadTable = $('#'+tablename).DataTable( {
+				destroy: true, filter: false, responsive: true,
+				data: results.data,
+				columns : headers
+			});
+		},
+		error: function(err, file, inputElem, reason){
+			$('#fileuploaddiv').addClass('has-error');
+			$('#fileuploaddiv .fileerror').text(reason);
+			console.log(err, file, inputElem, reason);
+		}
+	});
+}
+
+clientPortal.prototype.clearFileUpload = function(tablename) {
+	$('#fileuploaddiv').removeClass('has-error');		
+	$('#fileuploaddiv').removeClass('has-file');
+	$('#fileuploaddiv input').val('');
+	if ($.fn.DataTable.isDataTable('#'+tablename)) {
+		$('#'+tablename).dataTable().fnDestroy();
+		$('#'+tablename).empty();
+	}
+}
 
 // Navigation and UI functions.
 clientPortal.prototype.readyLeftNav = function() {
@@ -2099,18 +2596,39 @@ clientPortal.prototype.readyTopNav  =function() {
     });
 }
 
-
 clientPortal.prototype.showComponent = function(component) {
 	this.sidebar.find('.current-page').removeClass('current-page');
 	this.sidebar.find('ul').children('li').children('ul').slideUp(0);
 	this.sidebar.find('.active').removeClass('active');
-	$('#mainpanel').load('/components/'+component+'.htm?version='+this.version);
+
+    notifications = []; // eventually, we'll do this a better way.
+    if (this.benchmark && component != 'wizard' && this.benchmark.status <300) {
+    	var notification = {};
+    	notification.id = this.benchmark.id;
+    	notification.text = 'Reminder - you have not completed initial benchmarking. ';
+       	notification.link = 'Click Here to Return';
+       	notification.component = 'wizard';
+       	notifications.push(notification);
+    }
+    
+    var thePortal = this;
+	$('#mainpanel').load('/components/'+component+'.htm?version='+this.version, function(){thePortal.showNotifications(notifications);});
 	
-    this.sidebar.find("a[data-component='" + component + "']").parent('li').addClass('current-page');
+	this.sidebar.find("a[data-component='" + component + "']").parent('li').addClass('current-page');
     this.sidebar.find('a').filter(function () {
         return $(this).data('component') == component;
     }).parent('li').addClass('current-page').parent('ul').slideDown(0).parent().addClass('active'); 
+    
+}
 
+clientPortal.prototype.showNotifications = function(notifications) {
+	for (var key in notifications) {
+		notification = notifications[key];
+		var notifydiv = $('<div />', {'id' : 'notification-' + notification.id, 'class': 'alert lead text-center col-xs-12 bg-info'});
+		notifydiv.append($('<span>', {text : notification.text}));
+		notifydiv.append($('<a />', { text : notification.link, href : '#', onclick : 'portal.showComponent("'+notification.component+'");'}));
+		$('#mainpanel').prepend(notifydiv);
+	}
 }
 
 clientPortal.prototype.activateUIElements = function() {
@@ -2153,6 +2671,16 @@ clientPortal.prototype.activateUIElements = function() {
 }
 
 // Helper Functions:
+
+function msToTime(s) {
+	  var ms = s % 1000;
+	  s = (s - ms) / 1000;
+	  var secs = s % 60;
+	  s = (s - secs) / 60;
+	  var mins = s % 60;
+	  return + mins + ':' + (secs<10 ? '0':'') + secs;
+}
+
 function cdf(x, mean, variance) {
 	  return 0.5 * (1 + erf((x - mean) / (Math.sqrt(2) * variance)));
 }
