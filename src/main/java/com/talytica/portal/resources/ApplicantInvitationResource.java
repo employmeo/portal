@@ -106,8 +106,8 @@ public class ApplicantInvitationResource {
 	    if (respondant.getRespondantStatus() <= Respondant.STATUS_STARTED) {
 	    	respondant.setRespondantStatus(Respondant.STATUS_REMINDED);
 	    	respondantService.save(respondant);
-	    	emailService.sendEmailReminder(respondant);
 	    }
+    	emailService.sendEmailReminder(respondant);
 	    return Response.status(Status.OK).build();
 	}
 	
