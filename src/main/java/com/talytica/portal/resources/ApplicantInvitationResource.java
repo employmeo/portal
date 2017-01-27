@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.employmeo.data.model.AccountSurvey;
 import com.employmeo.data.model.Person;
 import com.employmeo.data.model.Respondant;
+import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.PersonService;
 import com.employmeo.data.service.RespondantService;
@@ -41,6 +42,8 @@ public class ApplicantInvitationResource {
 	private PersonService personService;
 	@Autowired
 	private AccountSurveyService accountSurveyService;
+	@Autowired
+	private AccountService accountService;
 	@Autowired
 	private RespondantService respondantService;
 	@Autowired
@@ -82,8 +85,11 @@ public class ApplicantInvitationResource {
 		
 		respondant.setLocationId(as.getAccount().getDefaultLocationId());
 		if (invitation.locationId != null) respondant.setLocationId(invitation.locationId);
+		respondant.setLocation(accountService.getLocationById(respondant.getLocationId()));
+		
 		respondant.setPositionId(as.getAccount().getDefaultPositionId());
 		if (invitation.positionId != null) respondant.setPositionId(invitation.positionId);
+		respondant.setPosition(accountService.getPositionById(respondant.getPositionId()));
 
 	    Respondant savedRespondant = respondantService.save(respondant);   
 	    emailService.sendEmailInvitation(savedRespondant);
