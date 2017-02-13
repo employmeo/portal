@@ -184,6 +184,7 @@ public class BenchmarkWizardResource {
 		
 		Benchmark benchmark = accountService.getBenchmarkById(benchmarkId);
 		log.debug("fetched benchmark {} by id {}",benchmark, benchmarkId);
+		Account account = accountService.getAccountById(benchmark.getAccountId());
 		benchmark.setType(request.type);
 		benchmark.setStatus(Benchmark.STATUS_UNSENT);
 		Position position = benchmark.getPosition();
@@ -206,11 +207,11 @@ public class BenchmarkWizardResource {
 			benchmark.getAccountSurveys().add(savedPerformerSurvey);
 		}
 		if (request.type == Benchmark.TYPE_DETAILED) {
-			List<Respondant> respondants = new ArrayList<Respondant>();
+			//List<Respondant> respondants = new ArrayList<Respondant>();
 			//process the upload list.
+			int counter=0;
 			for (BenchmarkEmployee emp : request.invitees) {
 				if(emp.email == null) continue;
-				Account account = accountService.getAccountById(benchmark.getAccountId());
 				Person person = new Person();
 				person.setEmail(emp.email);
 				person.setFirstName(emp.firstName);
@@ -229,11 +230,14 @@ public class BenchmarkWizardResource {
 				bmr.setRespondantStatus(Respondant.STATUS_CREATED);
 				bmr.setType(Respondant.TYPE_BENCHMARK);
 				Respondant respondant = respondantService.save(bmr);
-				respondants.add(respondant);
+				//respondants.add(respondant);
+				counter++;
 				respondantService.addOutcomeToRespondant(respondant, GETSHIREDTARGET, true);				
-				if (emp.topPerformer) respondantService.addOutcomeToRespondant(respondant, TOPPERFORMERTARGET, true);
+				if (emp.topPerformer != null && emp.topPerformer)
+					respondantService.addOutcomeToRespondant(respondant, TOPPERFORMERTARGET, true);
 			}
-			benchmark.setInvited(respondants.size());
+			benchmark.setInvited(counter);
+			//benchmark.setInvited(respondants.size());
 		}
 		Benchmark savedBenchmark = accountService.save(benchmark);
 		return Response.status(Status.CREATED).entity(savedBenchmark).build();		
