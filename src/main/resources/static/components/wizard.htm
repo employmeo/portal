@@ -36,7 +36,7 @@
 					position you are hiring for</h3>
 				<hr>
 				<form class='form form-horizontal' id='wizard-position'
-					action='javascript:portal.setupWizardPosition();'>
+					onsubmit='portal.setupWizardPosition(); return false;'>
 					<div class="form-group">
 						<label for='positionName' class='control-label col-xs-12 col-sm-2'>Position
 							Name:</label>
@@ -67,7 +67,7 @@
 					your employees.</h3>
 				<hr>
 				<form class='form form-horizontal' id='wizard-benchmark'
-					action='javascript:portal.setupWizardBenchmark();'>
+					onsubmit='portal.setupWizardBenchmark(); return false;'>
 					<div class='form-group'>
 						<div class='col-xs-3 col-lg-2'>
 							<input type="radio" name="choice" id="simplecheck"
@@ -76,9 +76,10 @@
 							<label class="h4 cleancheck" for="simplecheck">Simple</label>
 						</div>
 						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Simple" will benchmark your employees against 
-							    the general population. Talytica will provide a unique link for you 
-							    to send to a group of <strong>at least 10</strong> employees.</p>
+							<p class="h4">Simple is the easiest way to get going.
+							We will give you a link to send to <strong>at least 10 employees.</strong> 
+							After they take the test, we will give you back a detailed analysis
+							of how your employees rank against the general population.</p>
 						</div>
 					</div>
 					<div class='form-group'>
@@ -86,13 +87,15 @@
 							<input type="radio" name="choice" id="performancecheck"
 								class="cleancheck"
 								onchange='portal.setupWizardSelectBenchmark();' value=200>
-							<label class="h4 cleancheck" for="performancecheck">Performance</label>
+							<label class="h4 cleancheck" for="performancecheck">Top Performers</label>
 						</div>
 						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Performance" will benchmark employees against top
-							    performers in addition to the general population. Talytica will
-							    provide one link to send to <strong>at least 5</strong> top performers,
-							    and another to send to <strong>at least 5</strong> other employees.</p>
+							<p class="h4">Choosing Top Performers will give you 2 links, one to send to
+							your top performers and one to send to the rest of your team. It is best with  
+							<strong>at least 10 people</strong> in each group. Once everyone takes the
+							test, you will get back a detailed analysis of the factors that matter most
+							in predicting your top performers, and you will have your own custom model for
+							scoring new applicants.</p>
 						</div>
 					</div>
 					<div class='form-group'>
@@ -100,12 +103,13 @@
 							<input type="radio" name="choice" id="detailedcheck"
 								class="cleancheck"
 								onchange='portal.setupWizardSelectBenchmark();' value=300>
-							<label class="h4 cleancheck" for="detailedcheck">Detailed</label>
+							<label class="h4 cleancheck" for="detailedcheck">Custom Predictions</label>
 						</div>
 						<div class='col-xs-9 col-lg-10'>
-							<p class="h4">Choosing "Detailed" allows you to provide a list of employees
-							    with email addresses so Talytica can send individual email invitations,
-							    and help you follow up to ensure participants complete the benchmark.</p>
+							<p class="h4">Custom Predictions lets you decide what the system predicts. You will
+							need to upload a .csv file with the names and email addresses of all the employees you
+							want to take this test, and a yes or no column if they are a top performer. For more
+							predictions, just contact us at the number below, and we can work with you on them.</p>
 						</div>
 					</div>
 					<div id='detailedbenchmark' style='display: none;'>
@@ -157,7 +161,7 @@
 					will see when they take the assessment.
 				</p>
 				<hr>
-				<form class="form form-horizontal" action='javascript:portal.completeSetupWizard();'>
+				<form class="form form-horizontal" onsubmit='portal.completeSetupWizard(); return false;'>
 					<div class='bg-info alert' id='benchmarklinks'>
 						<table class='table' id='assessmentlinks' width='100%'></table>
 						<div class="form-group">

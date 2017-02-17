@@ -90,7 +90,7 @@
 							<h2 class="text-center">Configure Assessment</h2>
 							<form class="form form-horizontal form-label-left"
 								id="assessmentUpdate" name="assessmentUpdate"
-								action="javascript:portal.updateAssessment();">
+								onsubmit='portal.updateAssessment();return false;'>
 								<fieldset id='assessmentfields'>
 									<input type="hidden" class="form-control" id="assessmentId" />
 									<div class="row form-group">
@@ -147,7 +147,7 @@
 						<div class="text-center"><h3><span id='positionaction'></span> Position</h3></div>
 							<form class="form form-horizontal form-label-left"
 								id="positionUpdate" name="positionUpdate"
-								action="javascript:portal.updatePosition();">
+								onsubmit='portal.updatePosition();return false;'>
 								<input type="hidden" class="form-control" id="positionId" />
 									<div class="row form-group">
 										<label class="control-label col-xs-3"
@@ -186,7 +186,7 @@
 						<div class="text-center"><h3><span id='locationaction'></span> Location</h3></div>
 							<form class="form form-horizontal form-label-left"
 								id="locationUpdate" name="locationUpdate"
-								action="javascript:portal.updateLocation();">
+								onsubmit='portal.updateLocation();return false;'>
 							<input type="hidden" class="form-control" id="locationId"/>
 						    <input type='hidden' id='lat' name='lat'>
 						    <input type='hidden' id='lng' name='lng'>

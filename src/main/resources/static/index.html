@@ -17,8 +17,8 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css"/>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.1.0/css/responsive.bootstrap.min.css"/>
 <link rel="stylesheet" type='text/css' href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/2.1.24/daterangepicker.min.css">
-<link rel='stylesheet' type='text/css' href='/css/custom.css?version=0.0.8' media='all' />
-<link rel='stylesheet' type='text/css' href='/css/admin_style.css?version=0.0.8' media='all' />
+<link rel='stylesheet' type='text/css' href='/css/custom.css?version=@version@' media='all' />
+<link rel='stylesheet' type='text/css' href='/css/admin_style.css?version=@version@' media='all' />
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.3/jquery.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
@@ -62,7 +62,7 @@ $(".right_col").css("min-height", $(window).height());
 $(window).resize(function () {
     $(".right_col").css("min-height", $(window).height());
 });
-var portal = new clientPortal('0.0.9');
+var portal = new clientPortal('@version@');
 </script>
 
 </html>
