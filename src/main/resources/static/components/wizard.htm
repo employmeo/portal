@@ -35,24 +35,20 @@
 				<h3 class="text-center">To get started, tell us about the
 					position you are hiring for</h3>
 				<hr>
-				<form class='form form-horizontal' id='wizard-position'
+				<form class='form form-horizontal wizard-form' id='wizard-position'
 					onsubmit='portal.setupWizardPosition(); return false;'>
 					<div class="form-group">
-						<label for='positionName' class='control-label col-xs-12 col-sm-2'>Position
+						<label for='positionName' class='h4 col-xs-12 col-sm-3 text-left'>Position
 							Name:</label>
-						<div class='col-xs-12 col-sm-10'>
-							<input type="text" class="form-control" required
+						<div class='col-xs-12 col-sm-9'>
+							<input type="text" class="form-control input-lg" required
 								name='positionName' id='positionName'
 								placeholder='Role or Job Title' />
 						</div>
 					</div>
-					<div class="form-group" id='assessmentgroup'>
-						<label class='control-label col-xs-12 col-sm-2'>Choose an
-							assessment</label>
-						<div class='col-xs-12 col-sm-10'>
-							<table id='assessmentoptions'
-								class="table table-condensed table-hover"></table>
-						</div>
+					<span class='h4 col-xs-12'>Choose an assessment:</span>
+					<div class="container-fluid" id='assessmentgroup'>
+
 					</div>
 					<div class='clearfix'></div>
 					<hr>
@@ -66,7 +62,7 @@
 				<h3 class="text-center">Next, select how you will benchmark
 					your employees.</h3>
 				<hr>
-				<form class='form form-horizontal' id='wizard-benchmark'
+				<form class='form form-horizontal wizard-form' id='wizard-benchmark'
 					onsubmit='portal.setupWizardBenchmark(); return false;'>
 					<div class='form-group'>
 						<div class='col-xs-3 col-lg-2'>
@@ -153,6 +149,7 @@
 				<hr>
 				<h3 class="text-center">Ok. Ready to Send.</h3>
 				<hr>
+				<form class="form form-horizontal wizard-form" onsubmit='portal.completeSetupWizard(); return false;'>
 				<p class="h4">
 					Before sending, you can configure your benchmark a little more if
 					you would like. Visit the <a href='#'
@@ -161,7 +158,6 @@
 					will see when they take the assessment.
 				</p>
 				<hr>
-				<form class="form form-horizontal" onsubmit='portal.completeSetupWizard(); return false;'>
 					<div class='bg-info alert' id='benchmarklinks'>
 						<table class='table' id='assessmentlinks' width='100%'></table>
 						<div class="form-group">

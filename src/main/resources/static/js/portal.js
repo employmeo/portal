@@ -2350,6 +2350,30 @@ clientPortal.prototype.initSetupWizard = function() {
 }
 
 clientPortal.prototype.showAssessmentOptions = function() {
+	
+	$('#assessmentgroup').empty();
+	for (var key in this.assessmentOptions) {
+		option = this.assessmentOptions[key];
+		var row = $('<div />',{'class':'form-group'});
+		var optionname = $('<div />',{'class':'col-xs-12 col-sm-3'});
+		optionname.append($('<input />',{
+			'type':'radio',
+			'class':'cleancheck',
+			'name':'surveyId',
+			'id':'surveyId-' + option.id,
+			'value': option.id
+		}));
+		optionname.append($('<label />',{
+			'class':'h4 cleancheck',
+			'text':option.name,
+			'for':'surveyId-' + option.id
+		}));
+		row.append(optionname);
+		row.append($('<div />',{'class':'col-xs-12 col-sm-9'}).html(option.description));
+		$('#assessmentgroup').append(row);	
+
+	}
+	/*
 	this.assessmentChoices = $('#assessmentoptions').DataTable( {
 		destroy: true, paging: false, filter: false, responsive: true,
 		data: this.assessmentOptions,
@@ -2378,6 +2402,7 @@ clientPortal.prototype.showAssessmentOptions = function() {
 		           {title: 'Avg Time', data: 'completionTime', render: function (data, type, row){return msToTime(data);}}
 		]
 	});
+	*/
 	$('#wait').addClass('hidden');
 }
 
