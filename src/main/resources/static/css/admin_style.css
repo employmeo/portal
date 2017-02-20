@@ -550,6 +550,13 @@ ul.wizard-step-list  {
 	font-size: large;
 }
 
+.wizard-form {
+	border-style: solid;
+    padding: 15px 5px 5px 5px;
+    border-width: 1px;
+    border-color: #66ccff;
+}
+
 /***
  *
  *  Styles for sidebar footer
