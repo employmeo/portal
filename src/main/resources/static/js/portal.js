@@ -1611,18 +1611,7 @@ clientPortal.prototype.changePositionTo = function(id) {
 
 	$('#positionname').text(this.position.positionName);
 	$('#positiondesc').text(this.position.description);
-	/*
-	this.position.data = getStubDataForRoleBenchmark(); /// replace with REST call or pull from other var
-	$('#div_applicant_count').html(this.position.data.role_benchmark.applicant_count);
-	$('#div_hire_count').html(this.position.data.role_benchmark.hire_count);
-	$('#div_hire_rate').html(Math.round((
-			this.position.data.role_benchmark.hire_count/
-			this.position.data.role_benchmark.applicant_count)*100)+'%');		
 
-	this.updatePositionModelDetails(this.position.data.role_benchmark);
-	this.updateGradesTable(this.position.data.role_benchmark.role_grade);
-	this.updateCriticalFactorsChart();
-	*/
 }
 
 clientPortal.prototype.changeBenchmarkTo = function(id) {
@@ -2026,198 +2015,6 @@ clientPortal.prototype.getProfileBadge = function(profile) {
 	return div;
 }	
 
-
-/*
- * Remove all of below, and replace with "benchmark" concept.
-clientPortal.prototype.updateGradesTable = function(grades) {
-	$('#gradetable').empty();
-	$('#gradefooter').empty();
-	
-	var frag = document.createDocumentFragment();
-	// measure variables
-	var avg0 = 0;
-	var avg1 = 0;
-			
-	for (var i = 0, len = Object.keys(grades).length; i < len; i++) {
-
-		var profile = this.getProfile(grades[i].grade);
-		//summary variables
-		avg0 += parseFloat(grades[i].v0);
-		avg1 += parseFloat(grades[i].v1);
-		
-		var tr0 = document.createElement("tr");
-		var td0 = document.createElement("td");
-
-		$(td0).append(this.getProfileBadge(profile));
-		tr0.appendChild(td0);		
-		
-		var td1 = document.createElement("td");
-		td1.className="text-center";
-		td1.innerHTML = grades[i].v0;
-		
-		var td2 = document.createElement("td");
-		td2.className="text-center";
-		td2.innerHTML = (grades[i].v1*100).toPrecision(2)+'%';
-		
-		tr0.appendChild(td1);
-		tr0.appendChild(td2);
-		frag.appendChild(tr0);	
-		
-		var el = document.querySelector('#gradetable');
-		el.appendChild(frag);
-	}
-	
-	var tr0 = document.createElement("tr");
-	var td0 = document.createElement("th");
-	td0.innerHTML = "Average";
-	var td1 = document.createElement("th");
-	td1.className="text-center";
-	td1.innerHTML = (avg0/Object.keys(grades).length).toFixed(1);
-	var td2 = document.createElement("th");
-	td2.className="text-center";
-	td2.innerHTML = (avg1*100/Object.keys(grades).length).toFixed(1)+'%';
-	
-	tr0.appendChild(td0);
-	tr0.appendChild(td1);
-	tr0.appendChild(td2);	
-	
-	var el = document.querySelector('#gradefooter');
-	el.appendChild(tr0);
-}
-
-clientPortal.prototype.initCriticalFactorsChart = function() {
-	if (this.cfBarChart != null) this.cfBarChart.destroy();
-	
-    var ctx = document.querySelector("#criticalfactorschart").getContext("2d");
-	var barChartConfig = {
-		    type: "bar",
-	  	    data: {
-	  	  	  labels: ["loading..."],
-  	  	  	  
-  	  	  	  datasets: [{
-  	  	  		label: "Applicants",
-  	  	        backgroundColor: 'rgba(200, 200, 200, 0.8)',
-  	  	        borderColor: 'rgba(150, 150, 150, 0.8)',
-  	  	  		borderWidth: 2,
-  	  	  	    data: []
-  	  	  	  },
-  	  	  	{
-  	  	  		label: "Employees",
-  	  	  		backgroundColor: 'rgba(0, 200, 0, 0.8)',
-  	  	  		borderColor: 'rgba(0, 150, 0, 0.8)',
-  	  	  		borderWidth: 2,
-  	  	    	data: []
-  	  	    	  }
-  	  	  	  ]
-  	  	  	},
-  	  	    options: {
-  	  	    	responsive: true,
-  	  	        maintainAspectRatio: false,
-  	  	        title: {
-  	  	        	display: true,
-  	  	        	fontSize: 18,
-  	  	        	text: 'Critical Factors'
-  	  	        },
-  	  	        legend: {
-  	  	        	position: 'left',
-  	  	        	labels: {
-  	  	        		boxWidth: 12
-  	  	        	}
-  	  	        },
-  	  	        scales: {
-  	  	            xAxes: [{
-  	  	                stacked: false
-  	  	                ,gridLines: {display:false}
-  	  	            	,display: true
-  	  	            }],
-  	  	            yAxes: [{
-  	                    ticks: {
-  	                    	min: 0,
-  	                    	max: 12,
-  	                    	beginAtZero : true
-  	                    },
-  	  	                stacked: false
-  	  	                ,gridLines: {display:false}
-  	  	            	,display: false
-  	  	            }]
-  	  	        ,showScale: false
-  	  	        },
-  	  	    animation: {
-  	    	  	duration: 500,
-  	    	  	onComplete: function () {
-  	    	  	    // render the value of the chart above the bar
-  	    	  	    var ctx = this.chart.ctx;
-  	    	  	    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
-  	    	  	    ctx.fillStyle = this.chart.config.options.defaultFontColor;
-  	    	  	    ctx.textAlign = 'center';
-  	    	  	    ctx.textBaseline = 'bottom';
-  	    	  	    var fontVar = 'normal 16px "Helvetica Neue", Roboto, Arial'
-    	    	  	if (this.chart.width < 600) fontVar = 'bold 14px "Helvetica Neue", Roboto, Arial';
-  	    	  	    this.data.datasets.forEach(function (dataset) {
-  	    	  	        for (var i = 0; i < dataset.data.length; i++) {
-  	    	  	        	if (! dataset._meta.hidden) {
-  	    	  	        		var meta;
-  	    	  	        		for (key in dataset._meta) {
-  	    	  	        			meta = dataset._meta[key];
-  	    	  	        		}
-  	    	  	                var model = meta.data[i]._model;
-  	    	  	                ctx.font = fontVar;
-  	    	  	                ctx.fillText(dataset.data[i].toFixed(1), model.x, model.y - 0);
-  	    	  	        	}
-  	    	  	        }
-  	    	  	    });
-  	    	  	}}    
-  	  	    }
-  	  	};
-	this.cfBarChart = new Chart(ctx, barChartConfig);
-}
-
-clientPortal.prototype.updateCriticalFactorsChart = function() {
-	var factors = stubCorefactors(this.corefactors);
-
-	factors.sort(function(a,b) {
-		return a.displayGroup.localeCompare(b.displayGroup);
-	});
-	
-	$('#corefactorlist').empty();
-	$(factors).each(function () {
-		var row = $('<tr/>');
-		row.append($('<td />',{ text : this.name }));
-		row.append($('<td />',{ text : this.description }));
-		row.append($('<td />',{ text : this.displayGroup }));		
-		$('#corefactorlist').append(row);
-	});
-
-	var chartLabels = [];
-	var chartData = [];
-	chartData[0] = {
-				label : 'applicants',
-		        backgroundColor: 'rgba(200, 200, 200, 0.8)',
-		        borderColor: 'rgba(150, 150, 150, 0.8)',
-		  		borderWidth: 2,
-		  		data : []
-			};
-	chartData[1] = {
-				label : 'employees',
-  	  	  		backgroundColor: 'rgba(0, 200, 0, 0.8)',
-  	  	  		borderColor: 'rgba(0, 150, 0, 0.8)',
-		  		borderWidth: 2,
-		  		data: []
-	}
-	for (var i = 0; i < factors.length;i++) {
-			// randomize the pm score - 
-			chartLabels.push(factors[i].name);
-			chartData[0].data.push(factors[i].score-2*Math.random());
-			chartData[1].data.push(factors[i].score+1*Math.random());
-	}		
-
-	this.cfBarChart.config.data.labels = chartLabels;	
-	this.cfBarChart.config.data.datasets = chartData;
-
-	this.cfBarChart.update();
-}
-*/
-
 clientPortal.prototype.showBenchmarkCharts = function() {
 	if (!this.benchmark.populations || (this.benchmark.populations.length == 0)) return;
 	
@@ -2369,41 +2166,22 @@ clientPortal.prototype.showAssessmentOptions = function() {
 			'for':'surveyId-' + option.id
 		}));
 		row.append(optionname);
-		row.append($('<div />',{'class':'col-xs-12 col-sm-9'}).html(option.description));
+		var name = 'desc-' + option.id;
+		var details = $('<div />',{'class':'col-xs-12 col-sm-9'});
+		var oneliner = $('<h4 />', {'onclick': 'portal.toggleItem("'+name+'");'});
+		oneliner.append($('<i />',{'class':'fa fa-question-circle pull-right'}));
+		oneliner.append(option.oneLiner);
+		details.append(oneliner);
+		details.append($('<div />',{'style':'display:none;', 'id':name}).html(option.description));
+		row.append(details);
 		$('#assessmentgroup').append(row);	
 
 	}
-	/*
-	this.assessmentChoices = $('#assessmentoptions').DataTable( {
-		destroy: true, paging: false, filter: false, responsive: true,
-		data: this.assessmentOptions,
-		rowId: 'id',
-		columns : [
-		           {title: 'Assessment', data: 'name', render: function (data, type, row){   	   
-		        	   var td = $('<td />');
-		        	   td.append($('<input />', {
-		        		   type : 'radio',
-		        		   name : 'surveyId',
-		        		   id : 'surveyId-' + row.id,
-		        		   'class' : 'cleanradio',
-		        		   value : row.id,
-		        	   }));
-		        	   td.append($('<label />', {
-		        		   for : 'surveyId-' + row.id,
-		        		   'class' : 'cleanradio',
-		        		   text : data
-		        	   }));
-		        	   return td.html();
-		        	   }},
-		           {title: 'Description', data: 'description', render: function (data, type, row){
-		        	   return '<div style="max-height:100px; overflow:auto;">'+data+'</div>';
-		        	   }},
-	        	   {title: 'Questions', data: 'surveyQuestions.length'},
-		           {title: 'Avg Time', data: 'completionTime', render: function (data, type, row){return msToTime(data);}}
-		]
-	});
-	*/
 	$('#wait').addClass('hidden');
+}
+
+clientPortal.prototype.toggleItem = function(item){
+	$('#'+item).slideToggle();
 }
 
 clientPortal.prototype.setupWizardPosition = function() {
