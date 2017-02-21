@@ -5,7 +5,7 @@
         
         
         <div id='logindiv' class="col-xs-12 text-center">
-	      <form name="login" method="post" action="javascript:portal.login();" id="loginform">
+	      <form name="login" onsubmit='portal.login();return false;' id="loginform">
             <h1>Sign In</h1>
 			<div class="clearfix"><span class='text-danger h4' id='loginresponse'></span></div>
 			<div class="clearfix" style="height: 15px;"></div>
@@ -34,7 +34,7 @@
         </div>
               
         <div id='forgotdiv' class="col-xs-12 text-center hidden">
-		  <form name="forgotpass" method="post" action="javascript:forgotPass();" id="forgotpassform">
+		  <form name="forgotpass" onsubmit='forgotPass();return false;' id="forgotpassform">
             <h1>Forgot Password</h1>
             <div class="col-xs-12 text-center"><p class="change_link">Enter your email address and click the "Request Password Reset" button below.</p></div>
 			<div class="clearfix" style="height: 15px;"></div>
@@ -58,7 +58,7 @@
         </div>
         
         <div id='signupdiv' class="col-xs-12 text-center hidden">
-	      <form name="signup" method="post" action="javascript:portal.signup();" id="signupform">
+	      <form name="signup" onsubmit='portal.signup();return false;' id="signupform">
             <h1>Sign Up</h1>
 			<div class="clearfix"><span class='text-danger h4' id='signupresponse'></span></div>
 			<div class="clearfix" style="height: 15px;"></div>

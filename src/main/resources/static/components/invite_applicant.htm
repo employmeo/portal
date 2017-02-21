@@ -9,7 +9,7 @@
     			<button type="button" class="btn btn-block btn-default" onclick='portal.resetInvitation();'>Invite Another</button> 
         	</div>
         	<div class="x_content" id="invitationform">
-        	  <form id='inviteapplicant' name="inviteapplicant" action="javascript:portal.inviteApplicant();"
+        	  <form id='inviteapplicant' name="inviteapplicant" onsubmit="portal.inviteApplicant();return false;"
         	      class="form form-horizontal form-label-left input_mask">
 			    <div class="col-xs-12 col-sm-12 col-md-6">
 				  <h4>Contact Info</h4><hr>
