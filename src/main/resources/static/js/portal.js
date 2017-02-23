@@ -1539,8 +1539,8 @@ clientPortal.prototype.produceHistogram = function(prediction) {
 			break;		
 	}
 	
-	var mean= getPredictionMean(prediction);
-	var stdev = getPredictionStDev(prediction);	
+	var mean= prediction.positionPredictionConfig.mean;//getPredictionMean(prediction);
+	var stdev = prediction.positionPredictionConfig.stDev;//getPredictionStDev(prediction);	
 	var labels = new Array();
 	var bgColors = new Array();
 	var borderColors = new Array();
@@ -1549,7 +1549,9 @@ clientPortal.prototype.produceHistogram = function(prediction) {
 	// Generate labels and data, and highlight person
 	for (var i = 0; i<10; i++) {
 		var low = mean + ((i-5)*stdev)/2;
+		if (low >1) continue;
 		var high = mean + ((i-4)*stdev)/2;
+		if (high <0) continue;
 		var label = Math.round(100*low) + "-" + Math.round(100*high) + '%';
 		if (i == 0) {
 			label = "<" + Math.round(100*high) + '%';
@@ -1760,7 +1762,7 @@ clientPortal.prototype.prepPersonalMessage = function(score) {
 clientPortal.prototype.renderAssessmentScore = function(detail) {
 	var thePortal = this;
 	var scores = this.respondant.respondantScores;
-	var excludeGroups = ['Hidden','Graded','Personal Ratings','Reference Scores'];
+	var excludeGroups = ['Hidden','Bio Data','Graded','Personal Ratings','Reference Scores'];
 	if ((scores == null) || (scores.length == 0)) {
 		$('#criticaltraitscores').addClass('hidden');
 		$('#assessmentscores').addClass('hidden');
@@ -1778,7 +1780,18 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		scores.sort(function(a,b) {
 			var aCf = thePortal.getCorefactorBy(a.corefactorId);
 			var bCf = thePortal.getCorefactorBy(b.corefactorId);
+			// sort first by group
 			if (aCf.displayGroup.localeCompare(bCf.displayGroup) !=0) return aCf.displayGroup.localeCompare(bCf.displayGroup);
+			// then by parent ID - parents at top of group.
+			if (aCf.parentId != null) {
+				if (bCf.parentId == null) {
+					return 1;
+				} else {
+					return aCf.displayGroup.localeCompare(aCf.parentId > bCf.parentId);
+				}
+			} else if (bCf.parentId != null) {
+				return -1;
+			}
 			return aCf.name.localeCompare(bCf.name);
 		});
 	}
@@ -1794,6 +1807,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
 		if (detail) {
 			if (excludeGroups.indexOf(corefactor.displayGroup) != -1) continue;
+			if (corefactor.parentId != null) continue;
 			if ((detail) && (displaygroup != corefactor.displayGroup)) {
 				displaygroup = corefactor.displayGroup;
 				var grouprow = $('<tr />');
@@ -2027,20 +2041,18 @@ clientPortal.prototype.showBenchmarkCharts = function() {
 		return a.significance < b.significance; // order of increasing significance
 	});
 	
-	var groups = [{title : 'Critical Factors',
-	               displayGroups: ['Personality Traits', 'Skills and Abilities'],
-	               type: 'bar'},
-	              {title : 'Cultural Fit',
-	               displayGroups: ['Motivations', 'Interests'],
-	               type: 'radar'}];
-
+	var groups = [{title : 'Cognitive Scores', displayGroups: ['Cognitive Scores', 'Skills and Abilities'], type: 'bar'},
+	              {title : 'Personality Traits', displayGroups: ['Personality Traits'], type: 'radar'},
+		          {title : 'Culture Fit', displayGroups: ['Culture Fit'], type: 'bar'},
+		          {title : 'Career Interests', displayGroups: ['Career Interests'], type: 'radar'},
+		          {title : 'Motivations', displayGroups: ['Motivations'], type: 'radar'}];
 	for (var item in groups) {
 		group = groups[item];
 	    var chartLabels = [];
 		var chartData = [];
-		chartData[0] = {
+		var genPop = {
 				label : 'General Population',
-		        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+		        backgroundColor: 'rgba(220, 220, 220, 0.6)',
 			    borderColor: 'rgba(150, 150, 150, 0.8)',
 			  	borderWidth: 2,
 			  	data : []
@@ -2058,24 +2070,35 @@ clientPortal.prototype.showBenchmarkCharts = function() {
 			var scores = this.benchmark.populations[key].populationScores;
 			for (var i in scores) {
 				var cf = this.getCorefactorBy(scores[i].corefactorId);
+				if (cf.parentId != null) continue; // don't show minor traits
 				if (group.displayGroups.indexOf(cf.displayGroup) == -1) continue; // include only for group
 				if (chartLabels.indexOf(cf.name) == -1) {
 					chartLabels.push(cf.name);
-					chartData[0].data[chartLabels.indexOf(cf.name)] = cf.meanScore.toFixed(1);
+					genPop.data[chartLabels.indexOf(cf.name)] = cf.meanScore.toFixed(1);
 				}
 				dataSet.data[chartLabels.indexOf(cf.name)] = scores[i].mean.toFixed(1);
 			}
 			chartData.push(dataSet);			
 		}
+		chartData.push(genPop);
 		if (chartLabels.length == 0) continue;
 		
+		var postAnimate = function(){};
 		var panel = $('<div />', {'class':'x_panel'}).append(
 				$('<div />', {'class':'x_title'}).append(
 						$('<h3 />', {'class':'text-center','text':group.title})
 				));
 		panel.append($('<div />',{'class':'x_content'}).append($('<canvas />', {
-			id : 'factorschart_'+item, style : 'min-height:320px;'})));	
-		$('#factors_barchart').append(panel);
+			id : 'factorschart_'+item, style : 'min-height:320px;'})));
+
+		var isBar = (group.type == 'bar');
+		if (isBar) {
+			postAnimate = showValues;
+			$('#factors_barchart').append(panel);
+		} else {
+			var column = $('<div />', {'class':'col-xs-12 col-sm-4'}).append(panel);
+			$('#factors_radarchart').append(column);			
+		}
 
 		var chart = new Chart(document.querySelector("#factorschart_"+item).getContext("2d"), {
 		    type: group.type,
@@ -2084,11 +2107,16 @@ clientPortal.prototype.showBenchmarkCharts = function() {
 		  	   	responsive: true,
 		  	    maintainAspectRatio: false,
 		  	    legend: {position: 'top', labels: {boxWidth: 12 }},
+		  	    scale: {
+	                ticks: {
+	                    beginAtZero: !isBar
+	                }
+	            },
 		  	    scales: {
-		  	        xAxes: [{stacked: false, gridLines: {display:false}, display: true }],
+		  	        xAxes: [{stacked: false, gridLines: {display:false}, display: isBar }],
 		  	        yAxes: [{ticks: {
 		               		min: 1,
-		               		max: 11,
+		               		max: 10,
 		               		beginAtZero : true
 		  	        	},
 		            	stacked: false, gridLines: {display:false}, display: false
@@ -2097,33 +2125,34 @@ clientPortal.prototype.showBenchmarkCharts = function() {
 		  	    },
 	  	  	    animation: {
 	  	  	    	duration: 200,
-	  	    	  	onComplete: function () {
-	  	    	  	    // render the value of the chart above the bar
-	  	    	  		
-	  	    	  	    var ctx = this.chart.ctx;
-	  	    	  	    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
-	  	    	  	    ctx.fillStyle = this.chart.config.options.defaultFontColor;
-	  	    	  	    ctx.textAlign = 'center';
-	  	    	  	    ctx.textBaseline = 'bottom';
-	  	    	  	    var fontVar = 'normal 16px "Helvetica Neue", Roboto, Arial';
-	    	    	  	if (this.chart.width < 600) fontVar = 'bold 14px "Helvetica Neue", Roboto, Arial';
-	  	    	  	    this.data.datasets.forEach(function (dataset) {
-	  	    	  	        for (var i = 0; i < dataset.data.length; i++) {
-  	    	  	        		var meta;
-  	    	  	        		for (var key in dataset._meta) meta = dataset._meta[key];
-	  	    	  	        	if (meta && !meta.hidden) {
-	  	    	  	                var model = meta.data[i]._model;
-	  	    	  	                ctx.font = fontVar;
-	  	    	  	                ctx.fillText(dataset.data[i], model.x, model.y - 0);
-	  	    	  	        	}
-	  	    	  	        }
-	  	    	  	    });
-	  	    	  	}
+	  	    	  	onComplete: postAnimate
 		  	    }
 		  	}
 		});
+		
 		this.benchmarkCharts.push(chart);
 	}	
+}
+
+showValues = function () {
+	    var ctx = this.chart.ctx;
+	  	    ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, 'normal', Chart.defaults.global.defaultFontFamily);
+	  	    ctx.fillStyle = this.chart.config.options.defaultFontColor;
+	  	    ctx.textAlign = 'center';
+	  	    ctx.textBaseline = 'bottom';
+	  	    var fontVar = 'normal 16px "Helvetica Neue", Roboto, Arial';
+	  	if (this.chart.width < 600) fontVar = 'bold 14px "Helvetica Neue", Roboto, Arial';
+	  	    this.data.datasets.forEach(function (dataset) {
+	  	        for (var i = 0; i < dataset.data.length; i++) {
+  	        		var meta;
+  	        		for (var key in dataset._meta) meta = dataset._meta[key];
+	  	        	if (meta && !meta.hidden) {
+	  	                var model = meta.data[i]._model;
+	  	                ctx.font = fontVar;
+	  	                ctx.fillText(dataset.data[i], model.x, model.y - 0);
+	  	        	}
+	  	        }
+	  	    });
 }
 
 clientPortal.prototype.initSetupWizard = function() {
