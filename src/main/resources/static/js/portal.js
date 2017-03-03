@@ -1390,18 +1390,20 @@ clientPortal.prototype.updateHistory = function(historyData) {
 clientPortal.prototype.renderApplicantDetails = function() {
 	$('#applicantprofile').removeClass('hidden');
 	var profile = this.getProfile(this.respondant.profileRecommendation);
-	var composite = 'NA';
+	var composite = '';
 	if (this.respondant.compositeScore) composite = this.respondant.compositeScore.toFixed(2);
 	$('#compositescore').text(composite);
 	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
 	$('#candidateemail').text(this.respondant.person.email);
+	$('#candidatephone').text(this.respondant.person.phone);
+	$('#candidatepayrollid').text(this.respondant.payrollId);
 	$('#candidateaddress').text(this.respondant.person.address);
 	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
 	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
 	$('#applicantscore').empty();
-	$('#applicantscore').append($('<div>',{'style':'float:left;'}).append(portal.getProfileBadge(profile)));
-	$('#applicantscore').append($('<div>',{'style':'float:right;'}).append(composite));
-	$('#applicantscore').append($('<div>',{'style':'text-align:center;'}).append(profile.labels[0]));
+	$('#applicantscore').append($('<div>',{'class':'pull-left'}).append(portal.getProfileBadge(profile)));
+	$('#applicantscore').append($('<div>',{'class':'pull-right'}).append(composite));
+	$('#applicantscore').append($('<div>',{'class':'text-center'}).append(profile.labels[0]));
 }
 
 clientPortal.prototype.renderPredictions = function() {
