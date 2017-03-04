@@ -58,40 +58,7 @@ function getHistoryData() {
 	};
 }
 
-//function dData () {
-//	  return Math.round(Math.random() * 10) + 1
-//};
 
-function getStubDataForRoleBenchmark() {
-	
-	var person = {
-		first_name : 'John',
-		cf : {
-			0:{"cf_name":"Work Ethic","value":15},
-			1:{"cf_name":"Perseverence","value":20},
-			2:{"cf_name":"Prior Experience","value":30},
-			3:{"cf_name":"Referral","value":40},
-			4:{"cf_name":"Commute","value":45},
-			5:{"cf_name":"Job History","value":45},
-			6:{"cf_name":"Personal Relationship","value":45}
-		}
-	};
-	var role_benchmark = {
-		role_name : 'Crew',
-		role_description : 'Crew is an entry level position. Required basic work skills and ability to read / speak English.',
-		applicant_count : '1300',
-		hire_count : '300',
-		role_grade : {
-			0:{"grade":"profile_a","n0":"tenure","v0":"9.3","n1":"wage_increase","v1":".034"},
-			1:{"grade":"profile_b","n0":"tenure","v0":"8.2","n1":"wage_increase","v1":".021"},
-			2:{"grade":"profile_c","n0":"tenure","v0":"5.7","n1":"wage_increase","v1":".014"},
-			3:{"grade":"profile_d","n0":"tenure","v0":"2.4","n1":"wage_increase","v1":".020"}
-		},
-		cf : {0:{"cf_name":"Work Ethic","value":15},1:{"cf_name":"Perseverence","value":20},2:{"cf_name":"Prior Experience","value":30},3:{"cf_name":"Referral","value":40},4:{"cf_name":"Commute","value":45},5:{"cf_name":"Job History","value":45},6:{"cf_name":"Personal Relationship","value":45}},
-		date : 'Oct 14, 2016'
-	};
-	return {'person' : person, 'role_benchmark' : role_benchmark };
-}
 
 function stubCorefactors(corefactors) {
 	var length = 5;
@@ -105,33 +72,3 @@ function stubCorefactors(corefactors) {
 	return factors;
 };
 
-function getPredictionMean(prediction) {
-	switch (prediction.positionPredictionConfig.predictionModelId) {
-		case 1:
-			return .33;
-			break;
-		case 2:
-			return .271;
-			break;
-		case 3:
-		default:
-			return .191;
-			break;
-		
-	}
-}
-
-function getPredictionStDev(prediction) {
-	switch (prediction.positionPredictionConfig.predictionModelId) {
-	case 1:
-		return .12;
-		break;
-	case 2:
-		return .09;
-		break;
-	case 3:
-	default:
-		return .06;
-		break;	
-	}
-}
