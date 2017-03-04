@@ -13,12 +13,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import com.employmeo.data.model.PositionProfile;
+import com.employmeo.data.model.CustomProfile;
+import com.employmeo.data.model.ProfileDefaults;
 import com.employmeo.data.model.Respondant;
 import com.employmeo.data.service.RespondantService;
 import com.talytica.portal.objects.ApplicantDataPoint;
@@ -66,8 +66,8 @@ public class DashboardResource {
 		Page<Respondant> respondants = respondantService.getBySearchParams( params.accountId, LOWEST_STATUS, HIGHEST_STATUS,
 				locationId, positionId, Respondant.TYPE_APPLICANT, from, to, 1, 500);	
 		
-		List<String> labels = Arrays.asList("unscored", PositionProfile.PROFILE_A, PositionProfile.PROFILE_B,
-				PositionProfile.PROFILE_C, PositionProfile.PROFILE_D);
+		List<String> labels = Arrays.asList("unscored", ProfileDefaults.PROFILE_A, ProfileDefaults.PROFILE_B,
+				ProfileDefaults.PROFILE_C, ProfileDefaults.PROFILE_D);
 		
 		int[] invitedByProfile = { 0, 0, 0, 0, 0 };
 		int[] startedByProfile = { 0, 0, 0, 0, 0 };
@@ -107,16 +107,19 @@ public class DashboardResource {
 		}
 
 		// Assemble Applicant Data
+		CustomProfile profile = new CustomProfile();
 		List<ApplicantDataPoint> dataset= new ArrayList<ApplicantDataPoint>();
 		for (int i = 0; i < labels.size(); i++) {
-			ApplicantDataPoint profileData = new ApplicantDataPoint();
-			JSONObject profile = PositionProfile.getProfileDefaults(labels.get(i));
-			profileData.series = profile.getString("profile_name");
-			profileData.profileClass = profile.getString("profile_class");
-			profileData.color = profile.getString("profile_color");
-			profileData.highlight = profile.getString("profile_highlight");
-			profileData.overlay = profile.getString("profile_overlay");
-			profileData.profileIcon = profile.getString("profile_icon");
+			ApplicantDataPoint profileData = new ApplicantDataPoint();	
+			
+			profileData.series = profile.getName(labels.get(i));
+			profileData.labels = new String[1];
+			profileData.labels[0] = profile.getName(labels.get(i));
+			profileData.profileClass = profile.getCssClass(labels.get(i));
+			profileData.color = profile.getColor(labels.get(i));
+			profileData.highlight = profile.getHighlight(labels.get(i));
+			profileData.overlay = profile.getOverlay(labels.get(i));
+			profileData.profileIcon = profile.getIcon(labels.get(i));
 
 			profileData.labels = new String[] {"Invited", "Started", "Completed", "Scored","Hired"};
 			profileData.data = new int[5];

@@ -16,7 +16,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +24,13 @@ import org.springframework.stereotype.Component;
 import com.employmeo.data.model.Account;
 import com.employmeo.data.model.AccountSurvey;
 import com.employmeo.data.model.Benchmark;
+import com.employmeo.data.model.CustomProfile;
 import com.employmeo.data.model.Location;
 import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.talytica.portal.objects.ApplicantDataPoint;
-import com.employmeo.data.model.PositionProfile;
+import com.employmeo.data.model.ProfileDefaults;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -291,20 +291,20 @@ public class AccountResource {
 		log.debug("Requested profiles for account id {}", id);
 		
 		
-		List<String> labels = Arrays.asList("unscored", PositionProfile.PROFILE_A, PositionProfile.PROFILE_B,
-				PositionProfile.PROFILE_C, PositionProfile.PROFILE_D);
+		List<String> labels = Arrays.asList("unscored", ProfileDefaults.PROFILE_A, ProfileDefaults.PROFILE_B,
+				ProfileDefaults.PROFILE_C, ProfileDefaults.PROFILE_D);
 		List<ApplicantDataPoint> dataset= new ArrayList<ApplicantDataPoint>();
 		for (int i = 0; i < labels.size(); i++) {
 			ApplicantDataPoint profileData = new ApplicantDataPoint();
-			JSONObject profile = PositionProfile.getProfileDefaults(labels.get(i));
+			CustomProfile profile = new CustomProfile();
 			profileData.series = labels.get(i);
 			profileData.labels = new String[1];
-			profileData.labels[0] = profile.getString("profile_name");
-			profileData.profileClass = profile.getString("profile_class");
-			profileData.color = profile.getString("profile_color");
-			profileData.highlight = profile.getString("profile_highlight");
-			profileData.overlay = profile.getString("profile_overlay");
-			profileData.profileIcon = profile.getString("profile_icon");
+			profileData.labels[0] = profile.getName(profileData.series);
+			profileData.profileClass = profile.getCssClass(profileData.series);
+			profileData.color = profile.getColor(profileData.series);
+			profileData.highlight = profile.getHighlight(profileData.series);
+			profileData.overlay = profile.getOverlay(profileData.series);
+			profileData.profileIcon = profile.getIcon(profileData.series);
 			dataset.add(profileData);
 		}
 		
