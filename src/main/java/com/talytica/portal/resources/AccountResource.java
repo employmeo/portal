@@ -289,14 +289,19 @@ public class AccountResource {
 	   })	
 	public Response getProfiles(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
 		log.debug("Requested profiles for account id {}", id);
-		
+		Account account = accountService.getAccountById(id);
+
+		if(null == account) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
 		
 		List<String> labels = Arrays.asList("unscored", ProfileDefaults.PROFILE_A, ProfileDefaults.PROFILE_B,
 				ProfileDefaults.PROFILE_C, ProfileDefaults.PROFILE_D);
 		List<ApplicantDataPoint> dataset= new ArrayList<ApplicantDataPoint>();
+		
 		for (int i = 0; i < labels.size(); i++) {
 			ApplicantDataPoint profileData = new ApplicantDataPoint();
-			CustomProfile profile = new CustomProfile();
+			CustomProfile profile = account.getCustomProfile();
 			profileData.series = labels.get(i);
 			profileData.labels = new String[1];
 			profileData.labels[0] = profile.getName(profileData.series);
@@ -308,13 +313,7 @@ public class AccountResource {
 			dataset.add(profileData);
 		}
 		
-		Account account = accountService.getAccountById(id);
 		log.debug("Returning profiles for account id {}", id);
-		
-		if(null != account) {
-			return Response.status(Status.OK).entity(dataset).build();
-		} else {
-			return Response.status(Status.NOT_FOUND).build();
-		}
+		return Response.status(Status.OK).entity(dataset).build();
 	}	
 }

@@ -17,9 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import com.employmeo.data.model.Account;
 import com.employmeo.data.model.CustomProfile;
 import com.employmeo.data.model.ProfileDefaults;
 import com.employmeo.data.model.Respondant;
+import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.RespondantService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.talytica.portal.objects.DashboardParams;
@@ -45,6 +47,9 @@ public class DashboardResource {
 	@Autowired
 	RespondantService respondantService;
 	
+	@Autowired
+	AccountService accountService;
+	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -56,6 +61,7 @@ public class DashboardResource {
 	public Iterable<ApplicantDataPoint> getDashboardUpdate (
 			@ApiParam(value = "Search Params") DashboardParams params) {
 		
+		Account account = accountService.getAccountById(params.accountId);
 		Timestamp from = new Timestamp(params.fromdate.getTime());
 		Timestamp to = new Timestamp(params.todate.getTime() + ONE_DAY);
 		Long locationId = null;
@@ -107,7 +113,7 @@ public class DashboardResource {
 		}
 
 		// Assemble Applicant Data
-		CustomProfile profile = new CustomProfile();
+		CustomProfile profile = account.getCustomProfile();
 		List<ApplicantDataPoint> dataset= new ArrayList<ApplicantDataPoint>();
 		for (int i = 0; i < labels.size(); i++) {
 			ApplicantDataPoint profileData = new ApplicantDataPoint();	
