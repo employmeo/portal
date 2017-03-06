@@ -1394,17 +1394,30 @@ clientPortal.prototype.renderApplicantDetails = function() {
 	if (this.respondant.compositeScore) composite = this.respondant.compositeScore.toFixed(2);
 	$('#compositescore').text(composite);
 	$('#candidatename').text(this.respondant.person.firstName + ' ' + this.respondant.person.lastName);
-	$('#candidateemail').text(this.respondant.person.email);
-	$('#candidatephone').text(this.respondant.person.phone);
-	$('#candidatepayrollid').text(this.respondant.payrollId);
-	$('#candidateaddress').text(this.respondant.person.address);
-	$('#candidateposition').text(this.getPositionBy(this.respondant.positionId).positionName);
-	$('#candidatelocation').text(this.getLocationBy(this.respondant.locationId).locationName);
+	$('#applicantdetailtable').empty();
 	$('#applicantscore').empty();
 	$('#applicantscore').append($('<div>',{'class':'pull-left'}).append(portal.getProfileBadge(profile)));
 	$('#applicantscore').append($('<div>',{'class':'pull-right'}).append(composite));
 	$('#applicantscore').append($('<div>',{'class':'text-center'}).append(profile.labels[0]));
+
+	this.addApplicantDetail('Address','fa fa-home', this.respondant.person.address);
+	this.addApplicantDetail('E-mail','fa fa-envelope', this.respondant.person.email);
+	this.addApplicantDetail('Phone Number','fa fa-phone',this.respondant.person.phone);
+	this.addApplicantDetail('Position','fa fa-briefcase',this.getPositionBy(this.respondant.positionId).positionName);
+	this.addApplicantDetail('Location','fa fa-map-marker',this.getLocationBy(this.respondant.locationId).locationName);
+	this.addApplicantDetail('Look-up ID','fa fa-id-badge', this.respondant.payrollId);
+
 }
+
+clientPortal.prototype.addApplicantDetail = function(label, icon, value) {
+	if (!value) return;
+	if (!value.trim()) return;
+	var row = $('<tr />',{'title':label});
+	row.append($('<td />').append($('<i />',{'class':icon})));
+	row.append($('<td />',{'text' : value}));	
+	$('#applicantdetailtable').append(row);
+}
+
 
 clientPortal.prototype.renderPredictions = function() {
 	if ((this.respondant.predictions == null) || (this.respondant.predictions.length == 0)) {
