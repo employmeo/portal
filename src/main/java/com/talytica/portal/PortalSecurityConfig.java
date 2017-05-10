@@ -38,8 +38,7 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 	        auth
 	          .userDetailsService(userCredentialService)
 	          .passwordEncoder(passwordEncoder());
-
-	        }
+	    }
 	    
 	    @Override
 	    protected void configure(HttpSecurity http) throws Exception {

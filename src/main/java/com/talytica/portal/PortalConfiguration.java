@@ -17,14 +17,13 @@ import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
 
-
 @Component
 @ApplicationPath("${spring.jersey.application-path:/portal}")
 public class PortalConfiguration extends ResourceConfig {
 	private static final Logger log = LoggerFactory.getLogger(PortalConfiguration.class);
 
-	 @Value("${spring.jersey.application-path:/portal}")
-	 private String apiPath;
+	@Value("${spring.jersey.application-path:/portal}")
+	private String apiPath;
 
 	public PortalConfiguration() {
         registerEndpoints();
