@@ -510,14 +510,25 @@ clientPortal.prototype.searchGraders = function() {
 
 
 clientPortal.prototype.renderAudioLink = function(row, link) {
-	var audio = $('<audio />' , {
+	var media = $('<audio />' , {
 		'controls': '',
 		'id': 'grader_media_' + row.id,
-		'text':'Your Browser Does Not Support Audio Playback'
+		'text':'Your Browser Does Not Support Video/Audio Playback'
 	});
-	var source = $('<source />', {'src':link,'type':'audio/mpeg'});
-	audio.append(source);
-	return audio.wrap("<div />").parent().html();
+	var source = $('<source />', {'src':link});
+	media.append(source);
+	return media.wrap("<div />").parent().html();
+}
+
+clientPortal.prototype.renderVideoLink = function(row, link) {
+	var media = $('<video />' , {
+		'controls': '',
+		'id': 'grader_media_' + row.id,
+		'text':'Your Browser Does Not Support Video/Audio Playback'
+	});
+	var source = $('<source />', {'src':link});
+	media.append(source);
+	return media.wrap("<div />").parent().html();
 }
 
 clientPortal.prototype.togglePlayMedia = function(id) {
@@ -601,9 +612,11 @@ clientPortal.prototype.renderAudioDetail = function(respondant, responses) {
 		
 	for (var i=0;i<responses.length;i++) {
 		response = responses[i];
+		var ques = this.getQuestionFor(response.questionId, respondant.accountSurveyId);
 		var row = $('<tr />');
-		row.append($('<td />',{ 'text' : this.getQuestionFor(response.questionId, respondant.accountSurveyId).questionText}));
-		row.append($('<td />').append(this.renderAudioLink(response, response.responseMedia)));
+		row.append($('<td />',{ 'text' : ques.questionText}));
+		if (ques.questionType == 28) { row.append($('<td />').append(this.renderVideoLink(response, response.responseMedia))); }
+		else {row.append($('<td />').append(this.renderAudioLink(response, response.responseMedia)));}
 		table.append(row);
 	}
 	wrapper.append(table);

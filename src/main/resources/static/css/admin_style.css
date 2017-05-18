@@ -13,6 +13,10 @@ body.coverpage {
 audio {
 	width: 160px;
 }
+
+video {
+	width: 320px;
+}
 .table-condensed>tbody>tr>td {
 	vertical-align: middle;
 }
