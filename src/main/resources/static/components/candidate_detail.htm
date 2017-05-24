@@ -83,7 +83,24 @@
 					</div>
 				</div>
 			</div>
-			<div id='evaluations' class='x_panel hidden'>
+			<div id='audioanalytics' class='x_panel hidden'>
+				<div class="x_title">
+					<h3>Audio Analytics <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+					<div class="clearfix"></div>
+				</div>
+				<div class="x_content">
+					<div class="col-xs-12 col-sm-12 col-lg-6">
+						<table class='table table-hover'>
+							<tbody id='voicereadings'>
+							</tbody>
+						</table>
+						<hr>
+					</div>
+					<div class="col-xs-12 col-sm-12 col-lg-6">
+					<canvas id='voicemoodscanvas' style="display: block;min-width:300px;min-height:300px;width: 100%;height:auto"></canvas>
+					</div>
+				</div>
+			</div>			<div id='evaluations' class='x_panel hidden'>
 				<div class="x_title">
 					<h3>Evaluated Scores <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
 					<div class="clearfix"></div>
@@ -143,6 +160,7 @@
     portal.renderAssessmentScore(false);
 	portal.renderPredictions();
 	portal.renderAssessmentScore(true);
+	portal.renderAudioAnalytics();
 	portal.initRespondantGradeables();
 	portal.initRespondantReferences();
 	portal.addBenchmarksToScoreDetail();
