@@ -48,7 +48,7 @@ public class SpeechToTextResource {
 		log.debug("Requested response to translate: {}", responseId);
 		Response response = responseRepository.findOne(responseId);
 		
-		String transcript = speechToTextService.translateMedia(response.getResponseMedia());
+		String transcript = speechToTextService.translateWav(response.getResponseMedia());
 		if (null != transcript) {
 			log.debug("Translated to {}", transcript);
 			response.setResponseText(transcript);

@@ -42,6 +42,7 @@ function clientPortal(version) {
 	this.dashApplicants = null;
 	this.dashHires = null;
 	this.cfBarChart = null;
+	this.voiceMoodsChart = null;
 	this.benchmarkCharts = [];
 	
 	//tables:
@@ -510,14 +511,25 @@ clientPortal.prototype.searchGraders = function() {
 
 
 clientPortal.prototype.renderAudioLink = function(row, link) {
-	var audio = $('<audio />' , {
+	var media = $('<audio />' , {
 		'controls': '',
 		'id': 'grader_media_' + row.id,
-		'text':'Your Browser Does Not Support Audio Playback'
+		'text':'Your Browser Does Not Support Video/Audio Playback'
 	});
-	var source = $('<source />', {'src':link,'type':'audio/mpeg'});
-	audio.append(source);
-	return audio.wrap("<div />").parent().html();
+	var source = $('<source />', {'src':link});
+	media.append(source);
+	return media.wrap("<div />").parent().html();
+}
+
+clientPortal.prototype.renderVideoLink = function(row, link) {
+	var media = $('<video />' , {
+		'controls': '',
+		'id': 'grader_media_' + row.id,
+		'text':'Your Browser Does Not Support Video/Audio Playback'
+	});
+	var source = $('<source />', {'src':link});
+	media.append(source);
+	return media.wrap("<div />").parent().html();
 }
 
 clientPortal.prototype.togglePlayMedia = function(id) {
@@ -601,9 +613,11 @@ clientPortal.prototype.renderAudioDetail = function(respondant, responses) {
 		
 	for (var i=0;i<responses.length;i++) {
 		response = responses[i];
+		var ques = this.getQuestionFor(response.questionId, respondant.accountSurveyId);
 		var row = $('<tr />');
-		row.append($('<td />',{ 'text' : this.getQuestionFor(response.questionId, respondant.accountSurveyId).questionText}));
-		row.append($('<td />').append(this.renderAudioLink(response, response.responseMedia)));
+		row.append($('<td />',{ 'text' : ques.questionText}));
+		if (ques.questionType == 28) { row.append($('<td />').append(this.renderVideoLink(response, response.responseMedia))); }
+		else {row.append($('<td />').append(this.renderAudioLink(response, response.responseMedia)));}
 		table.append(row);
 	}
 	wrapper.append(table);
@@ -776,7 +790,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 			var radioLike =	$('<input />', {
 				'id'   : 'radiobox-' + criterion.questionId +"-1",
 				'type' : 'radio', 'class' : 'thumbs-up', 'name' : 'gradeValue',
-				'onChange' : 'this.form.submit()', 'value' :  '11'});
+				'onChange' : 'this.form.submit()', 'value' :  '10'});
 			if (11 == grade.gradeValue) radioLike.prop('checked', true);
 			like.append(radioLike);
 			like.append($('<label />', {
@@ -785,7 +799,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 			var radioDislike =$('<input />', {
 				'id'   : 'radiobox-' + criterion.questionId +"-2",
 				'type' : 'radio', 'class' : 'thumbs-down', 'name' : 'gradeValue',
-				'onChange' : 'this.form.submit()', 'value' :  '1'});
+				'onChange' : 'this.form.submit()', 'value' :  '0'});
 			if (1 == grade.gradeValue) radioDislike.prop('checked', true);
 			dislike.append(radioDislike);
 			dislike.append($('<label />', {
@@ -1430,9 +1444,11 @@ clientPortal.prototype.renderPredictions = function() {
 	$('#compositescore').text(Math.round(this.respondant.compositeScore));
 	
 	var fulltext = this.respondant.person.firstName +
-	               "'s application is in the top " +
+				   "'s results are better than " +
 	               Math.round(this.respondant.compositeScore) +
-	               " percentile of applicants to " + 
+	               "% of all applicants, but worse than " +
+	               (100-Math.round(this.respondant.compositeScore)) +
+	               "% of applicants to " + 
 	               this.getLocationBy(this.respondant.locationId).locationName + ".";
 	$('#fulltextdesc').text(fulltext);
 	
@@ -1777,7 +1793,7 @@ clientPortal.prototype.prepPersonalMessage = function(score) {
 clientPortal.prototype.renderAssessmentScore = function(detail) {
 	var thePortal = this;
 	var scores = this.respondant.respondantScores;
-	var excludeGroups = ['Hidden','Bio Data','Graded','Personal Ratings','Reference Scores'];
+	var excludeGroups = ['Hidden','Bio Data','Graded','Personal Ratings','Reference Scores', 'Voice Moods','Audio Characteristics'];
 	if ((scores == null) || (scores.length == 0)) {
 		$('#criticaltraitscores').addClass('hidden');
 		$('#assessmentscores').addClass('hidden');
@@ -1845,6 +1861,54 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		return;
 	}
 
+}
+clientPortal.prototype.renderAudioAnalytics = function() {
+	var counter = 0;
+	var scores = this.respondant.respondantScores;
+	
+	
+	var data = [];
+	var labels = [];
+	var colors = [];
+		
+	for (var key=0;key<scores.length;key++) {	
+		var value = scores[key].value;
+		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
+		if (corefactor.displayGroup != 'Voice Moods') continue;;	
+		data.push(Math.round(10*value));
+		labels.push(corefactor.name);
+		colors.push(corefactor.lowDescription);
+		counter++;
+	}
+	
+	if (counter > 0) {
+		voiceMoodsChart = new Chart($("#voicemoodscanvas").get(0).getContext("2d"),
+			{
+				type: 'polarArea',		
+				options: {
+					title : { text : 'Mood Chart', display:true},
+					responsive: true,
+					startAngle: -Math.PI / 6,
+					maintainAspectRatio: false,
+			  	    legend: {
+			  	    	display: true, 
+			  	    	position: 'bottom', fullWidth: false,
+			  	    	labels: {fontSize: 10, boxWidth: 10}
+					},
+					animation: {animateRotate: true}},
+				data: {
+					labels : labels,
+					datasets : [{
+						data: data,
+						backgroundColor: colors
+					}]
+				}
+			});			
+	}
+	
+	counter += this.renderOtherScoresIn('Audio Characteristics', 'voicereadings');
+	if (counter > 0) $('#audioanalytics').removeClass('hidden');
+	
 }
 
 clientPortal.prototype.renderOtherScoresIn = function(type, location) {
