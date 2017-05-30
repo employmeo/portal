@@ -371,7 +371,7 @@ clientPortal.prototype.updateDash = function(data) {
 clientPortal.prototype.refreshDashApplicants = function(data) {
 	if (this.dashApplicants != null) this.dashApplicants.destroy();
 	var total = 0;
-	for (var i; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
+	for (var i=0; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
 	if (total >= 1) {
 		$("#dashApplicants").removeClass('hidden');
 		$("#appliedNoData").addClass('hidden');
@@ -393,7 +393,7 @@ clientPortal.prototype.refreshDashApplicants = function(data) {
 clientPortal.prototype.refreshDashHires = function(data) {
 	if (this.dashHires != null) this.dashHires.destroy();
 	var total = 0;
-	for (var i; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
+	for (var i=0; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
 	if (total >= 1) {
 		$("#dashHires").removeClass('hidden');
 		$("#hiredNoData").addClass('hidden');
