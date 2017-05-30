@@ -330,7 +330,7 @@ clientPortal.prototype.updateDash = function(data) {
 	
 	// Clear Hire Rates Progress Bars
 	$('#hirerates').empty();
-	
+	var hireratebars = 0;
 	for (var i=0;i<data.length;i++) {
 		var dataPoint = data[i];
 
@@ -354,9 +354,9 @@ clientPortal.prototype.updateDash = function(data) {
 		hireData.datasets[0].data[i] = dataPoint.data[4];
 
 		// If any scored candidates exist, add the HireRate Bar
-		if (dataPoint.data[3] > 0) this.addHireRateBar(dataPoint);
+		if (dataPoint.data[3] > 0) {this.addHireRateBar(dataPoint);hireratebars++;}
 	}
-	
+	if (hireratebars == 0) $('#hirerates').append($('<div />',{'class':'no-data','text':'No Data Available'}));
 	$('#invitecount').html(invited);
 	$('#completedcount').html(completed);
 	$('#scoredcount').html(scored);	
@@ -370,20 +370,34 @@ clientPortal.prototype.updateDash = function(data) {
 
 clientPortal.prototype.refreshDashApplicants = function(data) {
 	if (this.dashApplicants != null) this.dashApplicants.destroy();
-	// Build Applicants Widget
-	this.dashApplicants = new Chart($("#dashApplicants").get(0).getContext("2d"), {
-		type: 'doughnut',
-		data: data,
-		options: {
-			cutoutPercentage : 35,
-			responsive : true,
-			legend: { display: false }
-		}});
+	var total = 0;
+	for (var i; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
+	if (total >= 1) {
+		$("#dashApplicants").removeClass('hidden');
+		$("#appliedNoData").addClass('hidden');
+		// Build Applicants Widget
+		this.dashApplicants = new Chart($("#dashApplicants").get(0).getContext("2d"), {
+			type: 'doughnut',
+			data: data,
+			options: {
+				cutoutPercentage : 35,
+				responsive : true,
+				legend: { display: false }
+			}});
+	} else {
+		$("#dashApplicants").addClass('hidden');
+		$("#appliedNoData").removeClass('hidden');
+	}
 }
 
 clientPortal.prototype.refreshDashHires = function(data) {
 	if (this.dashHires != null) this.dashHires.destroy();
-	// Build Hires Widget
+	var total = 0;
+	for (var i; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
+	if (total >= 1) {
+		$("#dashHires").removeClass('hidden');
+		$("#hiredNoData").addClass('hidden');
+		// Build Hires Widget
 	this.dashHires = new Chart($("#dashHires").get(0).getContext("2d"), {
 		type: 'doughnut', 
 		data: data, 
@@ -392,10 +406,13 @@ clientPortal.prototype.refreshDashHires = function(data) {
 			responsive : true,
 			legend: { display: false }
 	}});
+	} else {
+		$("#dashHires").addClass('hidden');
+		$("#hiredNoData").removeClass('hidden');		
+	}
 }
 
 clientPortal.prototype.addHireRateBar = function(data) {
-
 	var rate = Math.round(100*data.data[4] / data.data[3]);
 	var profile = {
 			profileClass : data.profileClass,
@@ -1391,23 +1408,31 @@ clientPortal.prototype.updatePosition = function() {
 
 clientPortal.prototype.updateHistory = function(historyData) {
 	if (this.historyChart != null) this.historyChart.destroy();
-	var dashHistory = $("#dashHistory").get(0).getContext("2d");
-	this.historyChart = new Chart(dashHistory, {
-		type: 'bar', data: historyData,
-		options: { 
-			bar: {stacked: true},
-			scales: { 
-				xAxes: [{
-					gridLines: {color : "rgba(0, 0, 0, 0)"},
-					stacked: true,
-					categoryPercentage: 0.5
-				}],
-				yAxes: [{gridLines: {display: true}, scaleLabel: {fontSize: '18px'}, stacked: true}]
-			},
-			responsive: true,
-			legend: { display: false }
-		}
-	});
+	
+	if ((this.user.account.accountType == 1) || (this.user.account.accountType == 999)) {
+		$("#dashHistory").removeClass('hidden');
+		$("#hiremixNoData").addClass('hidden');
+		var dashHistory = $("#dashHistory").get(0).getContext("2d");
+		this.historyChart = new Chart(dashHistory, {
+			type: 'bar', data: historyData,
+			options: { 
+				bar: {stacked: true},
+				scales: { 
+					xAxes: [{
+						gridLines: {color : "rgba(0, 0, 0, 0)"},
+						stacked: true,
+						categoryPercentage: 0.5
+					}],
+					yAxes: [{gridLines: {display: true}, scaleLabel: {fontSize: '18px'}, stacked: true}]
+				},
+				responsive: true,
+				legend: { display: false }
+			}
+		});
+	} else {
+		$("#dashHistory").addClass('hidden');
+		$("#hiremixNoData").removeClass('hidden');
+	}
 }
 
 clientPortal.prototype.renderApplicantDetails = function() {
@@ -2354,7 +2379,7 @@ clientPortal.prototype.setupSMBWizard = function() {
 	
 	var thePortal = this;
 	$('#wait').removeClass('hidden');
-	$.when(configureSMBAssessment(thePortal)).done(function(){thePortal.setupSMBWizardStepTwo();})
+	$.when(configureSMBAssessment(thePortal)).done(function(){thePortal.showComponent('settings');$('#wait').addClass('hidden');})
 };
 
 clientPortal.prototype.setupSMBWizardStepTwo = function() {

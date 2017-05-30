@@ -192,10 +192,8 @@ function configureSMBAssessment(thePortal) {
 		data: JSON.stringify(thePortal.signupRequest),
 		success: function(data)
 		{
-  			thePortal.benchmark = data;
-  			thePortal.benchmarkList.push(thePortal.benchmark);
-  			Array.prototype.push.apply(thePortal.assessmentList, data.accountSurveys);
-  			thePortal.positionList.push(data.position);
+			thePortal.user.account.defaultAsId = data.id
+  			thePortal.assessmentList.push(data);
 		}
 	});
 }

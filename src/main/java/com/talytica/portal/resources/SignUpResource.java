@@ -178,13 +178,14 @@ public class SignUpResource {
 		
 		account = new Account();
 		account.setAccountName(request.email);
-		account.setAccountStatus(DEFAULT_ACCOUNT_STATUS);
-		account.setAccountType(DEFAULT_ACCOUNT_TYPE);
+		account.setAccountStatus(Account.STATUS_NEW);
+		account.setAccountType(Account.TYPE_TRIAL_SMB);
 		Account savedAccount = accountService.save(account);
 		
 		Location defaultLocation = new Location();
 		defaultLocation.setAccount(savedAccount);
 		defaultLocation.setAccountId(savedAccount.getId());
+		defaultLocation.setLocationName(DEFAULT_ADDRESS);
 		defaultLocation.setStreet1(DEFAULT_ADDRESS);
 		Location savedLocation = accountService.save(defaultLocation);
 
@@ -228,7 +229,7 @@ public class SignUpResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Transactional
-	@ApiOperation(value = "Configures an SMB account to use a default survey", response = Account.class)
+	@ApiOperation(value = "Configures an SMB account to use a default survey", response = AccountSurvey.class)
 	   @ApiResponses(value = {
 	     @ApiResponse(code = 202, message = "Account Configured"),
 	     @ApiResponse(code = 400, message = "Some error occured")
@@ -250,10 +251,11 @@ public class SignUpResource {
 		accountSurvey.setStaticLinkView(DEFAULT_STATIC_VIEW);
 		AccountSurvey savedSurvey = accountSurveyService.save(accountSurvey);
 		savedSurvey.setPermalink(externalLinksService.getAssessmentLink(savedSurvey));
-		accountSurveyService.save(savedSurvey);
-		Account savedAccount = accountService.save(account);
+		AccountSurvey updatedSurvey = accountSurveyService.save(savedSurvey);
+		account.setAccountStatus(Account.STATUS_READY);
+		accountService.save(account);
 		
-		return Response.status(Status.ACCEPTED).entity(savedAccount).build();
+		return Response.status(Status.ACCEPTED).entity(updatedSurvey).build();
 	}
 
 }
