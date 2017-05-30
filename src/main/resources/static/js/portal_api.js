@@ -179,6 +179,27 @@ function newBenchmark(thePortal) {
 	});
 }
 
+function configureSMBAssessment(thePortal) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: "/portal/signup/"+thePortal.user.userAccountId+"/configure",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(thePortal.signupRequest),
+		success: function(data)
+		{
+  			thePortal.benchmark = data;
+  			thePortal.benchmarkList.push(thePortal.benchmark);
+  			Array.prototype.push.apply(thePortal.assessmentList, data.accountSurveys);
+  			thePortal.positionList.push(data.position);
+		}
+	});
+}
+
 function configureBenchmark(thePortal) {
 	return $.ajax({
 		type: "POST",
@@ -516,7 +537,7 @@ function forgotPass() {
 function submitSignupRequest(thePortal){
 	$.ajax({
 		type: "POST",
-		url: servicePath + "signup",
+		url: "/portal/signup/withbm",
 		async: true,
 	    headers: { 
 	        'Content-Type': 'application/json' 
@@ -536,6 +557,29 @@ function submitSignupRequest(thePortal){
 	});	
 }
 
+function submitSMBSignupRequest(thePortal){
+	$.ajax({
+		type: "POST",
+		url: "/portal/signup/smb",
+		async: true,
+	    headers: { 
+	        'Content-Type': 'application/json' 
+	    },
+		data : JSON.stringify(thePortal.signuprequest),
+		success: function(data) {
+			$('#wait').addClass('hidden');
+			console.log(data);
+			$('#signupsmbform :submit').text('Signed Up!');
+			$('#signupsmbform :input').prop('disabled', true);
+			$('#signupsmbresponse').css('color','white');
+			$('#signupsmbresponse').text('Thank You. We have sent you an email confirmation. Please check your email and follow the validation link.');
+		},
+		error: function(data, textStatus, jqXHR) {
+			$('#wait').addClass('hidden');
+			$('#signupsmbresponse').text(data.responseText);		
+		}
+	});	
+}
 function submitPasswordChangeRequest(thePortal) {
 	$.ajax({
 		type: "POST",

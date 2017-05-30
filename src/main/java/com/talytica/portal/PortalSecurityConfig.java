@@ -44,9 +44,9 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 	    protected void configure(HttpSecurity http) throws Exception {
 			http
 	    		.authorizeRequests()
-	    		  .antMatchers("/portal/1/forgotpassword",
-	    				       "/portal/1/signup",
-	    				       "/portal/1/changepass").permitAll()
+	    		  .antMatchers("/portal/signup/**",
+	    				  "/portal/1/forgotpassword",
+	    				  "/portal/1/changepass").permitAll()
 	    		  .antMatchers("/portal/1/**").authenticated()
 	    		  .anyRequest().permitAll()
 	    		.and()

@@ -152,6 +152,15 @@ clientPortal.prototype.signup = function() {
 	submitSignupRequest(this);
 }
 
+clientPortal.prototype.signupsmb = function() {
+	var fields = $('#signupsmbform').serializeArray();
+	this.signuprequest = {};
+	for (var i=0;i<fields.length;i++) {
+		this.signuprequest[fields[i].name] = fields[i].value;
+	}	
+	$("#wait").removeClass('hidden');
+	submitSMBSignupRequest(this);
+}
 
 clientPortal.prototype.logout = function () {
 	$("#wait").removeClass('hidden');			
@@ -2254,8 +2263,18 @@ clientPortal.prototype.initSetupWizard = function() {
 	}
 }
 
+clientPortal.prototype.initSMBSetupWizard = function() {
+	// get assessments to choose from, and populate the table.
+	$('#wait').removeClass('hidden');
+	if (!this.assessmentOptions) {
+		var thePortal = this;
+		$.when(getAssessmentOptions(thePortal)).done(function(){thePortal.showAssessmentOptions();});
+	} else {
+		this.showAssessmentOptions();
+	}
+}
+
 clientPortal.prototype.showAssessmentOptions = function() {
-	
 	$('#assessmentgroup').empty();
 	for (var key in this.assessmentOptions) {
 		option = this.assessmentOptions[key];
@@ -2306,6 +2325,47 @@ clientPortal.prototype.setupWizardPosition = function() {
 	var thePortal = this;
 	$('#wait').removeClass('hidden');
 	$.when(newBenchmark(thePortal)).done(function(){thePortal.setupWizardStepTwo();})
+};
+
+clientPortal.prototype.setupWizardPosition = function() {
+	var surveyId = $('#wizard-position :input[name=surveyId]:checked').val();
+	if (!surveyId) {
+		$('#assessmentgroup').addClass('has-error');
+		return false;
+	}
+	this.benchmarkRequest = {}; //get the position;
+	this.benchmarkRequest.positionName = $('#positionName').val();
+	this.benchmarkRequest.accountId = this.user.userAccountId;
+	this.benchmarkRequest.surveyId = surveyId;
+	
+	var thePortal = this;
+	$('#wait').removeClass('hidden');
+	$.when(newBenchmark(thePortal)).done(function(){thePortal.setupWizardStepTwo();})
+};
+
+clientPortal.prototype.setupSMBWizard = function() {
+	var surveyId = $('#wizard-assessment :input[name=surveyId]:checked').val();
+	if (!surveyId) {
+		$('#assessmentgroup').addClass('has-error');
+		return false;
+	}
+	this.signupRequest = {};
+	this.signupRequest.surveyId = surveyId;
+	
+	var thePortal = this;
+	$('#wait').removeClass('hidden');
+	$.when(configureSMBAssessment(thePortal)).done(function(){thePortal.setupSMBWizardStepTwo();})
+};
+
+clientPortal.prototype.setupSMBWizardStepTwo = function() {
+	$('#setupwizardone').removeClass('active');
+	$('#setupwizardone').addClass('activated');
+	$('#wizard_assessment').addClass('hidden');
+	$('#setupwizardline').attr('data-now-value','50.0');
+	$('#setupwizardline').css('width','50%');
+	$('#wizard_configure').removeClass('hidden');
+	$('#setupwizardtwo').addClass('active');
+	$('#wait').addClass('hidden');
 };
 
 clientPortal.prototype.setupWizardStepTwo = function() {
@@ -2457,7 +2517,7 @@ clientPortal.prototype.readyLeftNav = function() {
     var URL = window.location; //
     this.sidebar = $('#sidebar-menu');
     this.sidebar_footer = $('.sidebar-footer');
-
+    if (this.user.account.accountType <= 100) $('#benchmarkingmenu').addClass('hidden');
     this.sidebar.find('li ul').slideUp();
     this.sidebar.find('li').removeClass('active');
     this.sidebar.find('li').on('click', function(ev) {
