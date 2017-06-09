@@ -1,6 +1,10 @@
 package com.talytica.portal.resources;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -9,22 +13,23 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.employmeo.data.model.Account;
 import com.employmeo.data.model.AccountSurvey;
-import com.employmeo.data.model.Benchmark;
 import com.employmeo.data.model.Location;
 import com.employmeo.data.model.Position;
+import com.employmeo.data.model.PositionPredictionConfiguration;
+import com.employmeo.data.model.PredictionModel;
+import com.employmeo.data.model.Respondant;
 import com.employmeo.data.model.Survey;
 import com.employmeo.data.model.User;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
+import com.employmeo.data.service.PredictionConfigurationService;
+import com.employmeo.data.service.PredictionModelService;
 import com.employmeo.data.service.SurveyService;
 import com.employmeo.data.service.UserService;
 import com.talytica.common.service.EmailService;
@@ -53,7 +58,7 @@ public class SignUpResource {
 	private static final String DEFAULT_POSITION = "Employee";
 	private static final String POSITION_DESCRIPTION = "Employee - Please update position details in account settings.";
 	private static final int DEFAULT_USER_STATUS = 1;
-
+	
 	private static final String DEFAULT_PREAMBLE = 
 			"<h4>Employee Assessment</h4><p><strong>IMPORTANT:</strong> This questionnaire may see if you gave " +
 	        "<span style='text-decoration: underline; color: #ff0000;'><strong>HONEST</strong></span> answers. " +
@@ -88,7 +93,13 @@ public class SignUpResource {
 	SurveyService surveyService;
 	
 	@Autowired
-	ExternalLinksService externalLinksService; 
+	PredictionModelService predictionModelService;
+	
+	@Autowired
+	ExternalLinksService externalLinksService;
+
+	@Autowired
+	PredictionConfigurationService predictionConfigurationService; 
 		
 	@POST
 	@Path("/withbm")
@@ -155,6 +166,30 @@ public class SignUpResource {
 		return Response.status(Status.CREATED).entity(savedUser).build();
 	}
 
+	
+	
+	@POST
+	@Path("/fromwebsmb")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Transactional
+	@ApiOperation(value = "Signs Up a New SMB from webform", response = User.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 201, message = "Account and User Created"),
+	     @ApiResponse(code = 409, message = "Conflict - User or Account Exists")
+	   })
+	public Response signUpSMBFromWeb(
+			@ApiParam("email") @FormParam("email") String emailAddress,
+			@ApiParam("name") @FormParam("name") String name,
+			@ApiParam("account") @FormParam("account") String account
+			) {
+		SignUpRequest request = new SignUpRequest();
+		request.email = emailAddress;
+		request.accountName = account;
+		request.fullName = name;
+		return signUpSMB(request);
+	}
+	
 	@POST
 	@Path("/smb")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -172,12 +207,13 @@ public class SignUpResource {
 		log.debug("Looked for {} and found {}", request.email, user);
 		if (user != null) return USER_EXISTS;
 		
-		Account account = accountService.getAccountByName(request.email);
-		log.debug("Looked for {} and found {}", request.email, account);
+		if (null == request.accountName) request.accountName = request.email;
+		Account account = accountService.getAccountByName(request.accountName);
+		log.debug("Looked for {} and found {}", request.accountName, account);
 		if (account != null) return ACCOUNT_EXISTS;
 		
 		account = new Account();
-		account.setAccountName(request.email);
+		account.setAccountName(request.accountName);
 		account.setAccountStatus(Account.STATUS_NEW);
 		account.setAccountType(Account.TYPE_TRIAL_SMB);
 		Account savedAccount = accountService.save(account);
@@ -204,7 +240,9 @@ public class SignUpResource {
 		user.setAccount(updatedAccount);
 		user.setUserAccountId(updatedAccount.getId());
 		user.setEmail(request.email);
-		String[] names = request.email.split("[@._]");
+		
+		String[] names= request.email.split("[@._]");
+		if (null != request.fullName) names = request.fullName.split("\\s+");
 		user.setFirstName(names[0]);
 		user.setLastName("");
 		if (names.length > 1) user.setLastName(names[1]);
@@ -253,6 +291,32 @@ public class SignUpResource {
 		savedSurvey.setPermalink(externalLinksService.getAssessmentLink(savedSurvey));
 		AccountSurvey updatedSurvey = accountSurveyService.save(savedSurvey);
 		account.setAccountStatus(Account.STATUS_READY);
+
+		// Set up auto-predict with default predictions
+		if (null != survey.getDefaultModels()) {
+			String[] modelNames = survey.getDefaultModels().split(",");
+			Position defaultPosition = accountService.getPositionById(account.getDefaultPositionId());
+	
+			for (int i=0;i<modelNames.length;i++) {
+				String modelName = modelNames[i];
+				PositionPredictionConfiguration ppc = new PositionPredictionConfiguration();
+				PredictionModel model = predictionModelService.getModelByName(modelName);
+				ppc.setActive(true);
+				ppc.setDisplayPriority(i);
+				ppc.setMean(model.getMean());
+				ppc.setStDev(model.getStDev());
+				ppc.setPopSize(model.getPopSize());
+				ppc.setPosition(defaultPosition);
+				ppc.setPositionId(defaultPosition.getId());
+				ppc.setTriggerPoint(Respondant.STATUS_COMPLETED);
+				ppc.setPredictionModel(model);
+				ppc.setPredictionModelId(model.getModelId());
+				ppc.setPredictionTarget(model.getPredictionTarget());
+				ppc.setPredictionTargetId(model.getPredictionTargetId());
+				predictionConfigurationService.save(ppc);
+			}
+		}
+		
 		accountService.save(account);
 		
 		return Response.status(Status.ACCEPTED).entity(updatedSurvey).build();

@@ -266,6 +266,14 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 }
 
 clientPortal.prototype.initDashBoard = function() {
+	if (null != this.user.account.defaultAsid) {
+		$('#smblinkdisplay').removeClass('hidden');
+		var assessment = this.getAssessmentBy(this.user.account.defaultAsId);
+		$('#staticlink').attr('href',assessment.permalink);
+		$('#staticlink').text(assessment.permalink);
+	} else {
+		$('#smblinkdisplay').addClass('hidden');		
+	}
 	if (Object.keys(this.dashParams).length > 0) {
 		// code to put the dashboard details in the right place.
 		var drp = $('#reportrange').data('daterangepicker');
@@ -306,7 +314,7 @@ clientPortal.prototype.requestDashUpdate = function() {
 
 }
 
-clientPortal.prototype.updateDash = function(data) {	
+clientPortal.prototype.updateDash = function(data) {
 	this.dashResults = data;
 	var invited = 0;
 	var started = 0;
@@ -2352,22 +2360,6 @@ clientPortal.prototype.setupWizardPosition = function() {
 	$.when(newBenchmark(thePortal)).done(function(){thePortal.setupWizardStepTwo();})
 };
 
-clientPortal.prototype.setupWizardPosition = function() {
-	var surveyId = $('#wizard-position :input[name=surveyId]:checked').val();
-	if (!surveyId) {
-		$('#assessmentgroup').addClass('has-error');
-		return false;
-	}
-	this.benchmarkRequest = {}; //get the position;
-	this.benchmarkRequest.positionName = $('#positionName').val();
-	this.benchmarkRequest.accountId = this.user.userAccountId;
-	this.benchmarkRequest.surveyId = surveyId;
-	
-	var thePortal = this;
-	$('#wait').removeClass('hidden');
-	$.when(newBenchmark(thePortal)).done(function(){thePortal.setupWizardStepTwo();})
-};
-
 clientPortal.prototype.setupSMBWizard = function() {
 	var surveyId = $('#wizard-assessment :input[name=surveyId]:checked').val();
 	if (!surveyId) {
@@ -2379,18 +2371,7 @@ clientPortal.prototype.setupSMBWizard = function() {
 	
 	var thePortal = this;
 	$('#wait').removeClass('hidden');
-	$.when(configureSMBAssessment(thePortal)).done(function(){thePortal.showComponent('settings');$('#wait').addClass('hidden');})
-};
-
-clientPortal.prototype.setupSMBWizardStepTwo = function() {
-	$('#setupwizardone').removeClass('active');
-	$('#setupwizardone').addClass('activated');
-	$('#wizard_assessment').addClass('hidden');
-	$('#setupwizardline').attr('data-now-value','50.0');
-	$('#setupwizardline').css('width','50%');
-	$('#wizard_configure').removeClass('hidden');
-	$('#setupwizardtwo').addClass('active');
-	$('#wait').addClass('hidden');
+	$.when(configureSMBAssessment(thePortal)).done(function(){thePortal.showComponent('dash');$('#wait').addClass('hidden');})
 };
 
 clientPortal.prototype.setupWizardStepTwo = function() {
@@ -2464,7 +2445,6 @@ clientPortal.prototype.calculateBenchmark = function() {
 	$('#wait').removeClass('hidden');
 	calcBenchmark(this);
 };
-
 
 clientPortal.prototype.parseFileToTable = function(file, tablename) {	
 	var requiredHeaders = ['firstName','lastName','email','topPerformer'];
@@ -2542,7 +2522,7 @@ clientPortal.prototype.readyLeftNav = function() {
     var URL = window.location; //
     this.sidebar = $('#sidebar-menu');
     this.sidebar_footer = $('.sidebar-footer');
-    if (this.user.account.accountType <= 100) $('#benchmarkingmenu').addClass('hidden');
+    if (this.user.account.accountType < 100) $('#benchmarkingmenu').addClass('hidden');
     this.sidebar.find('li ul').slideUp();
     this.sidebar.find('li').removeClass('active');
     this.sidebar.find('li').on('click', function(ev) {

@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/1/speechtotext")
-@Api( value="/1/grader", produces=MediaType.APPLICATION_JSON)
+@Api(value="/1/speechtotext", produces=MediaType.APPLICATION_JSON)
 
 public class SpeechToTextResource {
 	@Autowired

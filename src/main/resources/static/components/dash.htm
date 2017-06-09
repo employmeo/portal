@@ -13,22 +13,20 @@
 								    <input type=hidden name="todate" id='todate'>
 								</div>
 								<div class="form-group">
-									<select class="form-control" id="locationId" name="locationId" onChange='portal.requestDashUpdate()'>
+									<select class="form-control" id="locationId" name="locationId" onChange='portal.requestDashUpdate()' style="max-width:200px;">
 										<option value=-1>all locations</option>
 									</select>
 								</div>
                             	<div class="form-group">
-									<select class="form-control" id="positionId" name="positionId" onChange='portal.requestDashUpdate()'>
+									<select class="form-control" id="positionId" name="positionId" onChange='portal.requestDashUpdate()' style="max-width:200px;">
 										<option value=-1>all positions</option>
 									</select>
 								</div>
 						</form>
 							</div>
 						</div>
-
 <div class="clearfix"></div>
-
-<div class="row top_tiles">
+<div class="row top_tiles" id="tilesData">
 	<div class="animated flipInY col-md-3 col-sm-6 col-xs-12 tile_stats_count">
 		<div class="tile-stats">
 			<div class="right">
@@ -74,7 +72,33 @@
 		</div>
 	</div>
 </div>
-
+<div class="row" id="smblinkdisplay">
+	<div class="col-xs-12">
+		<div class="x_panel">
+			<div class="x_content">
+			<h4>Assessment Link: <a id="staticlink" target="blank" href="#">default</a></h4>
+			<p>Share this link with applicants that you want to assess, or use the 
+			  <a onclick="portal.showComponent('invite_applicant')" href="#">invite applicant</a>
+			  page to send a personal invitation</p>
+			</div>
+			<div>
+			<div class="x_content hidden" id="invitationsent">
+        		<h4>Invitation Sent</h4>
+    			<button type="button" class="btn btn-block btn-default" onclick='portal.resetInvitation();'>Invite Another</button> 
+        	</div>
+        	<div class="x_content" id="invitationform">
+        	  <form id='inviteapplicant' name="inviteapplicant" onsubmit="portal.inviteApplicant();return false;"
+        	      class="form form-inline">
+			        <input type="text" class="input-sm form-control" id="firstName" name="firstName" placeholder="First Name" required>
+        	      	<input type="text" class="input-sm form-control" id="lastName" name="lastName" placeholder="Last Name">
+				    <input required class="input-sm form-control" type="email" name="email" required placeholder="email" required>
+					<button type="submit" class="btn btn-sm btn-primary">Send<i id="spinner" class="fa fa-spinner fa-spin hidden"></i></button>
+        		</form>
+        	</div>
+			</div>
+		</div>
+	</div>      	
+</div>
 <div class="row">
 	<div class="col-xs-6 col-sm-3">
 		<div class="x_panel">
