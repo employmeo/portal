@@ -152,6 +152,15 @@ clientPortal.prototype.signup = function() {
 	submitSignupRequest(this);
 }
 
+clientPortal.prototype.signupsmb = function() {
+	var fields = $('#signupsmbform').serializeArray();
+	this.signuprequest = {};
+	for (var i=0;i<fields.length;i++) {
+		this.signuprequest[fields[i].name] = fields[i].value;
+	}	
+	$("#wait").removeClass('hidden');
+	submitSMBSignupRequest(this);
+}
 
 clientPortal.prototype.logout = function () {
 	$("#wait").removeClass('hidden');			
@@ -257,6 +266,14 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 }
 
 clientPortal.prototype.initDashBoard = function() {
+	if (null != this.user.account.defaultAsId) {
+		$('#smblinkdisplay').removeClass('hidden');
+		var assessment = this.getAssessmentBy(this.user.account.defaultAsId);
+		$('#staticlink').attr('href',assessment.permalink);
+		$('#staticlink').text(assessment.permalink);
+	} else {
+		$('#smblinkdisplay').addClass('hidden');		
+	}
 	if (Object.keys(this.dashParams).length > 0) {
 		// code to put the dashboard details in the right place.
 		var drp = $('#reportrange').data('daterangepicker');
@@ -297,7 +314,7 @@ clientPortal.prototype.requestDashUpdate = function() {
 
 }
 
-clientPortal.prototype.updateDash = function(data) {	
+clientPortal.prototype.updateDash = function(data) {
 	this.dashResults = data;
 	var invited = 0;
 	var started = 0;
@@ -321,7 +338,7 @@ clientPortal.prototype.updateDash = function(data) {
 	
 	// Clear Hire Rates Progress Bars
 	$('#hirerates').empty();
-	
+	var hireratebars = 0;
 	for (var i=0;i<data.length;i++) {
 		var dataPoint = data[i];
 
@@ -345,9 +362,9 @@ clientPortal.prototype.updateDash = function(data) {
 		hireData.datasets[0].data[i] = dataPoint.data[4];
 
 		// If any scored candidates exist, add the HireRate Bar
-		if (dataPoint.data[3] > 0) this.addHireRateBar(dataPoint);
+		if (dataPoint.data[3] > 0) {this.addHireRateBar(dataPoint);hireratebars++;}
 	}
-	
+	if (hireratebars == 0) $('#hirerates').append($('<div />',{'class':'no-data','text':'No Data Available'}));
 	$('#invitecount').html(invited);
 	$('#completedcount').html(completed);
 	$('#scoredcount').html(scored);	
@@ -361,20 +378,34 @@ clientPortal.prototype.updateDash = function(data) {
 
 clientPortal.prototype.refreshDashApplicants = function(data) {
 	if (this.dashApplicants != null) this.dashApplicants.destroy();
-	// Build Applicants Widget
-	this.dashApplicants = new Chart($("#dashApplicants").get(0).getContext("2d"), {
-		type: 'doughnut',
-		data: data,
-		options: {
-			cutoutPercentage : 35,
-			responsive : true,
-			legend: { display: false }
-		}});
+	var total = 0;
+	for (var i=0; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
+	if (total >= 1) {
+		$("#dashApplicants").removeClass('hidden');
+		$("#appliedNoData").addClass('hidden');
+		// Build Applicants Widget
+		this.dashApplicants = new Chart($("#dashApplicants").get(0).getContext("2d"), {
+			type: 'doughnut',
+			data: data,
+			options: {
+				cutoutPercentage : 35,
+				responsive : true,
+				legend: { display: false }
+			}});
+	} else {
+		$("#dashApplicants").addClass('hidden');
+		$("#appliedNoData").removeClass('hidden');
+	}
 }
 
 clientPortal.prototype.refreshDashHires = function(data) {
 	if (this.dashHires != null) this.dashHires.destroy();
-	// Build Hires Widget
+	var total = 0;
+	for (var i=0; i<data.datasets[0].data.length;i++) total += data.datasets[0].data[i];
+	if (total >= 1) {
+		$("#dashHires").removeClass('hidden');
+		$("#hiredNoData").addClass('hidden');
+		// Build Hires Widget
 	this.dashHires = new Chart($("#dashHires").get(0).getContext("2d"), {
 		type: 'doughnut', 
 		data: data, 
@@ -383,10 +414,13 @@ clientPortal.prototype.refreshDashHires = function(data) {
 			responsive : true,
 			legend: { display: false }
 	}});
+	} else {
+		$("#dashHires").addClass('hidden');
+		$("#hiredNoData").removeClass('hidden');		
+	}
 }
 
 clientPortal.prototype.addHireRateBar = function(data) {
-
 	var rate = Math.round(100*data.data[4] / data.data[3]);
 	var profile = {
 			profileClass : data.profileClass,
@@ -1382,23 +1416,31 @@ clientPortal.prototype.updatePosition = function() {
 
 clientPortal.prototype.updateHistory = function(historyData) {
 	if (this.historyChart != null) this.historyChart.destroy();
-	var dashHistory = $("#dashHistory").get(0).getContext("2d");
-	this.historyChart = new Chart(dashHistory, {
-		type: 'bar', data: historyData,
-		options: { 
-			bar: {stacked: true},
-			scales: { 
-				xAxes: [{
-					gridLines: {color : "rgba(0, 0, 0, 0)"},
-					stacked: true,
-					categoryPercentage: 0.5
-				}],
-				yAxes: [{gridLines: {display: true}, scaleLabel: {fontSize: '18px'}, stacked: true}]
-			},
-			responsive: true,
-			legend: { display: false }
-		}
-	});
+	
+	if ((this.user.account.accountType == 1) || (this.user.account.accountType == 999)) {
+		$("#dashHistory").removeClass('hidden');
+		$("#hiremixNoData").addClass('hidden');
+		var dashHistory = $("#dashHistory").get(0).getContext("2d");
+		this.historyChart = new Chart(dashHistory, {
+			type: 'bar', data: historyData,
+			options: { 
+				bar: {stacked: true},
+				scales: { 
+					xAxes: [{
+						gridLines: {color : "rgba(0, 0, 0, 0)"},
+						stacked: true,
+						categoryPercentage: 0.5
+					}],
+					yAxes: [{gridLines: {display: true}, scaleLabel: {fontSize: '18px'}, stacked: true}]
+				},
+				responsive: true,
+				legend: { display: false }
+			}
+		});
+	} else {
+		$("#dashHistory").addClass('hidden');
+		$("#hiremixNoData").removeClass('hidden');
+	}
 }
 
 clientPortal.prototype.renderApplicantDetails = function() {
@@ -2254,8 +2296,18 @@ clientPortal.prototype.initSetupWizard = function() {
 	}
 }
 
+clientPortal.prototype.initSMBSetupWizard = function() {
+	// get assessments to choose from, and populate the table.
+	$('#wait').removeClass('hidden');
+	if (!this.assessmentOptions) {
+		var thePortal = this;
+		$.when(getAssessmentOptions(thePortal)).done(function(){thePortal.showAssessmentOptions();});
+	} else {
+		this.showAssessmentOptions();
+	}
+}
+
 clientPortal.prototype.showAssessmentOptions = function() {
-	
 	$('#assessmentgroup').empty();
 	for (var key in this.assessmentOptions) {
 		option = this.assessmentOptions[key];
@@ -2306,6 +2358,20 @@ clientPortal.prototype.setupWizardPosition = function() {
 	var thePortal = this;
 	$('#wait').removeClass('hidden');
 	$.when(newBenchmark(thePortal)).done(function(){thePortal.setupWizardStepTwo();})
+};
+
+clientPortal.prototype.setupSMBWizard = function() {
+	var surveyId = $('#wizard-assessment :input[name=surveyId]:checked').val();
+	if (!surveyId) {
+		$('#assessmentgroup').addClass('has-error');
+		return false;
+	}
+	this.signupRequest = {};
+	this.signupRequest.surveyId = surveyId;
+	
+	var thePortal = this;
+	$('#wait').removeClass('hidden');
+	$.when(configureSMBAssessment(thePortal)).done(function(){thePortal.showComponent('dash');$('#wait').addClass('hidden');})
 };
 
 clientPortal.prototype.setupWizardStepTwo = function() {
@@ -2379,7 +2445,6 @@ clientPortal.prototype.calculateBenchmark = function() {
 	$('#wait').removeClass('hidden');
 	calcBenchmark(this);
 };
-
 
 clientPortal.prototype.parseFileToTable = function(file, tablename) {	
 	var requiredHeaders = ['firstName','lastName','email','topPerformer'];
@@ -2457,7 +2522,7 @@ clientPortal.prototype.readyLeftNav = function() {
     var URL = window.location; //
     this.sidebar = $('#sidebar-menu');
     this.sidebar_footer = $('.sidebar-footer');
-
+    if (this.user.account.accountType < 100) $('#benchmarkingmenu').addClass('hidden');
     this.sidebar.find('li ul').slideUp();
     this.sidebar.find('li').removeClass('active');
     this.sidebar.find('li').on('click', function(ev) {

@@ -13,22 +13,20 @@
 								    <input type=hidden name="todate" id='todate'>
 								</div>
 								<div class="form-group">
-									<select class="form-control" id="locationId" name="locationId" onChange='portal.requestDashUpdate()'>
+									<select class="form-control" id="locationId" name="locationId" onChange='portal.requestDashUpdate()' style="max-width:200px;">
 										<option value=-1>all locations</option>
 									</select>
 								</div>
                             	<div class="form-group">
-									<select class="form-control" id="positionId" name="positionId" onChange='portal.requestDashUpdate()'>
+									<select class="form-control" id="positionId" name="positionId" onChange='portal.requestDashUpdate()' style="max-width:200px;">
 										<option value=-1>all positions</option>
 									</select>
 								</div>
 						</form>
 							</div>
 						</div>
-
 <div class="clearfix"></div>
-
-<div class="row top_tiles">
+<div class="row top_tiles" id="tilesData">
 	<div class="animated flipInY col-md-3 col-sm-6 col-xs-12 tile_stats_count">
 		<div class="tile-stats">
 			<div class="right">
@@ -74,7 +72,33 @@
 		</div>
 	</div>
 </div>
-
+<div class="row" id="smblinkdisplay">
+	<div class="col-xs-12">
+		<div class="x_panel text-center">
+			<div class="x_content">
+			<h4>Assessment Link: <a id="staticlink" target="blank" href="#">default</a></h4>
+			<p>Share this link with applicants that you want to assess, or use the 
+			  <a onclick="portal.showComponent('invite_applicant')" href="#">invite applicant</a>
+			  page to send a personal invitation</p>
+			</div>
+			<!-- div>
+			<div class="x_content hidden" id="invitationsent">
+        		<h4>Invitation Sent</h4>
+    			<button type="button" class="btn btn-block btn-default" onclick='portal.resetInvitation();'>Invite Another</button> 
+        	</div>
+        	<div class="x_content" id="invitationform">
+        	  <form id='inviteapplicant' name="inviteapplicant" onsubmit="portal.inviteApplicant();return false;"
+        	      class="form form-inline">
+			        <input type="text" class="input-sm form-control" id="firstName" name="firstName" placeholder="First Name" required>
+        	      	<input type="text" class="input-sm form-control" id="lastName" name="lastName" placeholder="Last Name">
+				    <input required class="input-sm form-control" type="email" name="email" required placeholder="email" required>
+					<button type="submit" class="btn btn-sm btn-primary">Send<i id="spinner" class="fa fa-spinner fa-spin hidden"></i></button>
+        		</form>
+        	</div>
+			</div -->
+		</div>
+	</div>      	
+</div>
 <div class="row">
 	<div class="col-xs-6 col-sm-3">
 		<div class="x_panel">
@@ -84,6 +108,7 @@
 				</h4>
 			</div>
 			<div class="x_content">
+				<div id="appliedNoData" class="no-data hidden">No Data Available</div>
 				<div>
 					<canvas id="dashApplicants" width="100" height="100"></canvas>
 				</div>
@@ -98,6 +123,7 @@
 				</h4>
 			</div>
 			<div class="x_content">
+				<div id="hiredNoData" class="no-data hidden">No Data Available</div>
 				<div>
 					<canvas id="dashHires" width="100" height="100"></canvas>
 				</div>
@@ -112,78 +138,6 @@
 				</h4>
 			</div>
 			<div class="x_content" id='hirerates'>
-				<div class="widget_summary">
-                	<div class="w_left w_10">
-                	    <div class="btn-success text-center" style="height: 30px; width: 30px;vertical-align:middle;">
-						   <i class="fa fa-rocket" style="margin: auto; float: none;font-size:17px;line-height:28px;"></i>
-						</div>
-						</div>
-                    <div class="clearfix"></div>
-                    <div class="w_left w_20"><h4>Rising Star</h4></div>
-                    <div class="clearfix"></div>
-                     <div class="w_center w_55">
-                      	<div class="progress" style="height: 30px;">
-                           	<div class="progress-bar  progress-bar-success" role="progressbar" id='risingstarbar' style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w_right w_20"><span id='risingstarrate'>%</span></div>
-                    <div class="clearfix"></div>
-                </div>
-				<div class="widget_summary">
-                	<div class="w_left w_10">
-                	    <div class="btn-info text-center" style="height: 30px; width: 30px;vertical-align:middle;">
-						   <i class="fa fa-user-plus" style="margin: auto; float: none;font-size:17px;line-height:28px;"></i>
-						</div>
-						</div>
-                    <div class="clearfix"></div>
-                    <div class="w_left w_20"><h4>Long Timer</h4></div>
-                    <div class="clearfix"></div>
-                     <div class="w_center w_55">
-                      	<div class="progress" style="height: 30px;">
-                           	<div class="progress-bar  progress-bar-info" id='longtimerbar' role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w_right w_20"><span id='longtimerrate'>%</span></div>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="widget_summary">
-                	<div class="w_left w_10">
-                	    <div class="btn-warning text-center" style="height: 30px; width: 30px;vertical-align:middle;">
-						   <i class="fa fa-gear" style="margin: auto; float: none;font-size:17px;line-height:28px;"></i>
-						</div>
-						</div>
-                    <div class="clearfix"></div>
-                    <div class="w_left w_20"><h4>Churner</h4></div>
-                    <div class="clearfix"></div>
-                     <div class="w_center w_55">
-                      	<div class="progress" style="height: 30px;">
-                           	<div class="progress-bar  progress-bar-warning" id='churnerbar' role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w_right w_20"><span id='churnerrate'>%</span></div>
-                    <div class="clearfix"></div>
-                </div>
-                <div class="widget_summary">
-                	<div class="w_left w_10">
-                	    <div class="btn-danger text-center" style="height: 30px; width: 30px;vertical-align:middle;">
-						   <i class="fa fa-hand-stop-o" style="margin: auto; float: none;font-size:17px;line-height:28px;"></i>
-						</div>
-						</div>
-                    <div class="clearfix"></div>
-                    <div class="w_left w_20"><h4>Red Flag</h4></div>
-                    <div class="clearfix"></div>
-                     <div class="w_center w_55">
-                      	<div class="progress" style="height: 30px;">
-                           	<div class="progress-bar  progress-bar-danger" id='redflagbar' role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w_right w_20"><span id='redflagrate'>%</span></div>
-                    <div class="clearfix"></div>
-                </div>
             </div>
 		</div>
 	</div>
@@ -198,6 +152,7 @@
 				</h4>
 			</div>
 			<div class="x_content">
+				<div id="hiremixNoData" class="no-data hidden" style="line-height:325px;height:325px;">No Data Available</div>
 				<div>
 					<canvas id="dashHistory" style="width: 100%, height: auto;"></canvas>
 				</div>
