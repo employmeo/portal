@@ -1,0 +1,143 @@
+<div class="col-xs-12 text-center">
+	<h3>Account Setup</h3>
+</div>
+<div class="col-xs-12">
+	<div class="x_panel">
+		<div class="x_content">
+			<div class='wizard' role='tablist'>
+				<div class="wizard-progress">
+					<div id='setupwizardline' class="wizard-progress-line"
+						data-now-value="16.7" data-number-of-steps="3"
+						style="width: 16.7%;"></div>
+				</div>
+				<div id='setupwizardone' class="wizard-step active">
+					<div class="wizard-step-icon">
+						<i class="fa fa-hand-o-right"></i>
+					</div>
+					<p>Select Assessment</p>
+				</div>
+				<div id='setupwizardtwo' class="wizard-step">
+					<div class="wizard-step-icon">
+						<i class="fa fa-sliders"></i>
+					</div>
+					<p>Customize Appearance</p>
+				</div>
+				<div id='setupwizardthree' class="wizard-step">
+					<div class="wizard-step-icon">
+						<i class="fa fa-paper-plane"></i>
+					</div>
+					<p>Test and Confirm</p>
+				</div>
+			</div>
+			<div class='clearfix'></div>
+			<div id='wizard_assessment'>
+				<hr>
+				<h3 class="text-center">Choose an Assessment</h3>
+				<hr>
+				<form class='form form-horizontal wizard-form' id='wizard-assessment'
+					onsubmit='portal.setupSMBWizard(); return false;'>
+					<div class="container-fluid" id='assessmentgroup'>
+					</div>
+					<div class='clearfix'></div>
+					<hr>
+					<div class="form-group text-right">
+						<button type='submit' class='btn btn-primary'>Continue</button>
+					</div>
+				</form>
+			</div>
+			<div id='wizard_configure' class='hidden'>
+				<hr>
+				<h3 class="text-center">Customize what your candidates will see</h3>
+				<hr>
+				<form class='form form-horizontal wizard-form' id='wizard-benchmark'
+					onsubmit='portal.setupWizardConfigure(); return false;'>
+					<div class='form-group'>
+						<div class='col-xs-3 col-lg-2'>
+							<input type="radio" name="choice" id="simplecheck"
+								class="cleancheck" value=100>
+							<label class="h4 cleancheck" for="simplecheck">Simple</label>
+						</div>
+						<div class='col-xs-9 col-lg-10'>
+							<p class="h4">Simple is the easiest way to get going.
+							We will give you a link to send to <strong>at least 10 employees.</strong> 
+							After they take the test, we will give you back a detailed analysis
+							of how your employees rank against the general population.</p>
+						</div>
+					</div>
+					<div class='form-group'>
+						<div class='col-xs-3 col-lg-2'>
+							<input type="radio" name="choice" id="performancecheck"
+								class="cleancheck" value=200>
+							<label class="h4 cleancheck" for="performancecheck">Top Performers</label>
+						</div>
+						<div class='col-xs-9 col-lg-10'>
+							<p class="h4">Choosing Top Performers will give you 2 links, one to send to
+							your top performers and one to send to the rest of your team. It is best with  
+							<strong>at least 10 people</strong> in each group. Once everyone takes the
+							test, you will get back a detailed analysis of the factors that matter most
+							in predicting your top performers, and you will have your own custom model for
+							scoring new applicants.</p>
+						</div>
+					</div>
+					<div class='form-group'>
+						<div class='col-xs-3 col-lg-2'>
+							<input type="radio" name="choice" id="detailedcheck"
+								class="cleancheck" value=300>
+							<label class="h4 cleancheck" for="detailedcheck">Custom Predictions</label>
+						</div>
+						<div class='col-xs-9 col-lg-10'>
+							<p class="h4">Custom Predictions lets you decide what the system predicts. You will
+							need to upload a .csv file with the names and email addresses of all the employees you
+							want to take this test, and a yes or no column if they are a top performer. For more
+							predictions, just contact us at the number below, and we can work with you on them.</p>
+						</div>
+					</div>
+					<div class='clearfix'></div>
+					<hr>
+					<div class="form-group text-right">
+						<button type='submit' id='uploadbutton'
+							class='btn btn-primary' disabled>Continue</button>
+					</div>
+				</form>
+			</div>
+			<div id='wizard_confirm' class='hidden'>
+				<hr>
+				<h3 class="text-center">Test it out.</h3>
+				<hr>
+				<form class="form form-horizontal wizard-form" onsubmit='portal.completeWizardConfirm(); return false;'>
+				<p class="h4">
+					Before sending, you can configure your benchmark a little more if
+					you would like. Visit the <a href='#'
+						onclick='portal.showComponent("settings");'>settings page</a> to
+					edit the introduction and thank you messages that your employees
+					will see when they take the assessment.
+				</p>
+				<hr>
+					<div class='bg-info alert' id='benchmarklinks'>
+						<table class='table' id='assessmentlinks' width='100%'></table>
+						<div class="form-group">
+							<hr>
+							<p class="h4">Once you email links to <strong>at least 10</strong>
+								employees, return here, enter the number of employees that you have
+								included in the benchmark and click "Confirm Send" below.</p>
+							<hr>
+						</div>
+					</div>					
+					<div class="form-group form-inline text-center" id="invitations">
+						<label for="invited" class="control-label input-lg">Number of employees to be invited:</label>
+						<input type="number" min='10' name="invited" id="invited" class="text-right form-control input-lg" required>
+					</div>
+					<hr>
+					<div class="form-group text-center">
+						<button type="submit" class="btn btn-primary" id="completeWizard">Confirm Setup</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script type='text/javascript'>
+	$(document).ready(function() {
+		portal.initSMBSetupWizard();
+	});
+</script>

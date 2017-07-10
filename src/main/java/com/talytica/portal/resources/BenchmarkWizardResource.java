@@ -133,7 +133,7 @@ public class BenchmarkWizardResource {
 		log.debug("Requested assessment options for account id {}", accountId);
 		Account account = accountService.getAccountById(accountId);
 		if(null != account) {
-			return Response.status(Status.OK).entity(surveyService.getAllAvailableSurveys(500)).build();
+			return Response.status(Status.OK).entity(surveyService.getAllAvailableSurveys(account.getAccountType())).build();
 		} else {
 			return Response.status(Status.NOT_FOUND).build();
 		}

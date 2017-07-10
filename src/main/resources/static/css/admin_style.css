@@ -269,6 +269,17 @@ video {
 	box-shadow: 1px 1px 1px 1px rgba(170,170,170,1);
 }
 
+.no-data {
+    height: 180px;
+    text-align: center;
+    line-height: 180px;
+    border-style: dashed;
+    border-color: #CCCCCC;
+    font-size: 22px;
+    font-style: italic;
+    color: #CCCCCC;  
+}
+
 .card-solid {
 	border-style: solid;
 }
