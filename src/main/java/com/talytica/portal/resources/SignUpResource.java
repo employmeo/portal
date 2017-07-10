@@ -290,6 +290,7 @@ public class SignUpResource {
 		AccountSurvey savedSurvey = accountSurveyService.save(accountSurvey);
 		savedSurvey.setPermalink(externalLinksService.getAssessmentLink(savedSurvey));
 		AccountSurvey updatedSurvey = accountSurveyService.save(savedSurvey);
+		account.setDefaultAsId(updatedSurvey.getId());
 		account.setAccountStatus(Account.STATUS_READY);
 
 		// Set up auto-predict with default predictions
@@ -301,6 +302,7 @@ public class SignUpResource {
 				String modelName = modelNames[i];
 				PositionPredictionConfiguration ppc = new PositionPredictionConfiguration();
 				PredictionModel model = predictionModelService.getModelByName(modelName);
+				if (null == model) continue;
 				ppc.setActive(true);
 				ppc.setDisplayPriority(i);
 				ppc.setMean(model.getMean());

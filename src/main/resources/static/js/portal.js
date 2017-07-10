@@ -266,7 +266,7 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 }
 
 clientPortal.prototype.initDashBoard = function() {
-	if (null != this.user.account.defaultAsid) {
+	if (null != this.user.account.defaultAsId) {
 		$('#smblinkdisplay').removeClass('hidden');
 		var assessment = this.getAssessmentBy(this.user.account.defaultAsId);
 		$('#staticlink').attr('href',assessment.permalink);
