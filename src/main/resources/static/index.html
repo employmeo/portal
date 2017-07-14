@@ -39,6 +39,24 @@
 <script type="text/javascript" src='/js/portal.js?version=@version@'></script>
 </head>
 <body class="nav-md" id='mainbody'>
+<div class="modal fade" id="confirm" tabindex="-1" role="dialog" aria-labelledby="confirmModal" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div  class="modal-header">
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+               <h4 id='confirmheader' class="modal-title">Modal title</h4>
+            </div>
+            <div class="modal-body">
+            <p id='confirmbody'></p>
+            </div>
+            <div id='confirmfooter' class="modal-footer">
+                <button id='modaldismiss' type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button id='modalconfirm' type="button" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
   <div id='wait' class="text-center" style='position:absolute;width:100%;position: absolute;background: black;opacity: .75;padding: 35%;height: 100%;z-index: 99;'>
     <i class="fa fa-spinner fa-5x fa-spin"></i>
   </div>

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.*;
 import com.employmeo.data.service.GraderService;
+import com.employmeo.data.service.QuestionService;
 import com.employmeo.data.service.RespondantService;
 import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.GraderParams;
@@ -157,13 +158,14 @@ public class GraderResource {
 	   })
 	public Response saveQuestion(@ApiParam(value = "grade") Grade grade) {
 		log.debug("Requested grade save: {}", grade);
-
 		Grade savedGrade = graderService.saveGrade(grade);
 		log.debug("Saved grade {}", savedGrade);
 
 		return Response.status(Status.CREATED).entity(savedGrade).build();
 	}
 
+
+	
 	@POST
 	@Path("/{id}/status")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -198,7 +200,11 @@ public class GraderResource {
 		log.debug("Requested remind grader id: {}", graderId);
 		Grader grader = graderService.getGraderById(graderId);
 		if (grader != null) {
-			emailService.sendGraderReminder(grader);
+			if (grader.getType() == Grader.TYPE_PERSON) {
+				emailService.sendReferenceRequestReminder(grader);
+			} else {
+				emailService.sendGraderReminder(grader);
+			}
 			grader.setStatus(Grader.STATUS_REMINDED);
 			Grader savedGrader = graderService.save(grader);
 			log.debug("Saved grader {}", savedGrader);

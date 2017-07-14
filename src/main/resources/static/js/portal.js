@@ -712,9 +712,9 @@ clientPortal.prototype.initRespondantReferences = function() {
 		columns: [
 		          { responsivePriority: 1, className: 'text-left', title: 'Reference Name', data: 'person' ,
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
-		          { responsivePriority: 2, className: 'text-left', title: 'Status', data: 'status', render : function ( data, type, row ) {
-		        	  	if (data == 10) return 'Complete'; if (data == 20) return 'Declined'; return 'Incomplete';}},
-		          { responsivePriority: 4, className: 'details-control', title: 'Responses' }
+		          { responsivePriority: 5, className: 'text-left', title: 'Relationship', data: 'relationship'},
+		          { responsivePriority: 6, className: 'text-left', title: 'Overall Score', data: 'summaryScore'},
+		          { responsivePriority: 4, className: 'details-control', title: 'Expand' }
 		         ]
 	});
 	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
@@ -732,6 +732,25 @@ clientPortal.prototype.showRespondantReferences = function() {
 	for (var key in this.respondant.graders) {
 		if (this.respondant.graders[key].type >= 100) references.push(this.respondant.graders[key]);
 	}
+	
+	var warning = false;
+	var ipAddresses = [];
+	var emails = [];
+	$('#referencewarning').css('display','none');
+	for (var i=0;i<references.length;i++) {
+		var ipAddress = references[i].ipAddress;
+		var email = references[i].person.email;
+		if (ipAddresses.indexOf(ipAddress) > -1) warning = true;
+		if (emails.indexOf(email) > -1) warning = true;
+		if (ipAddress) ipAddresses.push(ipAddress);
+		emails.push(email);
+		if (warning) break;
+	}
+	if (warning) {
+		$('#warningtext').text('Some references share the same email or IP address.');
+		$('#referencewarning').slideDown();
+	}
+	
 	$('#referencetable').dataTable().fnClearTable();
 	if (references.length > 0) {
 		var thePortal = this;
@@ -773,7 +792,70 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 		row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeText || grade.gradeValue || ''}));
 		table.append(row);
 	}
+	if (grader.status != 10) {
+		var row = $('<tr />');
+		if (grader.status == 20) {
+			row.append($('<td />',{'text': 'Responses not used'}));
+			row.append($('<td />',{'class' : 'text-right', 'text': 'Ignored / Declined'}));
+		} else {
+			row.append($('<td />',{'text': 'Reference incomplete'}));
+			var cell = $('<td />',{'class' : 'text-right'});
+			var remind = $('<button />', {
+				'text' : 'remind',
+				'data-toggle' : 'modal',
+				'data-target' : '#confirm',
+				'onClick' : 'portal.remindReference('+ grader.id +');',
+				'class' : 'btn btn-xs btn-primary'
+			});
+			var ignore = $('<button />', {
+				'text' : 'ignore',
+				'data-toggle' : 'modal',
+				'data-target' : '#confirm',
+				'onClick' : 'portal.confirmIgnoreReference('+ grader.id +');',
+				'class' : 'btn btn-xs btn-danger'		
+			});
+			cell.append(remind);
+			cell.append(ignore);
+			row.append(cell);
+		}
+		table.append(row);
+	}
     myrow.child(table.wrap("<div />").parent().html()).show();
+}
+
+clientPortal.prototype.remindReference = function (referenceId) {
+	remindeEmailGrader(referenceId);
+	$('#confirmheader').text('Remind Reference');
+	$('#confirmbody').html('A reminder has been sent');
+    $('#modalconfirm').hide();
+    $('#modaldismiss').text('Ok');
+    $('#modaldismiss').show();   
+} 
+
+clientPortal.prototype.confirmIgnoreReference = function (referenceId) {
+	$('#confirmheader').text('Are you sure?');
+	$('#confirmbody').html('Reference input will be ignored');
+	$('#modalconfirm').attr('onClick', 'portal.ignoreReference('+ referenceId +');');
+    $('#modalconfirm').text('Confirm');
+    $('#modalconfirm').show();
+    $('#modaldismiss').text('Cancel');
+    $('#modaldismiss').show();		
+}
+
+clientPortal.prototype.ignoreReference = function (referenceId) {
+	submitIgnoreReference(referenceId, this);
+}
+
+clientPortal.prototype.ignoreReferenceComplete = function (data) {
+	for (var i=0;i<this.respondant.graders.length;i++) {
+		if (data.id == this.respondant.graders[i].id) {
+			console.log(this.respondant.graders[i]);
+			this.respondant.graders[i].status = data.status;
+			break;
+		} else console.log (data.id, this.respondant.graders[i].id);
+	}
+	this.showRespondantReferences();
+	$('#confirm').modal('hide');
 }
 
 clientPortal.prototype.getRespondantGraderById = function(id) {
@@ -1960,6 +2042,18 @@ clientPortal.prototype.renderOtherScoresIn = function(type, location) {
 	var resultsDiv = $('#'+location);
 	resultsDiv.empty();
 	var counter = 0;
+
+	scores.sort(function(a,b) {
+		var aCf = thePortal.getCorefactorBy(a.corefactorId);
+		var bCf = thePortal.getCorefactorBy(b.corefactorId);
+		// sort first by group
+		if (Math.abs(aCf.defaultCoefficient) == Math.abs(bCf.defaultCoefficient)) {
+			return aCf.name.localeCompare(bCf.name);			
+		} 
+		return Math.abs(bCf.defaultCoefficient)- Math.abs(aCf.defaultCoefficient);
+
+	});
+	
 	for (var key=0;key<scores.length;key++) {	
 		var value = scores[key].value;
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
