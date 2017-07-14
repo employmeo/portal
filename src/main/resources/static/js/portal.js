@@ -180,10 +180,12 @@ clientPortal.prototype.updateLocationSelect = function (detail) {
 
 clientPortal.prototype.updateAssessmentSelect = function (detail) {
 	$.each(this.assessmentList, function (index, value) {
-		$('#asid').append($('<option />', { 
-			value: this.id,
-			text : this.displayName 
-		}));
+		if ((this.accountSurveyStatus !=99) && (this.type == 100)) {
+			$('#asid').append($('<option />', { 
+				value: this.id,
+				text : this.displayName 
+			}));
+		}
 	});
 	if (detail) this.changeAssessmentTo($('#asid').val());
 }
@@ -789,7 +791,11 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 		count++;
 		var row = $('<tr />');
 		row.append($('<td />',{'text': grade.questionText}));
-		row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeText || grade.gradeValue || ''}));
+		if (grade.gradeText) {
+			row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeText }));
+		} else {
+			row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeValue }));
+		}
 		table.append(row);
 	}
 	if (grader.status != 10) {
@@ -1563,6 +1569,9 @@ clientPortal.prototype.renderPredictions = function() {
 		return;
 	} else {
 		$('#predictionpanel').removeClass('hidden');
+		this.respondant.predictions.sort(function(a,b) {
+			return a.positionPredictionConfig.displayPriority - a.positionPredictionConfig.displayPriority;
+		});
 	}
 	var profile = this.getProfile(this.respondant.profileRecommendation);
 	$('#compositescore').text(Math.round(this.respondant.compositeScore));
