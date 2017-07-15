@@ -458,6 +458,31 @@ function updateGraderStatus(grader) {
 	});
 }
 
+function submitIgnoreReference(graderId, thePortal) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/"+graderId+"/ignore",
+		processData: false,
+		success: function(data) {
+			thePortal.ignoreReferenceComplete(data);
+		}
+	});
+}
+
+
+function remindeEmailGrader(graderId) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/"+graderId+"/remind",
+		processData: false,
+		success: function() {
+			// do nothing.
+		}
+	});
+}
+
 function sendInviteReminder(id) {
 	return $.ajax({
 		type: "POST",

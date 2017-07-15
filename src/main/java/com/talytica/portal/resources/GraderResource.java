@@ -16,7 +16,9 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.*;
 import com.employmeo.data.service.GraderService;
+import com.employmeo.data.service.QuestionService;
 import com.employmeo.data.service.RespondantService;
+import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.GraderParams;
 
 import io.swagger.annotations.*;
@@ -35,6 +37,9 @@ public class GraderResource {
 	
 	@Autowired
 	RespondantService respondantService;
+	
+	@Autowired
+	EmailService emailService;
 
 	//private static final long ONE_DAY = 24*60*60*1000; // one day in milliseconds to add to the "to-date"
 
@@ -153,13 +158,14 @@ public class GraderResource {
 	   })
 	public Response saveQuestion(@ApiParam(value = "grade") Grade grade) {
 		log.debug("Requested grade save: {}", grade);
-
 		Grade savedGrade = graderService.saveGrade(grade);
 		log.debug("Saved grade {}", savedGrade);
 
 		return Response.status(Status.CREATED).entity(savedGrade).build();
 	}
 
+
+	
 	@POST
 	@Path("/{id}/status")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -182,6 +188,53 @@ public class GraderResource {
 		}
 	}
 
+	@POST
+	@Path("/{id}/remind")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Updates the status of specified grader", response = Grader.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 202, message = "Status update accepted"),
+	   })
+	public Grader remindGrader(@ApiParam(value = "grader id") @PathParam("id") Long graderId) {
+		log.debug("Requested remind grader id: {}", graderId);
+		Grader grader = graderService.getGraderById(graderId);
+		if (grader != null) {
+			if (grader.getType() == Grader.TYPE_PERSON) {
+				emailService.sendReferenceRequestReminder(grader);
+			} else {
+				emailService.sendGraderReminder(grader);
+			}
+			grader.setStatus(Grader.STATUS_REMINDED);
+			Grader savedGrader = graderService.save(grader);
+			log.debug("Saved grader {}", savedGrader);
+			return savedGrader;
+		} else {
+			return null;
+		}
+	}
+	
+	@POST
+	@Path("/{id}/ignore")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Updates the status of specified grader", response = Grader.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 202, message = "Status update accepted"),
+	   })
+	public Grader ignoreGrader(@ApiParam(value = "grader id") @PathParam("id") Long graderId) {
+		log.debug("Requested remind grader id: {}", graderId);
+		Grader grader = graderService.getGraderById(graderId);
+		if (grader != null) {
+			grader.setStatus(Grader.STATUS_IGNORED);
+			Grader savedGrader = graderService.save(grader);
+			log.debug("Saved grader {}", savedGrader);
+			return savedGrader;
+		} else {
+			return null;
+		}
+	}
+	
 	@POST
 	@Path("/search")
 	@Consumes(MediaType.APPLICATION_JSON)
