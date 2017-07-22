@@ -1787,6 +1787,7 @@ clientPortal.prototype.changeBenchmarkTo = function(id) {
 		this.benchmarkCharts.splice[key,0];
 	}
 	$('#factors_barchart').empty();
+	$('#factors_radarchart').empty();
 	$('#benchmarklinks').addClass('hidden');
 	$('#resumebutton').addClass('hidden');
 	$('#respondantspanel').addClass('hidden');
