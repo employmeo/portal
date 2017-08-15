@@ -790,9 +790,9 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 		var grade = grader.grades[key];
 		count++;
 		var row = $('<tr />');
-		row.append($('<td />',{'text': grade.questionText}));
+		row.append($('<td />',{'html': grade.questionText}));
 		if (grade.gradeText) {
-			row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeText }));
+			row.append($('<td />',{'class' : 'text-right', 'html': grade.gradeText }));
 		} else {
 			row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeValue }));
 		}
