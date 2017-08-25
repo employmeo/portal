@@ -715,7 +715,8 @@ clientPortal.prototype.initRespondantReferences = function() {
 		          { responsivePriority: 1, className: 'text-left', title: 'Reference Name', data: 'person' ,
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
 		          { responsivePriority: 5, className: 'text-left', title: 'Relationship', data: 'relationship'},
-		          { responsivePriority: 6, className: 'text-left', title: 'Overall Score', data: 'summaryScore'},
+		          { responsivePriority: 6, className: 'text-left', title: 'Overall Score', data: 'summaryScore', render :
+		        	  function (data,type,row) {return thePortal.getStars(data, false);}},
 		          { responsivePriority: 4, className: 'details-control', title: 'Expand' }
 		         ]
 	});
@@ -728,8 +729,18 @@ clientPortal.prototype.initRespondantReferences = function() {
 	}
 }
 
+clientPortal.prototype.getStars = function(data, size) {
+	console.log(data);
+	if (isNaN(data)) return data;
+	var tail = '';
+	if (size) tail = '-lg';
+	var stardiv = $('<div />',{'class':'star-ratings-sprite'+tail}).append($('<span />',
+			{'class':'star-ratings-sprite-rating'+tail,'style' : 'width:'+(10*data)+'%'}));
+	return stardiv.wrap('<div>').parent().html();
+}
+
 clientPortal.prototype.showRespondantReferences = function() {
-	this.renderOtherScoresIn('Reference Scores','referenceresults');
+	this.renderReferenceLikerts('Reference Scores','referenceresults');
 	var references = [];
 	for (var key in this.respondant.graders) {
 		if (this.respondant.graders[key].type >= 100) references.push(this.respondant.graders[key]);
@@ -776,7 +787,6 @@ clientPortal.prototype.showRespondantReferences = function() {
 	        }
 		});
 		$('#references').removeClass('hidden');	
-		if (this.renderOtherScoresIn('Personal Ratings','personalratings') > 0) $('#selfevaluation').removeClass('hidden');	
 	}
 }
 
@@ -794,7 +804,7 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 		if (grade.gradeText) {
 			row.append($('<td />',{'class' : 'text-right', 'html': grade.gradeText }));
 		} else {
-			row.append($('<td />',{'class' : 'text-right', 'text': grade.gradeValue }));
+			row.append($('<td />',{'class' : 'text-right', 'html': this.getStars(grade.gradeValue, false) }));
 		}
 		table.append(row);
 	}
@@ -862,6 +872,43 @@ clientPortal.prototype.ignoreReferenceComplete = function (data) {
 	}
 	this.showRespondantReferences();
 	$('#confirm').modal('hide');
+}
+
+clientPortal.prototype.initDisplayResponses = function() {
+	var thePortal = this;
+	 $('#selfevaluation').addClass('hidden');
+	this.displayResponses = $('#displayresponses').DataTable( {
+        "paging" : false, "filter" : false, "ordering" : false, "info" : false, "responsive" : true,
+		order: [[ 0, 'desc' ]],
+		rowId: 'id',
+		columns: [
+		          { responsivePriority: 1, className: 'text-left', title: 'Question', data: 'name'} ,
+		          { responsivePriority: 2, className: 'text-left', title: 'Candidate Answer', data: 'value'}
+		         ]
+	});
+	$.fn.dataTable.ext.errMode = 'none'; // suppress errors on null, etc.
+	
+	if (!this.respondant.displayresponses) {
+		$.when(getDisplayResponses(thePortal.respondant)).done(function () {thePortal.showDisplayResponses();});
+	} else {
+		this.showDisplayResponses();
+	}
+}
+
+clientPortal.prototype.showDisplayResponses= function() {
+	var showPersonalRatings = false;
+	if (this.renderOtherScoresIn('Personal Ratings','personalratings') > 0) {
+		$('#selfratings').removeClass('hidden');
+		showPersonalRatings = true;
+	}
+	$('#displayresponses').dataTable().fnClearTable();
+	if (this.respondant.displayresponses.length > 0) {
+		$('#displayresponses').dataTable().fnAddData(this.respondant.displayresponses);
+		$('#displayresponses').removeClass('hidden');
+		$('#displayresponsesdiv').removeClass('hidden');
+		showPersonalRatings = true;
+	};
+	if (showPersonalRatings) $('#selfevaluation').removeClass('hidden');
 }
 
 clientPortal.prototype.getRespondantGraderById = function(id) {
@@ -1017,7 +1064,7 @@ clientPortal.prototype.logSavedGrade = function(grade) {
 			this.checkGraderStatus(updatedGrader);
 		}
 	}
-};
+}
 
 clientPortal.prototype.ignoreGrader = function(graderId) {
 
@@ -2044,6 +2091,41 @@ clientPortal.prototype.renderAudioAnalytics = function() {
 	if (counter > 0) $('#audioanalytics').removeClass('hidden');
 	
 }
+
+clientPortal.prototype.renderReferenceLikerts = function(type, location) {
+	var thePortal = this;
+	var scores = this.respondant.respondantScores;	
+	var resultsDiv = $('#'+location);
+	resultsDiv.empty();
+	var counter = 0;
+
+	scores.sort(function(a,b) {
+		var aCf = thePortal.getCorefactorBy(a.corefactorId);
+		var bCf = thePortal.getCorefactorBy(b.corefactorId);
+		// sort first by group
+		if (Math.abs(aCf.defaultCoefficient) == Math.abs(bCf.defaultCoefficient)) {
+			return aCf.name.localeCompare(bCf.name);			
+		} 
+		return Math.abs(bCf.defaultCoefficient)- Math.abs(aCf.defaultCoefficient);
+	});
+	
+	for (var key=0;key<scores.length;key++) {	
+		var value = 2+(8*((scores[key].value-1)/9));
+		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
+		if (corefactor.displayGroup != type) continue;
+		var tr = $('<tr />');
+		tr.append($('<th />',{'html' : '<h2>'+corefactor.name+'</h2>'}));
+		tr.append($('<th />',{'html'  : portal.getStars(value,true)}));
+		resultsDiv.append(tr);
+		counter++;	
+	}
+
+	if (counter == 0){
+		$('#'+location).append($('<tr />').append($('<th />',{'class' : 'text-center', 'html' : '<h4>No Scores Available</h4>'})));
+	}
+	return counter;
+}
+
 
 clientPortal.prototype.renderOtherScoresIn = function(type, location) {
 	var thePortal = this;
