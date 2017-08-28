@@ -730,7 +730,6 @@ clientPortal.prototype.initRespondantReferences = function() {
 }
 
 clientPortal.prototype.getStars = function(data, size) {
-	console.log(data);
 	if (isNaN(data)) return data;
 	var tail = '';
 	if (size) tail = '-lg';
@@ -865,10 +864,9 @@ clientPortal.prototype.ignoreReference = function (referenceId) {
 clientPortal.prototype.ignoreReferenceComplete = function (data) {
 	for (var i=0;i<this.respondant.graders.length;i++) {
 		if (data.id == this.respondant.graders[i].id) {
-			console.log(this.respondant.graders[i]);
 			this.respondant.graders[i].status = data.status;
 			break;
-		} else console.log (data.id, this.respondant.graders[i].id);
+		}
 	}
 	this.showRespondantReferences();
 	$('#confirm').modal('hide');
@@ -960,7 +958,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 				'id'   : 'radiobox-' + criterion.questionId +"-1",
 				'type' : 'radio', 'class' : 'thumbs-up', 'name' : 'gradeValue',
 				'onChange' : 'this.form.submit()', 'value' :  '10'});
-			if (11 == grade.gradeValue) radioLike.prop('checked', true);
+			if (10 == grade.gradeValue) radioLike.prop('checked', true);
 			like.append(radioLike);
 			like.append($('<label />', {
 				'for'   : 'radiobox-' + criterion.questionId +"-1", 'class' : 'thumbs-up' }));
@@ -969,7 +967,7 @@ clientPortal.prototype.createGradeForm = function (criterion) {
 				'id'   : 'radiobox-' + criterion.questionId +"-2",
 				'type' : 'radio', 'class' : 'thumbs-down', 'name' : 'gradeValue',
 				'onChange' : 'this.form.submit()', 'value' :  '0'});
-			if (1 == grade.gradeValue) radioDislike.prop('checked', true);
+			if (0 == grade.gradeValue) radioDislike.prop('checked', true);
 			dislike.append(radioDislike);
 			dislike.append($('<label />', {
 				'for'   : 'radiobox-' + criterion.questionId +"-2", 'class' : 'thumbs-down' }));
@@ -1200,37 +1198,27 @@ clientPortal.prototype.initRespondantsTable = function() {
 }
 
 clientPortal.prototype.getStatusText = function (status) {
-	switch (status) {
-		case 0:
-			return 'Created';
-		case 1:
-			return 'Invited';
-		case 5:
-		case 6:
-			return 'Incomplete';
-		case 10:
-			return 'Submitted';
-		case 11:
-			return 'Need Grades';
-		case 13:
-		case 15:
-		case 17:
-			return 'Scored';
-		case 20:
-		case 30:
-		case 40:
-			return 'Hired';
-		default:
-			return 'Not Hired';
-	}
+	if (status == 0) return 'Created';
+	if ((status == 5) || (status == 5)) return 'Incomplete';
+	if ((status == 10) || (status == 30)) return 'Submitted';
+	if ((status == 11) || (status == 31)) return 'Needs Input';
+	if ((status == 15) || (status == 35))return 'Scored';
+	if ((status == 19) || (status == 89) || (status == 99))return 'Not Hired';
+	if (status == 100) return 'Hired';
+	return 'In Process';
 }
 
 clientPortal.prototype.renderRespondantActions = function(respondant) {
 	var cell = $('<td />');
 	var thePortal = this;
 	switch (respondant.respondantStatus) {
+		case -20:  // created but not pre-screened
+		case 0:  // created but not emailed (yet)
+			break;
 		case 1:
 		case 5: // created or started
+		case 21: // created or started
+		case 25: // created or started
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'Remind',
@@ -1238,26 +1226,20 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 			}));
 			break;
 		case 6: // reminded already, but not finished
+		case 26: // reminded already, but not finished
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'Remind Again',
 				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
 			break;
-		case 11: // ungraded
-		case 13: // scored - not predicted
-		case 15: // predicted
+		default:
 			if (respondant.type != 1) break; // only view candidates
 			cell.append($('<button />',{
 				'class':'btn-primary btn-xs',
 				'text':'View Detail',
 				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.showComponent("candidate_detail");'
 			}));
-			break;
-		case 0:  // created but not emailed (yet)
-		case 10: // completed
-		case 12: // graded, but not scored
-		default:
 			break;
 	}
 	return cell;
@@ -1328,11 +1310,13 @@ clientPortal.prototype.sendApplicantReminder = function(respondantId) {
 		var resp;
 		if (thePortal.rTable) resp = thePortal.rTable.row('#'+respondantId).data();
 		if (resp) {
-			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
+			if (resp.respondantStatus < 6) resp.respondantStatus = 6;
+			if ((resp.respondantStatus > 20) && (resp.respondantStatus < 26)) resp.respondantStatus = 26;
 			thePortal.rTable.row('#'+respondantId).data(resp).draw();		
 		} else {
 			resp = thePortal.brTable.row('#'+respondantId).data();
 			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
+			if ((resp.respondantStatus > 20) && (resp.respondantStatus < 26)) resp.respondantStatus = 26;
 			thePortal.brTable.row('#'+respondantId).data(resp).draw();	
 		}
 	})
