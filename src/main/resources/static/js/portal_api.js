@@ -406,6 +406,17 @@ function getGradeableResponses(respondant) {
 	});
 }
 
+function getDisplayResponses(respondant) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "respondant/"+respondant.id+"/displaynvps",
+		success: function(data) {
+			respondant.displayresponses = data;
+		}
+	});
+}
+
 function getRespondantGraders(thePortal) {	
 	return $.ajax({
 		type: "GET",

@@ -142,16 +142,23 @@
 			</div>
 			<div id='selfevaluation' class='x_panel hidden'>
 				<div class="x_title">
-					<h3>Self Evaluation Results <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
+					<h3>Candidate Responses <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
 					<div class="clearfix"></div>
 				</div>
 				<div class="x_content">
 					<div>
+						<div id='displayresponsesdiv' class='hidden'>
+						<h4>Individual Question Responses</h4>
+						<table id='displayresponses' class='table table-hover table-condensed' style='width:100%;'>
+						</table>
+						</div>
+						<div id='selfratings' class='hidden'>
 					    <h4>Personal Ratings</h4>
 						<table class='table table-hover'>
 							<tbody id='personalratings'>
 							</tbody>
 						</table>
+						</div>
 					</div>
 				</div>
 			</div>			
@@ -166,6 +173,7 @@
 	portal.renderAudioAnalytics();
 	portal.initRespondantGradeables();
 	portal.initRespondantReferences();
+	portal.initDisplayResponses();
 	portal.addBenchmarksToScoreDetail();
 	portal.activateUIElements();
 	if (portal.searchResults != null) $('#backtosearch').toggleClass('hidden');

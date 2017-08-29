@@ -312,6 +312,32 @@ video {
     padding: 0px;
 }
 
+/**
+ * Rating Question Types
+ * ----------------------------------------------------------------------------
+ */
+
+.star-ratings-sprite-lg, .star-ratings-sprite, 
+.star-ratings-sprite-rating, .star-ratings-sprite-rating-lg {
+  background: url("/images/star-rating-sprite.png") repeat-x;
+  font-size: 0;
+  height: 21px;
+  line-height: 0;
+  overflow: hidden;
+  text-indent: -999em;
+  width: 110px;
+  margin: 0 auto;
+}
+.star-ratings-sprite-lg, .star-ratings-sprite-rating-lg {
+	background: url("/images/star-rating-sprite-lg.png") repeat-x;
+	height: 35px;
+	width: 175px;
+}
+.star-ratings-sprite-rating, .star-ratings-sprite-rating-lg {
+    background-position: 0 100%;
+    float: left;
+    display:block;
+}
 
 /**
  * Rating Question Types

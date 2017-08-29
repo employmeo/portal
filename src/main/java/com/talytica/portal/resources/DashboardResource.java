@@ -41,8 +41,8 @@ import io.swagger.annotations.ApiResponses;
 public class DashboardResource {
 
 	private static final long ONE_DAY = 24*60*60*1000; // one day in milliseconds
-	private static final int LOWEST_STATUS = -1;
-	private static final int HIGHEST_STATUS = 100;
+	private static final int LOWEST_STATUS = Respondant.STATUS_CREATED;
+	private static final int HIGHEST_STATUS = Respondant.STATUS_HIRED;
 	
 	@Autowired
 	RespondantService respondantService;
@@ -87,29 +87,11 @@ public class DashboardResource {
 			if (label == null) label = labels.get(0);
 			int index = labels.indexOf(label);
 			int count = 1;
-			switch (status) {
-			case Respondant.STATUS_TERMINATED:
-			case Respondant.STATUS_QUIT:
-			case Respondant.STATUS_HIRED:
-				hiredByProfile[index] += count;
-			case Respondant.STATUS_OFFERED:
-			case Respondant.STATUS_DECLINED:
-			case Respondant.STATUS_REJECTED:
-			case Respondant.STATUS_SCORED:
-			case Respondant.STATUS_PREDICTED:
-				scoredByProfile[index] += count;
-			case Respondant.STATUS_COMPLETED:
-			case Respondant.STATUS_UNGRADED:
-				completedByProfile[index] += count;
-			case Respondant.STATUS_STARTED:
-			case Respondant.STATUS_REMINDED:
-				startedByProfile[index] += count;
-			case Respondant.STATUS_INVITED:
-				invitedByProfile[index] += count;
-				break;
-			default:
-				break;
-			}
+			if (status >= Respondant.STATUS_HIRED) hiredByProfile[index] += count;
+			if (status >= Respondant.STATUS_PREDICTED) scoredByProfile[index] += count;
+			if (status >= Respondant.STATUS_COMPLETED) completedByProfile[index] += count;
+			if (status >= Respondant.STATUS_STARTED) startedByProfile[index] += count;		
+			if (status >= Respondant.STATUS_INVITED) invitedByProfile[index] += count;
 		}
 
 		// Assemble Applicant Data

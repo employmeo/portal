@@ -1,5 +1,6 @@
 package com.talytica.portal.resources;
 
+import java.util.Set;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Respondant;
+import com.employmeo.data.model.RespondantNVP;
 import com.employmeo.data.service.RespondantService;
 
 import io.swagger.annotations.Api;
@@ -58,6 +60,21 @@ public class RespondantResource {
 		} else {
 			return Response.status(Status.NOT_FOUND).build();
 		}
+	}	
+	
+	@GET
+	@Path("/{id}/displaynvps")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets the respondant by provided Id", response = RespondantNVP.class, responseContainer="list")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Respondant found"),
+	     @ApiResponse(code = 404, message = "No such Respondant found")
+	   })	
+	public Response getRespondantNVPs(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long id) {
+		log.debug("Requested respondant by id {}", id);
+		Set<RespondantNVP> nvps = respondantService.getDisplayNVPsForRespondant(id);
+		log.debug("Returning nvps {} for respondant {}", nvps, id);
+		return Response.status(Status.OK).entity(nvps).build();
 	}	
 	
 	@GET
