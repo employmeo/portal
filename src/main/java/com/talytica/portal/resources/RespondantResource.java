@@ -11,9 +11,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,9 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Respondant;
 import com.employmeo.data.model.RespondantNVP;
+import com.employmeo.data.model.User;
 import com.employmeo.data.service.RespondantService;
+import com.employmeo.data.service.UserService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -40,6 +43,10 @@ public class RespondantResource {
 
 	@Autowired
 	private RespondantService respondantService;
+	@Autowired
+	private UserService userService;
+	@Context
+	SecurityContext sc;
 
 	@GET
 	@Path("/{uuid}")
@@ -50,6 +57,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 404, message = "No such Respondant found")
 	   })	
 	public Response getRespondant(@ApiParam(value = "respondant uuid") @PathParam("uuid") @NotNull UUID uuid) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested respondant by uuid {}", uuid);
 		
 		Respondant respondant = respondantService.getRespondant(uuid);
@@ -71,6 +79,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 404, message = "No such Respondant found")
 	   })	
 	public Response getRespondantNVPs(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested respondant by id {}", id);
 		Set<RespondantNVP> nvps = respondantService.getDisplayNVPsForRespondant(id);
 		log.debug("Returning nvps {} for respondant {}", nvps, id);
@@ -86,6 +95,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getBenchmarkRespondants(@ApiParam(value = "benchmark id") @PathParam("benchmarkId") @NotNull Long benchmarkId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested benchmark respondants for benchmark id {}", benchmarkId);		
 
 		return Response.status(Status.OK).entity(respondantService.getByBenchmarkId(benchmarkId)).build();
@@ -100,6 +110,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 201, message = "Respondant saved"),
 	   })	
 	public Response saveRespondant(Respondant respondant) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested respondant save: {}", respondant);
 		
 		Respondant savedRespondant = respondantService.save(respondant);

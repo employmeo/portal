@@ -36,6 +36,7 @@ public class PersonResource {
 	private PersonService personService;
 
 	@GET
+	@Deprecated
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the list of all Persons", response = Person.class, responseContainer = "List")
 	   @ApiResponses(value = {
@@ -43,10 +44,12 @@ public class PersonResource {
 	     @ApiResponse(code = 404, message = "Persons not found")
 	   })	
 	public Iterable<Person> getAllPersons() {
+		log.warn("Deprecated resource accessed");
 		return personService.getAllPersons();
 	}
 	
 	@GET
+	@Deprecated
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the person by provided Id", response = Person.class)
@@ -55,6 +58,7 @@ public class PersonResource {
 	     @ApiResponse(code = 404, message = "No such Person found")
 	   })	
 	public Response getPerson(@ApiParam(value = "person id") @PathParam("id") @NotNull Long id) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested person by id {}", id);
 		
 		Person person = personService.getPersonById(id);
@@ -68,6 +72,7 @@ public class PersonResource {
 	}	
 	
 	@POST
+	@Deprecated
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Persists the provided person", response = Person.class)
@@ -75,6 +80,7 @@ public class PersonResource {
 	     @ApiResponse(code = 201, message = "Person saved"),
 	   })	
 	public Response savePerson(Person person) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested person save: {}", person);
 		
 		Person savedPerson = personService.save(person);

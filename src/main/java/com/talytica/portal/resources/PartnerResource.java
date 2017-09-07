@@ -38,6 +38,7 @@ public class PartnerResource {
 	private PartnerService partnerService;
 
 	@GET
+	@Deprecated
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the list of all Partners", response = Partner.class, responseContainer = "List")
 	   @ApiResponses(value = {
@@ -45,10 +46,12 @@ public class PartnerResource {
 	     @ApiResponse(code = 404, message = "Partners not found")
 	   })	
 	public Iterable<Partner> getAllPartners() {
+		log.warn("Deprecated Resource Accessed");
 		return partnerService.getAllPartners();
 	}
 	
 	@GET
+	@Deprecated
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the partner by provided Id", response = Partner.class)
@@ -57,6 +60,7 @@ public class PartnerResource {
 	     @ApiResponse(code = 404, message = "No such Partner found")
 	   })	
 	public Response getPartner(@ApiParam(value = "partner id") @PathParam("id") @NotNull Long id) {
+		log.warn("Deprecated Resource Accessed");
 		log.debug("Requested partner by id {}", id);
 		
 		Partner partner = partnerService.getPartnerById(id);
@@ -70,6 +74,7 @@ public class PartnerResource {
 	}	
 	
 	@POST
+	@Deprecated
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Persists the provided partner", response = Partner.class)
@@ -77,6 +82,7 @@ public class PartnerResource {
 	     @ApiResponse(code = 201, message = "Partner saved"),
 	   })	
 	public Response savePartner(Partner partner) {
+		log.warn("Deprecated Resource Accessed");
 		log.debug("Requested partner save: {}", partner);
 		
 		Partner savedPartner = partnerService.save(partner);

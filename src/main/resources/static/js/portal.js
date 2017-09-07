@@ -917,7 +917,7 @@ clientPortal.prototype.getRespondantGraderById = function(id) {
 }
 
 clientPortal.prototype.createGradeForm = function (criterion) {
-	var grade = {'id':'','gradeText':'','gradeValue':''};
+	var grade = {'id':'','gradeText':'','gradeValue':null};
 	if (this.grader.grades.length > 0) {
 		this.checkGraderStatus(this.grader);
 	}

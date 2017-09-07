@@ -6,8 +6,10 @@ import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import com.employmeo.data.model.*;
 import com.employmeo.data.service.GraderService;
 import com.employmeo.data.service.QuestionService;
 import com.employmeo.data.service.RespondantService;
+import com.employmeo.data.service.UserService;
 import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.GraderParams;
 
@@ -34,12 +37,14 @@ public class GraderResource {
 
 	@Autowired
 	GraderService graderService;
-	
 	@Autowired
 	RespondantService respondantService;
-	
 	@Autowired
 	EmailService emailService;
+	@Autowired
+	UserService userService;
+	@Context
+	SecurityContext sc;
 
 	//private static final long ONE_DAY = 24*60*60*1000; // one day in milliseconds to add to the "to-date"
 
@@ -52,6 +57,7 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Graders found")
 	   })
 	public Response getGradersByRespondantId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested graders by respondant id {}", respondantId);
 
 		List<Grader> graders = graderService.getGradersByRespondantId(respondantId);
@@ -67,6 +73,7 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Graders found")
 	   })
 	public Response getGradesForRespondantId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested grades by respondant id {}", respondantId);
 
 		List<Grader> graders = graderService.getGradersByRespondantId(respondantId);
@@ -87,6 +94,7 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Graders found")
 	   })
 	public Response getGradersByUserId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long userId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested graders by user id {}", userId);
 
 		Page<Grader> graders = graderService.getGradersByUserId(userId);
@@ -102,6 +110,7 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Grades found")
 	   })
 	public Response getGradesByGraderId(@ApiParam(value = "user id") @PathParam("id") @NotNull Long graderId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested grades by grader id {}", graderId);
 
 		List<Grade> grades = graderService.getGradesByGraderId(graderId);
@@ -117,6 +126,7 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Criteria found")
 	   })
 	public Response getCriteriaByQuestionId(@ApiParam(value = "question id") @PathParam("questionId") @NotNull Long questionId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested criteria by question id {}", questionId);
 		List<Question> questions = graderService.getCriteriaByQuestionId(questionId);
 		return Response.status(Status.OK).entity(questions).build();
@@ -130,6 +140,7 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Criteria found")
 	   })
 	public Response getCriteriaByGraderId(@ApiParam(value = "grader id") @PathParam("id") @NotNull Long graderId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		List<Question> questions = graderService.getSummaryCriteriaByGraderId(graderId);
 		log.debug("Requested {} criteria by grader id {}", questions.size(), graderId);
 		return Response.status(Status.OK).entity(questions).build();
@@ -143,6 +154,7 @@ public class GraderResource {
 	     @ApiResponse(code = 200, message = "Responses found")
 	   })
 	public Response getResponsesByGraderId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Set<com.employmeo.data.model.Response> responses = respondantService.getGradeableResponses(respondantId);
 		log.debug("Requested {} criteria by grader id {}", responses.size(),respondantId);
 		return Response.status(Status.OK).entity(responses).build();
@@ -157,6 +169,7 @@ public class GraderResource {
 	     @ApiResponse(code = 201, message = "Grade Saved"),
 	   })
 	public Response saveQuestion(@ApiParam(value = "grade") Grade grade) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested grade save: {}", grade);
 		Grade savedGrade = graderService.saveGrade(grade);
 		log.debug("Saved grade {}", savedGrade);
@@ -176,6 +189,7 @@ public class GraderResource {
 	   })
 	public Response updateGrader(@ApiParam(value = "grader id") @PathParam("id") Long graderId,
 			@ApiParam(value = "status code") @FormParam (value="status") int statusCode) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested grader id: {} status update to {}", graderId, statusCode);
 		Grader grader = graderService.getGraderById(graderId);
 		if (grader != null) {
@@ -198,6 +212,7 @@ public class GraderResource {
 	   })
 	public Grader remindGrader(@ApiParam(value = "grader id") @PathParam("id") Long graderId) {
 		log.debug("Requested remind grader id: {}", graderId);
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Grader grader = graderService.getGraderById(graderId);
 		if (grader != null) {
 			if (grader.getType() == Grader.TYPE_PERSON) {
@@ -224,6 +239,7 @@ public class GraderResource {
 	   })
 	public Grader ignoreGrader(@ApiParam(value = "grader id") @PathParam("id") Long graderId) {
 		log.debug("Requested remind grader id: {}", graderId);
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Grader grader = graderService.getGraderById(graderId);
 		if (grader != null) {
 			grader.setStatus(Grader.STATUS_IGNORED);
@@ -242,6 +258,7 @@ public class GraderResource {
 	@ApiOperation(value = "Gets paged-results of the graders for a User", response = Grader.class, responseContainer="Page")
 	   @ApiResponses(value = {@ApiResponse(code = 200, message = "Graders found")})
 	public Response searchGraders(@ApiParam(value = "Grader Search Params") @NotNull GraderParams params) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested graders by params {}", params);
 		Page<Grader> graders = graderService.getGradersByUserIdStatusAndDates(params.userId, params.status, params.getFromdate(), params.getTodate());
 		log.debug("Verbose listing of graders page: {}", graders.getContent());

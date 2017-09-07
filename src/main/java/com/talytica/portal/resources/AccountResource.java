@@ -12,9 +12,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +31,10 @@ import com.employmeo.data.model.Location;
 import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
+import com.employmeo.data.service.UserService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.employmeo.data.model.ProfileDefaults;
+import com.employmeo.data.model.User;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -49,11 +53,15 @@ public class AccountResource {
 
 	@Autowired
 	private AccountService accountService;
-
 	@Autowired
 	private AccountSurveyService accountSurveyService;
-
+	@Autowired
+	private UserService userService;
+	@Context
+	SecurityContext sc;
+	
 	@GET
+	@Deprecated // nobody should be calling this!
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the list of all Accounts", response = Account.class, responseContainer = "List")
 	   @ApiResponses(value = {
@@ -61,10 +69,12 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "Accounts not found")
 	   })	
 	public Iterable<Account> getAllAccounts() {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		return accountService.getAllAccounts();
 	}
 	
 	@GET
+	@Deprecated // nobody should be calling this!
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the account by provided Id", response = Account.class)
@@ -73,6 +83,7 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getAccount(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested account by id {}", id);
 		
 		Account account = accountService.getAccountById(id);
@@ -93,6 +104,7 @@ public class AccountResource {
 	     @ApiResponse(code = 201, message = "Account saved"),
 	   })	
 	public Response saveAccount(Account account) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested account save: {}", account);
 		
 		Account savedAccount = accountService.save(account);
@@ -109,6 +121,7 @@ public class AccountResource {
 	     @ApiResponse(code = 202, message = "Account updatedd"),
 	   })	
 	public Response updateAccount(Account account) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested account save: {}", account);
 		
 		Account savedAccount = accountService.save(account);
@@ -127,6 +140,7 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getLocations(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested locations for account id {}", id);
 		
 		Account account = accountService.getAccountById(id);
@@ -151,6 +165,7 @@ public class AccountResource {
 	public Response saveLocation(
 			@ApiParam(value = "account id") @PathParam("id") @NotNull Long id,
 			@ApiParam(value = "Location") @NotNull Location location) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		
 		Account account = accountService.getAccountById(id);
 		if (null == account) return Response.status(Status.NOT_FOUND).build();
@@ -174,6 +189,7 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getPositions(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested positions for account id {}", id);
 		
 		Account account = accountService.getAccountById(id);
@@ -198,6 +214,7 @@ public class AccountResource {
 	public Response savePosition(
 			@ApiParam(value = "account id") @PathParam("id") @NotNull Long id,
 			@ApiParam(value = "Position") @NotNull Position position) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		
 		Account account = accountService.getAccountById(id);
 		if (null == account) return Response.status(Status.NOT_FOUND).build();
@@ -221,6 +238,7 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getAssessments(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested assessments for account id {}", id);
 		
 		Account account = accountService.getAccountById(id);
@@ -245,6 +263,7 @@ public class AccountResource {
 	public Response saveAccountSurvey(
 			@ApiParam(value = "account id") @PathParam("id") @NotNull Long id,
 			@ApiParam(value = "Account Survey") @NotNull AccountSurvey accountSurvey) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		
 		Account account = accountService.getAccountById(id);
 		if (null == account) return Response.status(Status.NOT_FOUND).build();
@@ -268,6 +287,7 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getBenchmarks(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested benchmarks for account id {}", id);	
 		Account account = accountService.getAccountById(id);
 		log.debug("Returning profiles for account id {}", id);

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Response;
+import com.employmeo.data.model.User;
 import com.employmeo.data.repository.ResponseRepository;
 import com.talytica.common.service.SpeechToTextService;
 
@@ -37,6 +38,7 @@ public class SpeechToTextResource {
 	SpeechToTextService speechToTextService;
 	
 	@GET
+	@Deprecated
 	@Path("/{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -45,6 +47,7 @@ public class SpeechToTextResource {
 	     @ApiResponse(code = 201, message = "Response Translated"),
 	   })	
 	public Response speechToText(@ApiParam(value = "response id") @PathParam("id") Long responseId) {
+		log.warn("Deprecated Resource accessed");
 		log.debug("Requested response to translate: {}", responseId);
 		Response response = responseRepository.findOne(responseId);
 		
