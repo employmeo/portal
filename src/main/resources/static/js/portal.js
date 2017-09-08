@@ -491,6 +491,18 @@ clientPortal.prototype.updateLastTen = function(data) {
 		$('#recentcandidates').append(li);
 	}
 }
+clientPortal.prototype.initializeStripeDetails = function () {
+	var thePortal = this;
+	if (!this.stripeCustomer) {
+		$.when(getBillingSettings(thePortal),thePortal.renderStripeDetails());
+	} else {
+		thePortal.renderStripeDetails();
+	}
+}
+
+clientPortal.prototype.renderStripeDetails = function () {
+	console.log(this.stripeCustomer);
+}
 
 clientPortal.prototype.initGradersTable = function(){
 	var thePortal = this;

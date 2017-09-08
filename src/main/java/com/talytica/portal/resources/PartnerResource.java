@@ -27,6 +27,7 @@ import io.swagger.annotations.ApiResponses;
 
 
 @Component
+@Deprecated
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/1/partner")

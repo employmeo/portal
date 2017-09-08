@@ -32,6 +32,8 @@ import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
+import com.stripe.model.Customer;
+import com.talytica.common.service.BillingService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.employmeo.data.model.ProfileDefaults;
 import com.employmeo.data.model.User;
@@ -57,8 +59,11 @@ public class AccountResource {
 	private AccountSurveyService accountSurveyService;
 	@Autowired
 	private UserService userService;
+	@Autowired
+	private BillingService billingService;
 	@Context
 	SecurityContext sc;
+
 	
 	@GET
 	@Deprecated // nobody should be calling this!
@@ -71,6 +76,22 @@ public class AccountResource {
 	public Iterable<Account> getAllAccounts() {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		return accountService.getAllAccounts();
+	}
+	
+	@GET
+	@Path("/stripe")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets the stripe details for an account", response = Customer.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Accounts found"),
+	     @ApiResponse(code = 404, message = "Accounts not found")
+	   })	
+	public Customer getStripeAccount() throws Exception {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		Account account = user.getAccount();
+		Customer customer = billingService.getStripeCustomer(account);
+		log.debug("Got {} for user {}", customer, user);
+		return customer;
 	}
 	
 	@GET
