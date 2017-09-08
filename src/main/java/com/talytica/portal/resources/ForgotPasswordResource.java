@@ -35,7 +35,6 @@ public class ForgotPasswordResource {
 
 	@Autowired
 	UserService userService;
-	
 	@Autowired
 	EmailService emailService;
 	

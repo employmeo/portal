@@ -277,6 +277,18 @@ function getCorefactors(thePortal) {
 	});
 }
 
+function getBillingSettings(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "account/stripe",
+		success: function(data)
+		{
+			thePortal.stripeCustomer = data;
+		}
+	});
+}
+
 function getProfiles(thePortal) {
 	return $.ajax({
 		type: "GET",

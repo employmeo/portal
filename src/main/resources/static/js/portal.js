@@ -491,6 +491,18 @@ clientPortal.prototype.updateLastTen = function(data) {
 		$('#recentcandidates').append(li);
 	}
 }
+clientPortal.prototype.initializeStripeDetails = function () {
+	var thePortal = this;
+	if (!this.stripeCustomer) {
+		$.when(getBillingSettings(thePortal),thePortal.renderStripeDetails());
+	} else {
+		thePortal.renderStripeDetails();
+	}
+}
+
+clientPortal.prototype.renderStripeDetails = function () {
+	console.log(this.stripeCustomer);
+}
 
 clientPortal.prototype.initGradersTable = function(){
 	var thePortal = this;
@@ -917,7 +929,7 @@ clientPortal.prototype.getRespondantGraderById = function(id) {
 }
 
 clientPortal.prototype.createGradeForm = function (criterion) {
-	var grade = {'id':'','gradeText':'','gradeValue':''};
+	var grade = {'id':'','gradeText':'','gradeValue':null};
 	if (this.grader.grades.length > 0) {
 		this.checkGraderStatus(this.grader);
 	}

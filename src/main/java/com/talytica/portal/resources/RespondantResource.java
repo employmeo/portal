@@ -1,5 +1,6 @@
 package com.talytica.portal.resources;
 
+import java.sql.Timestamp;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,9 +12,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,10 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Respondant;
 import com.employmeo.data.model.RespondantNVP;
+import com.employmeo.data.model.User;
 import com.employmeo.data.service.RespondantService;
+import com.employmeo.data.service.UserService;
+import com.talytica.portal.objects.RespondantSearchParams;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,9 +42,15 @@ import lombok.extern.slf4j.Slf4j;
 @Path("/1/respondant")
 @Api( value="/1/respondant", produces=MediaType.APPLICATION_JSON, consumes=MediaType.APPLICATION_JSON)
 public class RespondantResource {
-
+	
+	private static final long ONE_DAY = 24*60*60*1000; // one day in milliseconds
+	
 	@Autowired
 	private RespondantService respondantService;
+	@Autowired
+	private UserService userService;
+	@Context
+	SecurityContext sc;
 
 	@GET
 	@Path("/{uuid}")
@@ -50,6 +61,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 404, message = "No such Respondant found")
 	   })	
 	public Response getRespondant(@ApiParam(value = "respondant uuid") @PathParam("uuid") @NotNull UUID uuid) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested respondant by uuid {}", uuid);
 		
 		Respondant respondant = respondantService.getRespondant(uuid);
@@ -71,6 +83,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 404, message = "No such Respondant found")
 	   })	
 	public Response getRespondantNVPs(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested respondant by id {}", id);
 		Set<RespondantNVP> nvps = respondantService.getDisplayNVPsForRespondant(id);
 		log.debug("Returning nvps {} for respondant {}", nvps, id);
@@ -86,6 +99,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getBenchmarkRespondants(@ApiParam(value = "benchmark id") @PathParam("benchmarkId") @NotNull Long benchmarkId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested benchmark respondants for benchmark id {}", benchmarkId);		
 
 		return Response.status(Status.OK).entity(respondantService.getByBenchmarkId(benchmarkId)).build();
@@ -100,6 +114,7 @@ public class RespondantResource {
 	     @ApiResponse(code = 201, message = "Respondant saved"),
 	   })	
 	public Response saveRespondant(Respondant respondant) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested respondant save: {}", respondant);
 		
 		Respondant savedRespondant = respondantService.save(respondant);
@@ -108,4 +123,32 @@ public class RespondantResource {
 		return Response.status(Status.CREATED).entity(savedRespondant).build();
 	}
 
+	@POST
+	@Path("/search")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Searches for respondants", response = Respondant.class, responseContainer = "List")
+	   @ApiResponses(value = {
+			     @ApiResponse(code = 200, message = "Respondant found"),
+			     @ApiResponse(code = 404, message = "No such Respondant found")
+			   })	
+	public Iterable<Respondant> searchRespondants(
+			@ApiParam(value = "Search Object", type="RespondantSearchParams") RespondantSearchParams search){
+		
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		log.debug("Fetching respondants for search params {}", search);
+		Timestamp from = new Timestamp(search.fromdate.getTime());
+		Timestamp to = new Timestamp(search.todate.getTime() + ONE_DAY);
+		Long locationId = null;
+		if (search.locationId >= 1) locationId = search.locationId;
+		Long positionId = null;
+		if (search.positionId >= 1) positionId = search.positionId;	
+		
+		if ((search.pagenum > 0) && (search.pagesize > 0)) {
+			return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, locationId, positionId, search.type, from, to, search.pagenum, search.pagesize);
+		}
+		
+		return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, search.locationId, search.positionId, search.type, from, to);
+
+	}
 }
