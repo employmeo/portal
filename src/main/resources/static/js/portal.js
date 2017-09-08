@@ -268,14 +268,17 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 }
 
 clientPortal.prototype.initDashBoard = function() {
-	if (null != this.user.account.defaultAsId) {
-		$('#smblinkdisplay').removeClass('hidden');
-		var assessment = this.getAssessmentBy(this.user.account.defaultAsId);
+	
+	var assessment = null;
+	if (null != this.user.account.defaultAsId) assessment = this.getAssessmentBy(this.user.account.defaultAsId);
+	if (null != assessment) {
 		$('#staticlink').attr('href',assessment.permalink);
 		$('#staticlink').text(assessment.permalink);
+		$('#smblinkdisplay').removeClass('hidden');
 	} else {
 		$('#smblinkdisplay').addClass('hidden');		
 	}
+	
 	if (Object.keys(this.dashParams).length > 0) {
 		// code to put the dashboard details in the right place.
 		var drp = $('#reportrange').data('daterangepicker');
@@ -728,7 +731,7 @@ clientPortal.prototype.initRespondantReferences = function() {
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
 		          { responsivePriority: 5, className: 'text-left', title: 'Relationship', data: 'relationship'},
 		          { responsivePriority: 6, className: 'text-left', title: 'Overall Score', data: 'summaryScore', render :
-		        	  function (data,type,row) {return thePortal.getStars(data, false);}},
+		        	  function (data,type,row) {if (row.status == 10) return thePortal.getStars(data, false);return '';}},
 		          { responsivePriority: 4, className: 'details-control', title: 'Expand' }
 		         ]
 	});
@@ -742,7 +745,8 @@ clientPortal.prototype.initRespondantReferences = function() {
 }
 
 clientPortal.prototype.getStars = function(data, size) {
-	if (isNaN(data)) return data;
+	console.log(data);
+	if (isNaN(data) || (data==null)) return data;
 	var tail = '';
 	if (size) tail = '-lg';
 	var stardiv = $('<div />',{'class':'star-ratings-sprite'+tail}).append($('<span />',
@@ -791,7 +795,7 @@ clientPortal.prototype.showRespondantReferences = function() {
 	            row.child('<i class="fa fa-spinner fa-spin"></i>').show();
 	            tr.addClass('shown');
 	    		if (!grader.grades) {
-	    			$.when(getGrades(grader)).done(function () {thePortal.showReferenceResponses(td);});
+	    			$.when(getGrades(grader),getCriteria(grader)).done(function () {thePortal.showReferenceResponses(td);});
 	    		} else {
 	    			thePortal.showReferenceResponses(td);
 	    		}
@@ -806,11 +810,25 @@ clientPortal.prototype.showReferenceResponses = function(td) {
     var myrow = this.rReferences.row( tr );
 	var count = 0;
 	var grader = myrow.data();
+	console.log(grader);
 	var table = $('<table />',{'class' : 'table table-condensed'});
+	for (var i in grader.grades) {
+		for (var j in grader.criteria) {
+			if (grader.criteria[j].questionId == grader.grades[i].questionId) grader.grades[i].sequence = j;
+		}
+	}
+	grader.grades.sort(function(a,b) {
+		if (a.questionId == b.questionId) return a.graderId - b.graderId;
+		return a.sequence - b.sequence;
+	});
+
 	for (var key in grader.grades) {
+		var lastGrade = null;
 		var grade = grader.grades[key];
+		if (grade.questionId == lastGrade) continue;
 		count++;
 		var row = $('<tr />');
+		row.append($('<td />',{'text': count + ". " }));
 		row.append($('<td />',{'html': grade.questionText}));
 		if (grade.gradeText) {
 			row.append($('<td />',{'class' : 'text-right', 'html': grade.gradeText }));
@@ -818,6 +836,7 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 			row.append($('<td />',{'class' : 'text-right', 'html': this.getStars(grade.gradeValue, false) }));
 		}
 		table.append(row);
+		lastGrade = grade.questionId;
 	}
 	if (grader.status != 10) {
 		var row = $('<tr />');
@@ -1613,7 +1632,7 @@ clientPortal.prototype.renderPredictions = function() {
 	} else {
 		$('#predictionpanel').removeClass('hidden');
 		this.respondant.predictions.sort(function(a,b) {
-			return a.positionPredictionConfig.displayPriority - a.positionPredictionConfig.displayPriority;
+			return a.positionPredictionConfig.displayPriority - b.positionPredictionConfig.displayPriority;
 		});
 	}
 	var profile = this.getProfile(this.respondant.profileRecommendation);
