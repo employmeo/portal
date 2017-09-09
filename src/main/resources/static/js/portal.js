@@ -494,17 +494,83 @@ clientPortal.prototype.updateLastTen = function(data) {
 		$('#recentcandidates').append(li);
 	}
 }
-clientPortal.prototype.initializeStripeDetails = function () {
+clientPortal.prototype.initStripeDetails = function () {
+	console.log("yes - i was called");
 	var thePortal = this;
 	if (!this.stripeCustomer) {
-		$.when(getBillingSettings(thePortal),thePortal.renderStripeDetails());
+		$.when(getBillingSettings(thePortal)).done(function (){thePortal.renderStripeDetails();});
 	} else {
 		thePortal.renderStripeDetails();
 	}
 }
 
 clientPortal.prototype.renderStripeDetails = function () {
-	console.log(this.stripeCustomer);
+	var source = null;
+	var card = null;
+	var sub;
+	var periodStart = '';
+	var periodEnd = '';
+	if (!this.stripeCustomer) return;
+	if (this.stripeCustomer.subscriptions.totalCount > 0) {
+		for (var i in this.stripeCustomer.subscriptions.data) {
+			sub = this.stripeCustomer.subscriptions.data[i];
+			if ((status == "active") || (status == "trialing")) break;
+		}
+	} 
+	if (!sub) {
+		$('#accountproblemsmessage').removeClass('hidden');
+	} else {
+		$('#accounttype').text(sub.plan.name);
+		$('#accountstatus').text(sub.status);	
+		if (sub.status == "active") {
+			$('#accountbillingstatus').removeClass('hidden');
+		} else if (sub.status == "trialing") {
+			$('#accounttrialmessage').removeClass('hidden');
+			$('#accounttrialdaysleft').text(Math.floor((sub.trialEnd*1000 - new Date()) / (24*3600*1000)));
+		} else {
+			$('#accountproblemsmessage').removeClass('hidden');
+		}
+	}
+	if (this.stripeCustomer.sources.totalCount > 0) {
+		for (var i in this.stripeCustomer.sources.data) {
+			source = this.stripeCustomer.sources.data[i];
+			if (source.object == "card") {
+				card = source.brand + " " + source.expMonth + "/" + source.expYear;
+			}
+		}
+	}
+	if (!card) {
+		$('#nocardonfile').removeClass('hidden');
+		var btn = $('<script />', {
+			'id':'addcardscript',
+			'class':'stripe-button',
+			'src':'https://checkout.stripe.com/checkout.js',
+			'data-name':'Talytica',
+			'data-key' : 'pk_test_lccraw40JRQUX6qFiOPg3awk',
+			'data-email':this.stripeCustomer.email,
+			'data-zip': 'true',
+			'data-label':'Add Credit Card',
+			'data-panel-label':'Save Payment Info',
+			'data-image':'https://portal.talytica.com/images/favicon-32x32.png',
+			'data-allow-remember-me': 'false',
+			'data-locale' : 'auto'				
+		});
+		$('#addcardform').append(btn);
+	} else {
+		$('#yescardonfile').removeClass('hidden');
+		$('#mycard').text(card);		
+	}
+	console.log(card,sub.plan.name,sub.status,periodStart,periodEnd);
+
+}
+
+clientPortal.prototype.addCreditCard = function(){
+	var fields = $('#addcardform').serializeArray();
+	var object = {};
+	for (var i=0;i<fields.length;i++) {
+		object[fields[i].name] = fields[i].value;
+	}
+	addStripeCreditCard(this, object.stripeToken);
 }
 
 clientPortal.prototype.initGradersTable = function(){
@@ -1371,13 +1437,7 @@ clientPortal.prototype.updateSurveyFields = function() {
 clientPortal.prototype.initSettingsPage = function() {
 	$('#accountname').text(this.user.account.accountName);
 	$('#accountlocation').text(this.getLocationBy(this.user.account.defaultLocationId).street1);
-	switch (this.user.account.accountType) {
-		case 100: $('#accounttype').text('Free Trial'); break;
-		case 200: $('#accounttype').text('Circle'); break;
-		case 300: $('#accounttype').text('Triangle'); break;
-		case 400: $('#accounttype').text('Square'); break;
-		default: $('#accounttype').text('Enterprise'); break;
-	}		
+	this.initStripeDetails();
 	this.initLocationTable();
 	this.initPositionTable();
 	this.initAssessmentTable();

@@ -289,6 +289,23 @@ function getBillingSettings(thePortal) {
 	});
 }
 
+function addStripeCreditCard(thePortal, token) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+		url: servicePath + "account/addpayment/"+token,
+		success: function(data)
+		{
+			thePortal.stripeCustomer = data;
+			thePortal.renderStripeDetails();
+		}
+	});
+}
+
 function getProfiles(thePortal) {
 	return $.ajax({
 		type: "GET",

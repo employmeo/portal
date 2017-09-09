@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -32,6 +33,7 @@ import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
+import com.stripe.model.Card;
 import com.stripe.model.Customer;
 import com.talytica.common.service.BillingService;
 import com.talytica.portal.objects.ApplicantDataPoint;
@@ -94,6 +96,22 @@ public class AccountResource {
 		return customer;
 	}
 	
+	@POST
+	@Path("/addpayment/{stripeToken}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets the stripe details for an account", response = Customer.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Accounts found"),
+	     @ApiResponse(code = 404, message = "Accounts not found")
+	   })	
+	public Customer savePaymentCard(@ApiParam("Stripe Payment Token") @PathParam(value="stripeToken") String stripeToken) throws Exception {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		Account account = user.getAccount();
+		Card card = billingService.addCardToCustomer(stripeToken, account);
+		log.debug("Created card {} for user {}", card, user);
+		return billingService.getStripeCustomer(account);
+	}
+	
 	@GET
 	@Deprecated // nobody should be calling this!
 	@Path("/{id}")
@@ -115,7 +133,7 @@ public class AccountResource {
 		} else {
 			return Response.status(Status.NOT_FOUND).build();
 		}
-	}	
+	}
 	
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)

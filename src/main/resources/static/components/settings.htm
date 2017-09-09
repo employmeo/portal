@@ -3,26 +3,29 @@
 		<h3>Account Settings</h3>
 	</div>
 </div>
-<div class="row">
-	<div class="x_panel">
-		<div class="x_content">
-			<div class="row content">
-	<div class="col-xs-8 col-sm-9">
-		<h2 id='accountname'>name</h2>
-		<span id='accountlocation'>location</span>
-	</div>
-	<div class="col-xs-4 col-sm-3">
-		<div class="tile-stats text-center">
-			<span>Type</span>
-			<h2 id='accounttype'>Free Trial</h2>
-		</div>
-	</div>
-</div>
-</div></div></div>
+<div class="row content">
+				<div class="col-xs-4 col-sm-4"><div class="tile-stats text-center">
+					<span>Account Name</span>
+					<h2 id="accountname">Account Name</h2>
+				</div></div>
+				<div class="col-xs-4 col-sm-4"><div class="tile-stats text-center">
+					<span>Plan</span>
+					<h2 id="accounttype">None</h2>
+				</div></div>
+				<div class="col-xs-4 col-sm-4"><div class="tile-stats text-center">
+					<span>Status</span>
+					<h2 id="accountstatus">n/a</h2>
+				</div></div>		
 
+					</div>
 <div class="row">
 				<ul id="settingsTab" class="nav nav-tabs bar_tabs" style='margin-bottom:0px;'role="tablist">
-					<li role="presentation" class="active"><a href="#tab_assessments"
+					<li role="presentation" class="active"><a href="#tab_subscription"
+						role="tab" id="subscription-tab" data-toggle="tab"
+						aria-expanded="false"> <i class="fa fa-credit-card"></i> <span
+							class="visible-md-inline visible-lg-inline"> Subscription</span>
+					</a></li>
+					<li role="presentation"><a href="#tab_assessments"
 						role="tab" id="assessments-tab" data-toggle="tab"
 						aria-expanded="false"> <i class="fa fa-clipboard"></i> <span
 							class="visible-md-inline visible-lg-inline"> Assessments</span>
@@ -43,7 +46,33 @@
 		<div class="x_content">
 			<div class="" role="tabpanel">
 				<div id="settingsContent" class="tab-content">
-					<div role="tabpanel" class="tab-pane fade active in" id="tab_assessments"
+					<div role="tabpanel" class="tab-pane fade active in" id="tab_subscription"
+						aria-labelledby="subscription-tab">
+						<h3 class='text-center'>Subscription</h3>
+						<hr>
+						<div class='col-xs-12 col-sm-6'>
+						<div id='accounttrialmessage' class='hidden'>Your free trial ends in <span id='accounttrialdaysleft'></span> days.</div>
+						<div id='accountbillingstatus' class='hidden'>
+							<h4>Billing Status - Paid in Full</h4>
+							<h5>Current Period: <span class='text-primary' id="periodstart">2017-09-05</span> to <span class='text-primary' id="periodend">2017-09-05</span></h5>
+							<h5>Next Invoice Amount: <span class='blocked' id='nextbillamt'></span></h5>
+							<h5>Next Invoice Due Date: <span class='blocked' id='nextbilldue'></span></h5>													
+						</div>
+						</div>
+						<div class='col-xs-12 col-sm-6'>
+						<div id='nocardonfile' class='hidden'>
+						You have no card on file!
+							<form id='addcardform' action="javascript:portal.addCreditCard();"  method="POST">
+
+							</form>
+						</div>
+						<div id='yescardonfile' class='hidden'>
+						<h5>Payment Card on file: <span class='blocked' id='#carddetails'></span></h5>
+						</div>
+						</div>
+						
+					</div>
+					<div role="tabpanel" class="tab-pane fade in" id="tab_assessments"
 						aria-labelledby="assessments-tab">
 						<h3 class='text-center'>Assessments</h3>
 						<table class="table table-condensed table-hover"
