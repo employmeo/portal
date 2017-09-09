@@ -51,26 +51,30 @@
 						<h3 class='text-center'>Subscription</h3>
 						<hr>
 						<div class='col-xs-12 col-sm-6'>
-						<div id='accounttrialmessage' class='hidden'>Your free trial ends in <span id='accounttrialdaysleft'></span> days.</div>
+						<h5><strong>Subscription Details</strong></h5>
 						<div id='accountbillingstatus' class='hidden'>
-							<h4>Billing Status - Paid in Full</h4>
-							<h5>Current Period: <span class='text-primary' id="periodstart">2017-09-05</span> to <span class='text-primary' id="periodend">2017-09-05</span></h5>
-							<h5>Next Invoice Amount: <span class='blocked' id='nextbillamt'></span></h5>
-							<h5>Next Invoice Due Date: <span class='blocked' id='nextbilldue'></span></h5>													
+							<hr>
+							<h4>Plan <span class='text-primary pull-right' id="billingplan">Demo</span></h4>
+							<h5>Period <span class='text-primary pull-right' id="billingperiod">2017-09-05</span></h5>
+							<h5>Status <span class='text-primary pull-right' id="billingstatus">n/a</span></h5>
+							<h5 class='hidden' id='yescardonfile'>Payment Card on file: <span class='pull-right text-primary' id='carddetails'></span></h5>
+							<div id='accounttrialmessage' class='hidden alert alert-info text-center'>Your free trial ends in <span id='accounttrialdaysleft'>0</span> days.</div>
+							<div id='nocardonfile' class='hidden text-center'>
+								<hr>
+								<span class='alert alert-warning text-center'>No card on file. Add one avoid service disruptions</span>
+								<form id='addcardform' action="javascript:portal.addCreditCard();" method="POST"></form>
+							</div>
 						</div>
 						</div>
 						<div class='col-xs-12 col-sm-6'>
-						<div id='nocardonfile' class='hidden'>
-						You have no card on file!
-							<form id='addcardform' action="javascript:portal.addCreditCard();"  method="POST">
-
-							</form>
+							<h5><strong>Invoice History</strong></h5>
+							<div id='invoicehistory'>
+								<table id='invoicehistorytable' class='table table-condensed table-striped'></table>
+								<hr>
+							</div>												
+							<h6>Next Invoice Amount: <span class='blocked pull-right' id='nextbillamt'></span></h6>
+							<h6>Next Invoice Due Date: <span class='blocked pull-right' id='nextbilldue'></span></h6>
 						</div>
-						<div id='yescardonfile' class='hidden'>
-						<h5>Payment Card on file: <span class='blocked' id='#carddetails'></span></h5>
-						</div>
-						</div>
-						
 					</div>
 					<div role="tabpanel" class="tab-pane fade in" id="tab_assessments"
 						aria-labelledby="assessments-tab">

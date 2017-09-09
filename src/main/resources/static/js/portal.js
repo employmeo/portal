@@ -494,11 +494,11 @@ clientPortal.prototype.updateLastTen = function(data) {
 		$('#recentcandidates').append(li);
 	}
 }
+
 clientPortal.prototype.initStripeDetails = function () {
-	console.log("yes - i was called");
 	var thePortal = this;
 	if (!this.stripeCustomer) {
-		$.when(getBillingSettings(thePortal)).done(function (){thePortal.renderStripeDetails();});
+		$.when(getBillingSettings(thePortal),getNextInvoice(thePortal),getInvoiceHistory(thePortal)).done(function (){thePortal.renderStripeDetails();});
 	} else {
 		thePortal.renderStripeDetails();
 	}
@@ -508,8 +508,7 @@ clientPortal.prototype.renderStripeDetails = function () {
 	var source = null;
 	var card = null;
 	var sub;
-	var periodStart = '';
-	var periodEnd = '';
+	var period;
 	if (!this.stripeCustomer) return;
 	if (this.stripeCustomer.subscriptions.totalCount > 0) {
 		for (var i in this.stripeCustomer.subscriptions.data) {
@@ -520,15 +519,16 @@ clientPortal.prototype.renderStripeDetails = function () {
 	if (!sub) {
 		$('#accountproblemsmessage').removeClass('hidden');
 	} else {
+		$('#accountbillingstatus').removeClass('hidden');
 		$('#accounttype').text(sub.plan.name);
 		$('#accountstatus').text(sub.status);	
-		if (sub.status == "active") {
-			$('#accountbillingstatus').removeClass('hidden');
-		} else if (sub.status == "trialing") {
+		$('#billingplan').text(sub.plan.name);
+		$('#billingstatus').text(sub.status);
+		period = moment(1000*sub.currentPeriodStart).format('MMM-DD') + ' to ' + moment(1000*sub.currentPeriodEnd).format('MMM-DD');
+		$('#billingperiod').text(period);
+		if (sub.status == "trialing") {
 			$('#accounttrialmessage').removeClass('hidden');
 			$('#accounttrialdaysleft').text(Math.floor((sub.trialEnd*1000 - new Date()) / (24*3600*1000)));
-		} else {
-			$('#accountproblemsmessage').removeClass('hidden');
 		}
 	}
 	if (this.stripeCustomer.sources.totalCount > 0) {
@@ -558,10 +558,39 @@ clientPortal.prototype.renderStripeDetails = function () {
 		$('#addcardform').append(btn);
 	} else {
 		$('#yescardonfile').removeClass('hidden');
-		$('#mycard').text(card);		
+		$('#carddetails').text(card);		
 	}
-	console.log(card,sub.plan.name,sub.status,periodStart,periodEnd);
 
+	this.showInvoiceDetails();
+}
+
+clientPortal.prototype.showInvoiceDetails = function() {
+	var thePortal = this;
+	if (this.invoiceHistory) {
+		this.invTable = $('#invoicehistorytable').DataTable( {
+			 "paging" : false, "filter" : false, "ordering" : false, "info" : false, "responsive" : true,
+			order: [[ 0, 'desc' ]],
+			rowId: 'id',
+			data : thePortal.invoiceHistory,
+		    language: { emptyTable: "No invoice history" },
+			columns: [
+				{ responsivePriority: 1, className: 'text-left', title: 'Date', data: 'date',
+				  render: function ( data, type, row) { return moment(1000*data).format('MMMM DD, YYYY'); }},
+				{ responsivePriority: 2, className: 'text-left', title: 'Period', data: 'periodStart',
+				  render: function ( data, type, row) { 
+					  return moment(1000*data).format('MMM-DD') + ' to ' + moment(1000*row.periodEnd).format('MMM-DD'); }},
+				{ responsivePriority: 1, className: 'text-right', title: 'Amount', data: 'total',
+						  render: function (data,type,row) {return '$ ' + data/100}}
+	        ]
+			});
+	} else {
+		if (this.invTable) this.invTable.destroy();
+		$('#invoicehistory').addClass('hidden');
+	}
+	if (this.nextInvoice) {
+		$('#nextbilldue').text(moment(this.nextInvoice.date*1000).format('MMMM DD, YYYY'));
+		$('#nextbillamt').text('$ ' + this.nextInvoice.amountDue/100);
+	}
 }
 
 clientPortal.prototype.addCreditCard = function(){

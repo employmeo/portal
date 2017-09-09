@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -19,8 +18,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,9 +30,6 @@ import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
-import com.stripe.model.Card;
-import com.stripe.model.Customer;
-import com.talytica.common.service.BillingService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.employmeo.data.model.ProfileDefaults;
 import com.employmeo.data.model.User;
@@ -45,15 +39,15 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 @Component
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/1/account")
 @Api( value="/1/account", produces=MediaType.APPLICATION_JSON, consumes=MediaType.APPLICATION_JSON)
 public class AccountResource {
-	private static final Logger log = LoggerFactory.getLogger(AccountResource.class);
 
 	@Autowired
 	private AccountService accountService;
@@ -61,8 +55,6 @@ public class AccountResource {
 	private AccountSurveyService accountSurveyService;
 	@Autowired
 	private UserService userService;
-	@Autowired
-	private BillingService billingService;
 	@Context
 	SecurityContext sc;
 
@@ -77,39 +69,8 @@ public class AccountResource {
 	   })	
 	public Iterable<Account> getAllAccounts() {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
+		log.warn("deprecated method called");
 		return accountService.getAllAccounts();
-	}
-	
-	@GET
-	@Path("/stripe")
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the stripe details for an account", response = Customer.class)
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Accounts found"),
-	     @ApiResponse(code = 404, message = "Accounts not found")
-	   })	
-	public Customer getStripeAccount() throws Exception {
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
-		Account account = user.getAccount();
-		Customer customer = billingService.getStripeCustomer(account);
-		log.debug("Got {} for user {}", customer, user);
-		return customer;
-	}
-	
-	@POST
-	@Path("/addpayment/{stripeToken}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the stripe details for an account", response = Customer.class)
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Accounts found"),
-	     @ApiResponse(code = 404, message = "Accounts not found")
-	   })	
-	public Customer savePaymentCard(@ApiParam("Stripe Payment Token") @PathParam(value="stripeToken") String stripeToken) throws Exception {
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
-		Account account = user.getAccount();
-		Card card = billingService.addCardToCustomer(stripeToken, account);
-		log.debug("Created card {} for user {}", card, user);
-		return billingService.getStripeCustomer(account);
 	}
 	
 	@GET
@@ -122,7 +83,8 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getAccount(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		log.warn("deprecated method called");
 		log.debug("Requested account by id {}", id);
 		
 		Account account = accountService.getAccountById(id);
@@ -136,6 +98,7 @@ public class AccountResource {
 	}
 	
 	@POST
+	@Deprecated
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Persists the provided account", response = Account.class)
@@ -143,6 +106,7 @@ public class AccountResource {
 	     @ApiResponse(code = 201, message = "Account saved"),
 	   })	
 	public Response saveAccount(Account account) {
+		log.warn("deprecated method called");
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
 		log.debug("Requested account save: {}", account);
 		

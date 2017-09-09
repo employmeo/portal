@@ -281,10 +281,34 @@ function getBillingSettings(thePortal) {
 	return $.ajax({
 		type: "GET",
 		async: true,
-		url: servicePath + "account/stripe",
+		url: servicePath + "billing/stripe",
 		success: function(data)
 		{
 			thePortal.stripeCustomer = data;
+		}
+	});
+}
+
+function getInvoiceHistory(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "billing/invoicehistory",
+		success: function(data)
+		{
+			thePortal.invoiceHistory = data;
+		}
+	});
+}
+
+function getNextInvoice(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "billing/nextinvoice",
+		success: function(data)
+		{
+			thePortal.nextInvoice = data;
 		}
 	});
 }
@@ -297,7 +321,7 @@ function addStripeCreditCard(thePortal, token) {
 	        'Accept': 'application/json',
 	        'Content-Type': 'application/json' 
 	    },
-		url: servicePath + "account/addpayment/"+token,
+		url: servicePath + "billing/addpayment/"+token,
 		success: function(data)
 		{
 			thePortal.stripeCustomer = data;
