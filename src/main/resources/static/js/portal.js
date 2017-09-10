@@ -574,6 +574,7 @@ clientPortal.prototype.showInvoiceDetails = function() {
 			data : thePortal.invoiceHistory,
 		    language: { emptyTable: "No invoice history" },
 			columns: [
+				{ responsivePriority: 1, className: 'text-left', title: 'ID', data: 'receiptNumber'},
 				{ responsivePriority: 1, className: 'text-left', title: 'Date', data: 'date',
 				  render: function ( data, type, row) { return moment(1000*data).format('MMMM DD, YYYY'); }},
 				{ responsivePriority: 2, className: 'text-left', title: 'Period', data: 'periodStart',
@@ -1346,7 +1347,7 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 		case 21: // created or started
 		case 25: // created or started
 			cell.append($('<button />',{
-				'class':'btn-primary btn-xs',
+				'class':'btn btn-primary btn-xs',
 				'text':'Remind',
 				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
@@ -1354,7 +1355,7 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 		case 6: // reminded already, but not finished
 		case 26: // reminded already, but not finished
 			cell.append($('<button />',{
-				'class':'btn-primary btn-xs',
+				'class':'btn btn-primary btn-xs',
 				'text':'Remind Again',
 				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
@@ -1362,7 +1363,7 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 		default:
 			if (respondant.type != 1) break; // only view candidates
 			cell.append($('<button />',{
-				'class':'btn-primary btn-xs',
+				'class':'btn btn-primary btn-xs',
 				'text':'View Detail',
 				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.showComponent("candidate_detail");'
 			}));
