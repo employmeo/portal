@@ -11,7 +11,9 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,8 +23,10 @@ import com.employmeo.data.model.Account;
 import com.employmeo.data.model.CustomProfile;
 import com.employmeo.data.model.ProfileDefaults;
 import com.employmeo.data.model.Respondant;
+import com.employmeo.data.model.User;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.RespondantService;
+import com.employmeo.data.service.UserService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.talytica.portal.objects.DashboardParams;
 
@@ -46,9 +50,12 @@ public class DashboardResource {
 	
 	@Autowired
 	RespondantService respondantService;
-	
 	@Autowired
 	AccountService accountService;
+	@Autowired
+	UserService userService;
+	@Context
+	SecurityContext sc;
 	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -60,6 +67,7 @@ public class DashboardResource {
 			   })
 	public Iterable<ApplicantDataPoint> getDashboardUpdate (
 			@ApiParam(value = "Search Params") DashboardParams params) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		
 		Account account = accountService.getAccountById(params.accountId);
 		Timestamp from = new Timestamp(params.fromdate.getTime());

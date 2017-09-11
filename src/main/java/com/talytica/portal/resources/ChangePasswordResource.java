@@ -39,10 +39,8 @@ public class ChangePasswordResource {
 
 	private static final Logger log = LoggerFactory.getLogger(ChangePasswordResource.class);
 	
-	
 	@Autowired
 	PortalUserDetailsService userCredentialService;
-
 	@Autowired
 	UserService userService;
 	

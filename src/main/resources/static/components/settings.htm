@@ -3,26 +3,29 @@
 		<h3>Account Settings</h3>
 	</div>
 </div>
-<div class="row">
-	<div class="x_panel">
-		<div class="x_content">
-			<div class="row content">
-	<div class="col-xs-8 col-sm-9">
-		<h2 id='accountname'>name</h2>
-		<span id='accountlocation'>location</span>
-	</div>
-	<div class="col-xs-4 col-sm-3">
-		<div class="tile-stats text-center">
-			<span>Type</span>
-			<h2 id='accounttype'>Free Trial</h2>
-		</div>
-	</div>
-</div>
-</div></div></div>
+<div class="row content">
+				<div class="col-xs-4 col-sm-4"><div class="tile-stats text-center">
+					<span>Account Name</span>
+					<h2 id="accountname">Account Name</h2>
+				</div></div>
+				<div class="col-xs-4 col-sm-4"><div class="tile-stats text-center">
+					<span>Plan</span>
+					<h2 id="accounttype">None</h2>
+				</div></div>
+				<div class="col-xs-4 col-sm-4"><div class="tile-stats text-center">
+					<span>Status</span>
+					<h2 id="accountstatus">n/a</h2>
+				</div></div>		
 
+					</div>
 <div class="row">
 				<ul id="settingsTab" class="nav nav-tabs bar_tabs" style='margin-bottom:0px;'role="tablist">
-					<li role="presentation" class="active"><a href="#tab_assessments"
+					<li role="presentation" class="active"><a href="#tab_subscription"
+						role="tab" id="subscription-tab" data-toggle="tab"
+						aria-expanded="false"> <i class="fa fa-credit-card"></i> <span
+							class="visible-md-inline visible-lg-inline"> Subscription</span>
+					</a></li>
+					<li role="presentation"><a href="#tab_assessments"
 						role="tab" id="assessments-tab" data-toggle="tab"
 						aria-expanded="false"> <i class="fa fa-clipboard"></i> <span
 							class="visible-md-inline visible-lg-inline"> Assessments</span>
@@ -43,11 +46,40 @@
 		<div class="x_content">
 			<div class="" role="tabpanel">
 				<div id="settingsContent" class="tab-content">
-					<div role="tabpanel" class="tab-pane fade active in" id="tab_assessments"
+					<div role="tabpanel" class="tab-pane fade active in" id="tab_subscription"
+						aria-labelledby="subscription-tab">
+						<h3 class='text-center'>Subscription</h3>
+						<hr>
+						<div class='col-xs-12 col-sm-6'>
+						<h5><strong>Subscription Details</strong></h5>
+						<div id='accountbillingstatus' class='hidden'>
+							<hr>
+							<h4>Plan <span class='text-primary pull-right' id="billingplan">Demo</span></h4>
+							<h5>Period <span class='text-primary pull-right' id="billingperiod">2017-09-05</span></h5>
+							<h5>Status <span class='text-primary pull-right' id="billingstatus">n/a</span></h5>
+							<h5 class='hidden' id='yescardonfile'>Payment Card on file: <span class='pull-right text-primary' id='carddetails'></span></h5>
+							<div id='accounttrialmessage' class='hidden alert alert-info text-center h4'>Your free trial ends in <span id='accounttrialdaysleft'>0</span> days.</div>
+							<div id='nocardonfile' class='hidden text-center'>
+								<hr>
+								<div class='alert alert-warning text-center h4'>No card on file. Add one to avoid service disruptions</div>
+								<form id='addcardform' action="javascript:portal.addCreditCard();" method="POST"></form>
+							</div>
+						</div>
+						</div>
+						<div class='col-xs-12 col-sm-6'>
+							<h5><strong>Invoice History</strong></h5>
+							<div id='invoicehistory'>
+								<table id='invoicehistorytable' class='table table-condensed table-striped' width="100%"></table>
+								<hr>
+							</div>												
+							<h6>Next Invoice Amount: <span class='blocked pull-right' id='nextbillamt'></span></h6>
+							<h6>Next Invoice Due Date: <span class='blocked pull-right' id='nextbilldue'></span></h6>
+						</div>
+					</div>
+					<div role="tabpanel" class="tab-pane fade in" id="tab_assessments"
 						aria-labelledby="assessments-tab">
 						<h3 class='text-center'>Assessments</h3>
-						<table class="table table-condensed table-hover"
-							id='assessmentstable' width="100%"></table>
+						<table class="table table-condensed table-hover" id='assessmentstable' width="100%"></table>
 						<div id='editassessment' style='display: none;'>
 							<hr>
 							<div class="text-center">

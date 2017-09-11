@@ -27,6 +27,7 @@ import io.swagger.annotations.ApiResponses;
 
 
 @Component
+@Deprecated
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/1/question")
@@ -38,6 +39,7 @@ public class QuestionResource {
 	private QuestionService questionService;
 
 	@GET
+	@Deprecated
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the list of all Questions", response = Question.class, responseContainer = "List")
 	   @ApiResponses(value = {
@@ -45,10 +47,12 @@ public class QuestionResource {
 	     @ApiResponse(code = 404, message = "Questions not found")
 	   })	
 	public Iterable<Question> getAllQuestions() {
+		log.warn("Deprecated resource accessed");
 		return questionService.getAllQuestions();
 	}
 	
 	@GET
+	@Deprecated
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the question by provided Id", response = Question.class)
@@ -57,6 +61,7 @@ public class QuestionResource {
 	     @ApiResponse(code = 404, message = "No such Question found")
 	   })	
 	public Response getQuestion(@ApiParam(value = "question id") @PathParam("id") @NotNull Long id) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested question by id {}", id);
 		
 		Question question = questionService.getQuestionById(id);
@@ -70,6 +75,7 @@ public class QuestionResource {
 	}	
 	
 	@POST
+	@Deprecated
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Persists the provided question", response = Question.class)
@@ -77,6 +83,7 @@ public class QuestionResource {
 	     @ApiResponse(code = 201, message = "Question saved"),
 	   })	
 	public Response saveQuestion(Question question) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested question save: {}", question);
 		
 		Question savedQuestion = questionService.save(question);

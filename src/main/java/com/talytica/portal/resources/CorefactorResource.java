@@ -49,6 +49,7 @@ public class CorefactorResource {
 	}
 	
 	@GET
+	@Deprecated
 	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Gets the corefactor by provided Id", response = Corefactor.class)
@@ -57,6 +58,7 @@ public class CorefactorResource {
 	     @ApiResponse(code = 404, message = "No such Corefactor found")
 	   })	
 	public Response getCorefactor(@ApiParam(value = "corefactor id") @PathParam("id") @NotNull Long id) {
+		log.warn("deprecated resource called");
 		log.debug("Requested corefactor by id {}", id);
 		
 		Corefactor corefactor = corefactorService.findCorefactorById(id);
@@ -70,6 +72,7 @@ public class CorefactorResource {
 	}	
 	
 	@POST
+	@Deprecated
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@ApiOperation(value = "Persists the provided corefactor", response = Corefactor.class)
@@ -77,6 +80,7 @@ public class CorefactorResource {
 	     @ApiResponse(code = 201, message = "Corefactor saved"),
 	   })	
 	public Response saveCorefactor(Corefactor corefactor) {
+		log.warn("deprecated resource called");
 		log.debug("Requested corefactor save: {}", corefactor);
 		
 		Corefactor savedCorefactor = corefactorService.save(corefactor);

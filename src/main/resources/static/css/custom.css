@@ -3892,23 +3892,26 @@ html > body > .ui-pnotify {
 /* theming */
 
 .alert-success {
-    color: #ffffff;
+    color: #fff;
     background-color: rgba(38, 185, 154, 0.88);
     border-color: rgba(38, 185, 154, 0.88);
 }
 
 .alert-info {
+	color:#E9EDEF;
     background-color: rgba(52, 152, 219, 0.88);
     border-color: rgba(52, 152, 219, 0.88);
 }
 
 .alert-warning {
+	color:#E9EDEF;
     background-color: rgba(243, 156, 18, 0.88);
     border-color: rgba(243, 156, 18, 0.88);
 }
 
 .alert-danger,
 .alert-error {
+	color:#E9EDEF;
     background-color: rgba(231, 76, 60, 0.88);
     border-color: rgba(231, 76, 60, 0.88);
 }

@@ -10,6 +10,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,12 @@ import org.springframework.stereotype.Component;
 import com.employmeo.data.model.AccountSurvey;
 import com.employmeo.data.model.Person;
 import com.employmeo.data.model.Respondant;
+import com.employmeo.data.model.User;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.PersonService;
 import com.employmeo.data.service.RespondantService;
+import com.employmeo.data.service.UserService;
 import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.ApplicantInvitation;
 
@@ -48,7 +51,10 @@ public class ApplicantInvitationResource {
 	private RespondantService respondantService;
 	@Autowired
 	private EmailService emailService;
-	
+	@Autowired
+	private UserService userService;
+	@Context
+	SecurityContext sc;	
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -60,6 +66,8 @@ public class ApplicantInvitationResource {
 				@Context final HttpServletRequest reqt,
 			    @ApiParam("Assessment Order") ApplicantInvitation invitation) {
 		// Collect expected input fields
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+
 		AccountSurvey as = accountSurveyService.getAccountSurveyById(invitation.asid);
 		
 		// Perform business logic
@@ -107,7 +115,7 @@ public class ApplicantInvitationResource {
       @ApiResponse(code = 200, message = "Reminder sent")})	
 	public Response remindRespondant(@ApiParam("Respondant Id") @PathParam("id") Long respondantId) {
 		// Collect expected input fields
-
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 	    Respondant respondant = respondantService.getRespondantById(respondantId);
 	    if (respondant.getRespondantStatus() <= Respondant.STATUS_STARTED) {
 	    	respondant.setRespondantStatus(Respondant.STATUS_REMINDED);
