@@ -94,16 +94,17 @@ clientPortal.prototype.loginSuccess = function(data) {
 	this.user = data;
 	var thePortal = this;
 	
-	// if account new / free trial... force welcome / setup page
-	if (1 == this.user.account.accountStatus) this.urlParams.component = 'welcome';
-	if (50 == this.user.account.accountStatus) this.urlParams.component = 'benchmarks';
-	
+	if (!this.urlParams.component) { // if account new / free trial... force welcome / setup page
+		this.urlParams.component = 'dash';
+		if (1 == this.user.account.accountStatus) this.urlParams.component = 'welcome';
+		if (50 == this.user.account.accountStatus) this.urlParams.component = 'benchmarks';
+	}
+
 	$('#portal').toggleClass('hidden');
   	$('#mainbody').removeClass('coverpage');
 	$('#mainbody').css('background-image','');
 	$('#leftnav').load('/components/left.htm?version='+this.version);
 	$('#topnav').load('/components/top.htm?version='+this.version);
-	if (!this.urlParams.component) this.urlParams.component = 'dash';
 
 	$.when (getLocations(thePortal), getPositions(thePortal), getAssessments(thePortal),
 			getBenchmarks(thePortal), getCorefactors(thePortal), getProfiles(thePortal)).done(
@@ -541,6 +542,7 @@ clientPortal.prototype.renderStripeDetails = function () {
 	}
 	if (!card) {
 		$('#nocardonfile').removeClass('hidden');
+		$('#yescardonfile').addClass('hidden');
 		var btn = $('<script />', {
 			'id':'addcardscript',
 			'class':'stripe-button',
@@ -548,16 +550,17 @@ clientPortal.prototype.renderStripeDetails = function () {
 			'data-name':'Talytica',
 			'data-key' : 'pk_test_lccraw40JRQUX6qFiOPg3awk',
 			'data-email':this.stripeCustomer.email,
-			'data-zip': 'true',
+			'data-zip-code': true,
 			'data-label':'Add Credit Card',
 			'data-panel-label':'Save Payment Info',
 			'data-image':'https://portal.talytica.com/images/favicon-32x32.png',
-			'data-allow-remember-me': 'false',
-			'data-locale' : 'auto'				
+			'data-allow-remember-me': false,
+			'data-locale' : 'auto'	
 		});
 		$('#addcardform').append(btn);
 	} else {
 		$('#yescardonfile').removeClass('hidden');
+		$('#nocardonfile').addClass('hidden');
 		$('#carddetails').text(card);		
 	}
 
