@@ -16,8 +16,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.math3.distribution.TDistribution;
@@ -40,7 +42,7 @@ import com.employmeo.data.model.Position;
 import com.employmeo.data.model.Respondant;
 import com.employmeo.data.model.RespondantScore;
 import com.employmeo.data.model.Survey;
-
+import com.employmeo.data.model.User;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.CorefactorService;
@@ -48,6 +50,7 @@ import com.employmeo.data.service.PersonService;
 import com.employmeo.data.service.PopulationService;
 import com.employmeo.data.service.RespondantService;
 import com.employmeo.data.service.SurveyService;
+import com.employmeo.data.service.UserService;
 import com.talytica.common.service.EmailService;
 import com.talytica.common.service.ExternalLinksService;
 import com.talytica.portal.objects.BenchmarkEmployee;
@@ -92,34 +95,30 @@ public class BenchmarkWizardResource {
 	@Value("4701d03f-ee00-4c13-86a6-3b26107e0b05")
 	private String BENCHMARK_EMAIL_TEMPLATE_ID;
 	
-
+	@Context
+	SecurityContext sc;
 	@Autowired
-	AccountService accountService;
-	
+	AccountService accountService;	
 	@Autowired
 	AccountSurveyService accountSurveyService;
-
 	@Autowired
-	EmailService emailService;
-	
+	EmailService emailService;	
 	@Autowired
 	ExternalLinksService externalLinksService;
-
 	@Autowired
-	PersonService personService;
-		
+	PersonService personService;	
 	@Autowired
 	RespondantService respondantService;
-
 	@Autowired
 	SurveyService surveyService;
-
+	@Autowired
+	UserService userService;
 	// Put these elsewhere...
 	@Autowired
 	CorefactorService corefactorService;
-
 	@Autowired
 	PopulationService populationService;
+
 	
 	@GET
 	@Path("/{id}/options")
@@ -130,6 +129,7 @@ public class BenchmarkWizardResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public Response getAssessmentOptions(@ApiParam(value = "account id") @PathParam("id") @NotNull Long accountId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested assessment options for account id {}", accountId);
 		Account account = accountService.getAccountById(accountId);
 		if(null != account) {
@@ -148,6 +148,7 @@ public class BenchmarkWizardResource {
 	     @ApiResponse(code = 201, message = "Benchmark Created"),
 	     @ApiResponse(code = 400, message = "Error Creating Benchmark")})
 	public Response newBenchmark(@ApiParam("New Benchmark Request") NewBenchmarkRequest request) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Account account = accountService.getAccountById(request.accountId);
 		Survey survey = surveyService.getSurveyById(request.surveyId);
 		log.info("New Benchmark Request for position {} in account {}", account.getAccountName(), request.positionName);
@@ -181,7 +182,7 @@ public class BenchmarkWizardResource {
 	public Response chooseBenchmarkType(
 			@ApiParam("benchmark id") @PathParam("id") Long benchmarkId,
 			@ApiParam("Benchmark config") ConfigBenchmarkRequest request) {
-		
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Benchmark benchmark = accountService.getBenchmarkById(benchmarkId);
 		log.debug("fetched benchmark {} by id {}",benchmark, benchmarkId);
 		Account account = accountService.getAccountById(benchmark.getAccountId());
@@ -254,6 +255,7 @@ public class BenchmarkWizardResource {
 	public Response sendBenchmark(
 			@ApiParam("benchmark id") @PathParam("id") Long benchmarkId,
 			@ApiParam("Benchmark config") ConfigBenchmarkRequest request) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Benchmark benchmark = accountService.getBenchmarkById(benchmarkId);
 		if (benchmark.getType() == Benchmark.TYPE_DETAILED) {
 			Set<Respondant> respondants = respondantService.getByBenchmarkId(benchmark.getId());
@@ -287,6 +289,7 @@ public class BenchmarkWizardResource {
 	     @ApiResponse(code = 201, message = "Benchmark Sent"),
 	     @ApiResponse(code = 400, message = "Error Setting Up Benchmark")})
 	public Response completeBenchmark(@ApiParam("benchmark id") @PathParam("id") Long benchmarkId) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Benchmark benchmark = accountService.getBenchmarkById(benchmarkId);
 
 		Set<Respondant> respondants = respondantService.getCompletedForBenchmarkId(benchmark.getId());

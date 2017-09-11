@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiResponses;
 
 
 @Component
+@Deprecated
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/1/predictionconfiguration")
@@ -48,6 +49,7 @@ public class PredictionConfigurationResource {
 	     @ApiResponse(code = 404, message = "PredictionModels not found")
 	   })	
 	public Iterable<PredictionModel> getAllPredictionModels() {
+		log.warn("Deprecated resource accessed");
 		return predictionConfigurationService.getAllPredictionModels();
 	}
 	
@@ -60,6 +62,7 @@ public class PredictionConfigurationResource {
 	     @ApiResponse(code = 404, message = "No such PredictionModel found")
 	   })	
 	public Response getPredictionModel(@ApiParam(value = "predictionModel id") @PathParam("id") @NotNull Long id) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested predictionModel by id {}", id);
 		
 		PredictionModel predictionModel = predictionConfigurationService.getPredictionModelById(id);
@@ -81,6 +84,7 @@ public class PredictionConfigurationResource {
 	     @ApiResponse(code = 201, message = "PredictionModel saved"),
 	   })	
 	public Response savePredictionModel(PredictionModel predictionModel) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested predictionModel save: {}", predictionModel);
 		
 		PredictionModel savedPredictionModel = predictionConfigurationService.save(predictionModel);
@@ -100,6 +104,7 @@ public class PredictionConfigurationResource {
 	     @ApiResponse(code = 404, message = "PredictionTargets not found")
 	   })	
 	public Iterable<PredictionTarget> getAllPositionTargets() {
+		log.warn("Deprecated resource accessed");
 		return predictionConfigurationService.getAllPredictionTargets();
 	}
 	
@@ -112,6 +117,7 @@ public class PredictionConfigurationResource {
 	     @ApiResponse(code = 404, message = "No such PredictionTarget found")
 	   })	
 	public Response getPredictionTarget(@ApiParam(value = "predictionTarget id") @PathParam("id") @NotNull Long id) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested predictionTarget by id {}", id);
 		
 		PredictionTarget predictionTarget = predictionConfigurationService.getPredictionTargetById(id);
@@ -133,6 +139,7 @@ public class PredictionConfigurationResource {
 	     @ApiResponse(code = 201, message = "PredictionTarget saved"),
 	   })	
 	public Response savePredictionTarget(PredictionTarget predictionTarget) {
+		log.warn("Deprecated resource accessed");
 		log.debug("Requested predictionTarget save: {}", predictionTarget);
 		
 		PredictionTarget savedpredictionTarget = predictionConfigurationService.save(predictionTarget);
@@ -152,6 +159,7 @@ public class PredictionConfigurationResource {
 		     @ApiResponse(code = 404, message = "PositionPredictionConfigurations not found")
 		   })	
 		public Iterable<PositionPredictionConfiguration> getAllPositionPredictionConfigurations() {
+			log.warn("Deprecated resource accessed");
 			return predictionConfigurationService.getAllPositionPredictionConfigurations();
 		}
 		
@@ -164,6 +172,7 @@ public class PredictionConfigurationResource {
 		     @ApiResponse(code = 404, message = "No such PositionPredictionConfiguration found")
 		   })	
 		public Response getPositionPredictionConfiguration(@ApiParam(value = "positionPredictionConfiguration id") @PathParam("id") @NotNull Long id) {
+			log.warn("Deprecated resource accessed");
 			log.debug("Requested positionPredictionConfiguration by id {}", id);
 			
 			PositionPredictionConfiguration positionPredictionConfiguration = predictionConfigurationService.getPositionPredictionConfigurationById(id);
@@ -185,6 +194,7 @@ public class PredictionConfigurationResource {
 		     @ApiResponse(code = 201, message = "PositionPredictionConfiguration saved"),
 		   })	
 		public Response savePositionPredictionConfiguration(PositionPredictionConfiguration positionPredictionConfiguration) {
+			log.warn("Deprecated resource accessed");
 			log.debug("Requested positionPredictionConfiguration save: {}", positionPredictionConfiguration);
 			
 			PositionPredictionConfiguration savedPositionPredictionConfiguration = predictionConfigurationService.save(positionPredictionConfiguration);

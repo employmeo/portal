@@ -6,7 +6,9 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Respondant;
+import com.employmeo.data.model.User;
 import com.employmeo.data.service.RespondantService;
+import com.employmeo.data.service.UserService;
 import com.talytica.portal.objects.RespondantSearchParams;
 
 import io.swagger.annotations.Api;
@@ -34,6 +38,10 @@ public class RespondantSearchResource {
 
 	@Autowired
 	private RespondantService respondantService;
+	@Autowired
+	private UserService userService;
+	@Context
+	SecurityContext sc;
 	
 	@POST	
 	@Produces(MediaType.APPLICATION_JSON)
@@ -46,7 +54,7 @@ public class RespondantSearchResource {
 	public Iterable<Respondant> searchRespondants(
 			@ApiParam(value = "Search Object") RespondantSearchParams search){
 		
-
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Fetching respondants for search params {}", search);
 		Timestamp from = new Timestamp(search.fromdate.getTime());
 		Timestamp to = new Timestamp(search.todate.getTime() + ONE_DAY);

@@ -94,16 +94,17 @@ clientPortal.prototype.loginSuccess = function(data) {
 	this.user = data;
 	var thePortal = this;
 	
-	// if account new / free trial... force welcome / setup page
-	if (1 == this.user.account.accountStatus) this.urlParams.component = 'welcome';
-	if (50 == this.user.account.accountStatus) this.urlParams.component = 'benchmarks';
-	
+	if (!this.urlParams.component) { // if account new / free trial... force welcome / setup page
+		this.urlParams.component = 'dash';
+		if (1 == this.user.account.accountStatus) this.urlParams.component = 'welcome';
+		if (50 == this.user.account.accountStatus) this.urlParams.component = 'benchmarks';
+	}
+
 	$('#portal').toggleClass('hidden');
   	$('#mainbody').removeClass('coverpage');
 	$('#mainbody').css('background-image','');
 	$('#leftnav').load('/components/left.htm?version='+this.version);
 	$('#topnav').load('/components/top.htm?version='+this.version);
-	if (!this.urlParams.component) this.urlParams.component = 'dash';
 
 	$.when (getLocations(thePortal), getPositions(thePortal), getAssessments(thePortal),
 			getBenchmarks(thePortal), getCorefactors(thePortal), getProfiles(thePortal)).done(
@@ -268,14 +269,17 @@ clientPortal.prototype.initializeDatePicker = function (callback) {
 }
 
 clientPortal.prototype.initDashBoard = function() {
-	if (null != this.user.account.defaultAsId) {
-		$('#smblinkdisplay').removeClass('hidden');
-		var assessment = this.getAssessmentBy(this.user.account.defaultAsId);
+	
+	var assessment = null;
+	if (null != this.user.account.defaultAsId) assessment = this.getAssessmentBy(this.user.account.defaultAsId);
+	if (null != assessment) {
 		$('#staticlink').attr('href',assessment.permalink);
 		$('#staticlink').text(assessment.permalink);
+		$('#smblinkdisplay').removeClass('hidden');
 	} else {
 		$('#smblinkdisplay').addClass('hidden');		
 	}
+	
 	if (Object.keys(this.dashParams).length > 0) {
 		// code to put the dashboard details in the right place.
 		var drp = $('#reportrange').data('daterangepicker');
@@ -490,6 +494,116 @@ clientPortal.prototype.updateLastTen = function(data) {
 		
 		$('#recentcandidates').append(li);
 	}
+}
+
+clientPortal.prototype.initStripeDetails = function () {
+	var thePortal = this;
+	if (!this.stripeCustomer) {
+		$.when(getBillingSettings(thePortal),getNextInvoice(thePortal),getInvoiceHistory(thePortal)).done(function (){thePortal.renderStripeDetails();});
+	} else {
+		thePortal.renderStripeDetails();
+	}
+}
+
+clientPortal.prototype.renderStripeDetails = function () {
+	var source = null;
+	var card = null;
+	var sub;
+	var period;
+	if (!this.stripeCustomer) return;
+	if (this.stripeCustomer.subscriptions.totalCount > 0) {
+		for (var i in this.stripeCustomer.subscriptions.data) {
+			sub = this.stripeCustomer.subscriptions.data[i];
+			if ((status == "active") || (status == "trialing")) break;
+		}
+	} 
+	if (!sub) {
+		$('#accountproblemsmessage').removeClass('hidden');
+	} else {
+		$('#accountbillingstatus').removeClass('hidden');
+		$('#accounttype').text(sub.plan.name);
+		$('#accountstatus').text(sub.status);	
+		$('#billingplan').text(sub.plan.name);
+		$('#billingstatus').text(sub.status);
+		period = moment(1000*sub.currentPeriodStart).format('MMM-DD') + ' to ' + moment(1000*sub.currentPeriodEnd).format('MMM-DD');
+		$('#billingperiod').text(period);
+		if (sub.status == "trialing") {
+			$('#accounttrialmessage').removeClass('hidden');
+			$('#accounttrialdaysleft').text(Math.floor((sub.trialEnd*1000 - new Date()) / (24*3600*1000)));
+		}
+	}
+	if (this.stripeCustomer.sources.totalCount > 0) {
+		for (var i in this.stripeCustomer.sources.data) {
+			source = this.stripeCustomer.sources.data[i];
+			if (source.object == "card") {
+				card = source.brand + " " + source.expMonth + "/" + source.expYear;
+			}
+		}
+	}
+	if (!card) {
+		$('#nocardonfile').removeClass('hidden');
+		$('#yescardonfile').addClass('hidden');
+		var btn = $('<script />', {
+			'id':'addcardscript',
+			'class':'stripe-button',
+			'src':'https://checkout.stripe.com/checkout.js',
+			'data-name':'Talytica',
+			'data-key' : 'pk_test_lccraw40JRQUX6qFiOPg3awk',
+			'data-email':this.stripeCustomer.email,
+			'data-zip-code': true,
+			'data-label':'Add Credit Card',
+			'data-panel-label':'Save Payment Info',
+			'data-image':'https://portal.talytica.com/images/favicon-32x32.png',
+			'data-allow-remember-me': false,
+			'data-locale' : 'auto'	
+		});
+		$('#addcardform').append(btn);
+	} else {
+		$('#yescardonfile').removeClass('hidden');
+		$('#nocardonfile').addClass('hidden');
+		$('#carddetails').text(card);		
+	}
+
+	this.showInvoiceDetails();
+}
+
+clientPortal.prototype.showInvoiceDetails = function() {
+	var thePortal = this;
+	if (this.invoiceHistory) {
+		this.invTable = $('#invoicehistorytable').DataTable( {
+			 "paging" : false, "filter" : false, "ordering" : false, "info" : false, "responsive" : true,
+			order: [[ 0, 'desc' ]],
+			rowId: 'id',
+			data : thePortal.invoiceHistory,
+		    language: { emptyTable: "No invoice history" },
+			columns: [
+				{ responsivePriority: 1, className: 'text-left', title: 'ID', data: 'receiptNumber'},
+				{ responsivePriority: 1, className: 'text-left', title: 'Date', data: 'date',
+				  render: function ( data, type, row) { return moment(1000*data).format('MMMM DD, YYYY'); }},
+				{ responsivePriority: 2, className: 'text-left', title: 'Period', data: 'periodStart',
+				  render: function ( data, type, row) { 
+					  return moment(1000*data).format('MMM-DD') + ' to ' + moment(1000*row.periodEnd).format('MMM-DD'); }},
+				{ responsivePriority: 1, className: 'text-right', title: 'Amount', data: 'total',
+						  render: function (data,type,row) {return '$ ' + data/100}}
+	        ]
+			});
+	} else {
+		if (this.invTable) this.invTable.destroy();
+		$('#invoicehistory').addClass('hidden');
+	}
+	if (this.nextInvoice) {
+		$('#nextbilldue').text(moment(this.nextInvoice.date*1000).format('MMMM DD, YYYY'));
+		$('#nextbillamt').text('$ ' + this.nextInvoice.amountDue/100);
+	}
+}
+
+clientPortal.prototype.addCreditCard = function(){
+	var fields = $('#addcardform').serializeArray();
+	var object = {};
+	for (var i=0;i<fields.length;i++) {
+		object[fields[i].name] = fields[i].value;
+	}
+	addStripeCreditCard(this, object.stripeToken);
 }
 
 clientPortal.prototype.initGradersTable = function(){
@@ -716,7 +830,7 @@ clientPortal.prototype.initRespondantReferences = function() {
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
 		          { responsivePriority: 5, className: 'text-left', title: 'Relationship', data: 'relationship'},
 		          { responsivePriority: 6, className: 'text-left', title: 'Overall Score', data: 'summaryScore', render :
-		        	  function (data,type,row) {return thePortal.getStars(data, false);}},
+		        	  function (data,type,row) {if (row.status == 10) return thePortal.getStars(data, false);return '';}},
 		          { responsivePriority: 4, className: 'details-control', title: 'Expand' }
 		         ]
 	});
@@ -730,7 +844,8 @@ clientPortal.prototype.initRespondantReferences = function() {
 }
 
 clientPortal.prototype.getStars = function(data, size) {
-	if (isNaN(data)) return data;
+	console.log(data);
+	if (isNaN(data) || (data==null)) return data;
 	var tail = '';
 	if (size) tail = '-lg';
 	var stardiv = $('<div />',{'class':'star-ratings-sprite'+tail}).append($('<span />',
@@ -779,7 +894,7 @@ clientPortal.prototype.showRespondantReferences = function() {
 	            row.child('<i class="fa fa-spinner fa-spin"></i>').show();
 	            tr.addClass('shown');
 	    		if (!grader.grades) {
-	    			$.when(getGrades(grader)).done(function () {thePortal.showReferenceResponses(td);});
+	    			$.when(getGrades(grader),getCriteria(grader)).done(function () {thePortal.showReferenceResponses(td);});
 	    		} else {
 	    			thePortal.showReferenceResponses(td);
 	    		}
@@ -794,11 +909,25 @@ clientPortal.prototype.showReferenceResponses = function(td) {
     var myrow = this.rReferences.row( tr );
 	var count = 0;
 	var grader = myrow.data();
+	console.log(grader);
 	var table = $('<table />',{'class' : 'table table-condensed'});
+	for (var i in grader.grades) {
+		for (var j in grader.criteria) {
+			if (grader.criteria[j].questionId == grader.grades[i].questionId) grader.grades[i].sequence = j;
+		}
+	}
+	grader.grades.sort(function(a,b) {
+		if (a.questionId == b.questionId) return a.graderId - b.graderId;
+		return a.sequence - b.sequence;
+	});
+
 	for (var key in grader.grades) {
+		var lastGrade = null;
 		var grade = grader.grades[key];
+		if (grade.questionId == lastGrade) continue;
 		count++;
 		var row = $('<tr />');
+		row.append($('<td />',{'text': count + ". " }));
 		row.append($('<td />',{'html': grade.questionText}));
 		if (grade.gradeText) {
 			row.append($('<td />',{'class' : 'text-right', 'html': grade.gradeText }));
@@ -806,6 +935,7 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 			row.append($('<td />',{'class' : 'text-right', 'html': this.getStars(grade.gradeValue, false) }));
 		}
 		table.append(row);
+		lastGrade = grade.questionId;
 	}
 	if (grader.status != 10) {
 		var row = $('<tr />');
@@ -917,7 +1047,7 @@ clientPortal.prototype.getRespondantGraderById = function(id) {
 }
 
 clientPortal.prototype.createGradeForm = function (criterion) {
-	var grade = {'id':'','gradeText':'','gradeValue':''};
+	var grade = {'id':'','gradeText':'','gradeValue':null};
 	if (this.grader.grades.length > 0) {
 		this.checkGraderStatus(this.grader);
 	}
@@ -1220,7 +1350,7 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 		case 21: // created or started
 		case 25: // created or started
 			cell.append($('<button />',{
-				'class':'btn-primary btn-xs',
+				'class':'btn btn-primary btn-xs',
 				'text':'Remind',
 				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
@@ -1228,7 +1358,7 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 		case 6: // reminded already, but not finished
 		case 26: // reminded already, but not finished
 			cell.append($('<button />',{
-				'class':'btn-primary btn-xs',
+				'class':'btn btn-primary btn-xs',
 				'text':'Remind Again',
 				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
 			}));
@@ -1236,7 +1366,7 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 		default:
 			if (respondant.type != 1) break; // only view candidates
 			cell.append($('<button />',{
-				'class':'btn-primary btn-xs',
+				'class':'btn btn-primary btn-xs',
 				'text':'View Detail',
 				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.showComponent("candidate_detail");'
 			}));
@@ -1340,13 +1470,7 @@ clientPortal.prototype.updateSurveyFields = function() {
 clientPortal.prototype.initSettingsPage = function() {
 	$('#accountname').text(this.user.account.accountName);
 	$('#accountlocation').text(this.getLocationBy(this.user.account.defaultLocationId).street1);
-	switch (this.user.account.accountType) {
-		case 100: $('#accounttype').text('Free Trial'); break;
-		case 200: $('#accounttype').text('Circle'); break;
-		case 300: $('#accounttype').text('Triangle'); break;
-		case 400: $('#accounttype').text('Square'); break;
-		default: $('#accounttype').text('Enterprise'); break;
-	}		
+	this.initStripeDetails();
 	this.initLocationTable();
 	this.initPositionTable();
 	this.initAssessmentTable();
@@ -1601,7 +1725,7 @@ clientPortal.prototype.renderPredictions = function() {
 	} else {
 		$('#predictionpanel').removeClass('hidden');
 		this.respondant.predictions.sort(function(a,b) {
-			return a.positionPredictionConfig.displayPriority - a.positionPredictionConfig.displayPriority;
+			return a.positionPredictionConfig.displayPriority - b.positionPredictionConfig.displayPriority;
 		});
 	}
 	var profile = this.getProfile(this.respondant.profileRecommendation);
