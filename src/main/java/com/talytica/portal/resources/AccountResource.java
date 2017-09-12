@@ -12,12 +12,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -142,18 +144,21 @@ public class AccountResource {
 	     @ApiResponse(code = 200, message = "Locations found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
-	public Response getLocations(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+	public List<Location> getLocations(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
-		log.debug("Requested locations for account id {}", id);
+		if (null == user) throw new WebApplicationException(Response.Status.NOT_FOUND);
 		
-		Account account = accountService.getAccountById(id);
-		log.debug("Returning locations for account id {}", id);
-		
-		if(null != account) {
-			return Response.status(Status.OK).entity(account.getLocations()).build();
-		} else {
-			return Response.status(Status.NOT_FOUND).build();
+		log.debug("User {} requested locations", user.getId());			
+		List <Location> locations = accountService.getVisibleLocations(user.getUserAccountId());
+		if (user.getLocationRestrictionId() != null) {
+			List<Long> ids = userService.getLocationLimits(user);
+			List<Location> restricted = Lists.newArrayList();
+			for (Location loc : locations) 	if (ids.contains(loc.getId())) restricted.add(loc);
+			log.debug("Returning {} restricted locations for user id {}", restricted.size(), user.getId());	
+			return restricted;
 		}
+		log.debug("Returning {} locations for account id {}", locations.size(), user.getUserAccountId());	
+		return locations;
 	}	
 
 	@POST
@@ -191,18 +196,13 @@ public class AccountResource {
 	     @ApiResponse(code = 200, message = "Positions Found"),
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
-	public Response getPositions(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
+	public List<Position> getPositions(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
-		log.debug("Requested positions for account id {}", id);
-		
-		Account account = accountService.getAccountById(id);
-		log.debug("Returning positions for account id {}", id);
-		
-		if(null != account) {
-			return Response.status(Status.OK).entity(account.getPositions()).build();
-		} else {
-			return Response.status(Status.NOT_FOUND).build();
-		}
+		if (null == user) throw new WebApplicationException(Response.Status.NOT_FOUND);
+		log.debug("User {} requested positions", user.getId());				
+		List <Position> positions = accountService.getActivePositions(user.getUserAccountId());
+		log.debug("Returning {} positions for account id {}", positions.size(), user.getUserAccountId());
+		return positions;
 	}
 	
 	@POST
