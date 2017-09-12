@@ -15,6 +15,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -72,13 +73,17 @@ public class DashboardResource {
 		Account account = accountService.getAccountById(params.accountId);
 		Timestamp from = new Timestamp(params.fromdate.getTime());
 		Timestamp to = new Timestamp(params.todate.getTime() + ONE_DAY);
-		Long locationId = null;
-		if (params.locationId >= 1) locationId = params.locationId;
+		List<Long> locationIds = Lists.newArrayList();
+		if (params.locationId >= 1) { 
+			locationIds.add(params.locationId);
+		} else {
+			if (user.getLocationRestrictionId() != null) locationIds = userService.getLocationLimits(user);
+		}
 		Long positionId = null;
 		if (params.positionId >= 1) positionId = params.positionId;
 
 		Page<Respondant> respondants = respondantService.getBySearchParams( params.accountId, LOWEST_STATUS, HIGHEST_STATUS,
-				locationId, positionId, Respondant.TYPE_APPLICANT, from, to, 1, 500);	
+				locationIds, positionId, Respondant.TYPE_APPLICANT, from, to, 1, 500);	
 		
 		List<String> labels = Arrays.asList("unscored", ProfileDefaults.PROFILE_A, ProfileDefaults.PROFILE_B,
 				ProfileDefaults.PROFILE_C, ProfileDefaults.PROFILE_D);

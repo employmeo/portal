@@ -376,7 +376,7 @@ function submitRespondantSearchRequest(params, callback) {
 	return $.ajax({
 		type: "POST",
 		async: true,
-		url: servicePath + "respondantsearch",
+		url: servicePath + "respondant/search",
 	    headers: { 
 	        'Accept': 'application/json',
 	        'Content-Type': 'application/json' 

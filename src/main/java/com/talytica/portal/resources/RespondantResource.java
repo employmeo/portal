@@ -1,6 +1,7 @@
 package com.talytica.portal.resources;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -139,16 +141,20 @@ public class RespondantResource {
 		log.debug("Fetching respondants for search params {}", search);
 		Timestamp from = new Timestamp(search.fromdate.getTime());
 		Timestamp to = new Timestamp(search.todate.getTime() + ONE_DAY);
-		Long locationId = null;
-		if (search.locationId >= 1) locationId = search.locationId;
+		List<Long> locationIds = Lists.newArrayList();
+		if (search.locationId >= 1) { 
+			locationIds.add(search.locationId);
+		} else {
+			if (user.getLocationRestrictionId() != null) locationIds = userService.getLocationLimits(user);
+		}
 		Long positionId = null;
 		if (search.positionId >= 1) positionId = search.positionId;	
 		
 		if ((search.pagenum > 0) && (search.pagesize > 0)) {
-			return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, locationId, positionId, search.type, from, to, search.pagenum, search.pagesize);
+			return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, locationIds, positionId, search.type, from, to, search.pagenum, search.pagesize);
 		}
 		
-		return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, search.locationId, search.positionId, search.type, from, to);
+		return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, locationIds, search.positionId, search.type, from, to);
 
 	}
 }
