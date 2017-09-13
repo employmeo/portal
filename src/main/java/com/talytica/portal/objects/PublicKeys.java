@@ -1,12 +1,16 @@
 package com.talytica.portal.objects;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@Data
 public class PublicKeys {
 	
-	@Value("${com.talytica.apis.stripe.public.key:null}")
 	String stripe;
-	
-	@Value("${com.talytica.apis.googlemaps:null}")
-	String googleMaps;
+
 }

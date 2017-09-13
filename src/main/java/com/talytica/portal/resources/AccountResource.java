@@ -32,6 +32,7 @@ import com.employmeo.data.model.Position;
 import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
+import com.talytica.common.service.BillingService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.talytica.portal.objects.PublicKeys;
 import com.employmeo.data.model.ProfileDefaults;
@@ -54,6 +55,8 @@ public class AccountResource {
 
 	@Autowired
 	private AccountService accountService;
+	@Autowired
+	BillingService billingService;
 	@Autowired
 	private AccountSurveyService accountSurveyService;
 	@Autowired
@@ -350,7 +353,8 @@ public class AccountResource {
 	     @ApiResponse(code = 404, message = "No such Account found")
 	   })	
 	public PublicKeys getKeys() {
-		
-		return new PublicKeys();
-	}	
+		PublicKeys keys = new PublicKeys();
+		keys.setStripe(billingService.getStripePK());
+		return keys;
+	}
 }

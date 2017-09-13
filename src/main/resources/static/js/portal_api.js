@@ -281,7 +281,7 @@ function getKeys(thePortal) {
 	return $.ajax({
 		type: "GET",
 		async: true,
-		url: servicePath + "corefactor",
+		url: servicePath + "account/keys",
 		success: function(data)
 		{
 			thePortal.keys = data;
