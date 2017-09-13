@@ -33,6 +33,7 @@ import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
 import com.talytica.portal.objects.ApplicantDataPoint;
+import com.talytica.portal.objects.PublicKeys;
 import com.employmeo.data.model.ProfileDefaults;
 import com.employmeo.data.model.User;
 
@@ -338,5 +339,18 @@ public class AccountResource {
 		
 		log.debug("Returning profiles for account id {}", id);
 		return Response.status(Status.OK).entity(dataset).build();
+	}
+	
+	@GET
+	@Path("/keys")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Gets the profiles configured for provided accountId", response = PublicKeys.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "Account found"),
+	     @ApiResponse(code = 404, message = "No such Account found")
+	   })	
+	public PublicKeys getKeys() {
+		
+		return new PublicKeys();
 	}	
 }

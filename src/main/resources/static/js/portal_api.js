@@ -277,6 +277,18 @@ function getCorefactors(thePortal) {
 	});
 }
 
+function getKeys(thePortal) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "corefactor",
+		success: function(data)
+		{
+			thePortal.keys = data;
+		}
+	});
+}
+
 function getBillingSettings(thePortal) {
 	return $.ajax({
 		type: "GET",

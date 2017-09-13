@@ -107,7 +107,7 @@ clientPortal.prototype.loginSuccess = function(data) {
 	$('#topnav').load('/components/top.htm?version='+this.version);
 
 	$.when (getLocations(thePortal), getPositions(thePortal), getAssessments(thePortal),
-			getBenchmarks(thePortal), getCorefactors(thePortal), getProfiles(thePortal)).done(
+			getBenchmarks(thePortal), getCorefactors(thePortal), getProfiles(thePortal),getKeys(thePortal)).done(
 			function () {
 				if (thePortal.urlParams.respondantUuid) {
 					$.when(getRespondantByUuid(thePortal, thePortal.urlParams.respondantUuid)).done(
@@ -548,7 +548,7 @@ clientPortal.prototype.renderStripeDetails = function () {
 			'class':'stripe-button',
 			'src':'https://checkout.stripe.com/checkout.js',
 			'data-name':'Talytica',
-			'data-key' : 'pk_test_lccraw40JRQUX6qFiOPg3awk',
+			'data-key' : this.keys.stripe,
 			'data-email':this.stripeCustomer.email,
 			'data-zip-code': true,
 			'data-label':'Add Credit Card',
