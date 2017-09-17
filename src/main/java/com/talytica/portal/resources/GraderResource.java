@@ -215,7 +215,7 @@ public class GraderResource {
 		grader.setType(Grader.TYPE_PERSON);
 		Grader savedGrader = graderService.save(grader);
 		log.debug("Saved grade {}", savedGrader);
-		emailService.sendGraderRequest(savedGrader);
+		emailService.sendReferenceRequest(savedGrader);
 		if (respondant.getRespondantStatus() == Respondant.STATUS_INSUFFICIENT_GRADERS) {
 			respondant.setRespondantStatus(Respondant.STATUS_UNGRADED);
 			respondantService.save(respondant);
