@@ -844,7 +844,6 @@ clientPortal.prototype.initRespondantReferences = function() {
 }
 
 clientPortal.prototype.getStars = function(data, size) {
-	console.log(data);
 	if (isNaN(data) || (data==null)) return data;
 	var tail = '';
 	if (size) tail = '-lg';
@@ -859,12 +858,13 @@ clientPortal.prototype.showRespondantReferences = function() {
 	for (var key in this.respondant.graders) {
 		if (this.respondant.graders[key].type >= 100) references.push(this.respondant.graders[key]);
 	}
-	
 	var warning = false;
 	var ipAddresses = [];
 	var emails = [];
+	var decline = false;
 	$('#referencewarning').css('display','none');
 	for (var i=0;i<references.length;i++) {
+		if (references[i].status == 20) decline=true;
 		var ipAddress = references[i].ipAddress;
 		var email = references[i].person.email;
 		if (ipAddresses.indexOf(ipAddress) > -1) warning = true;
@@ -876,6 +876,9 @@ clientPortal.prototype.showRespondantReferences = function() {
 	if (warning) {
 		$('#warningtext').text('Some references share the same email or IP address.');
 		$('#referencewarning').slideDown();
+	} else if ((ipAddresses.indexOf(portal.respondant.ipAddress)>=0) || (emails.indexOf(portal.respondant.person.email)>=0)) {
+		$('#warningtext').text('Candidate email or IP address matches a reference.');
+		$('#referencewarning').slideDown();		
 	}
 	
 	$('#referencetable').dataTable().fnClearTable();
@@ -900,6 +903,11 @@ clientPortal.prototype.showRespondantReferences = function() {
 	    		}
 	        }
 		});
+		var ungradedStatus = [11,12,31,32];
+		if (ungradedStatus.indexOf(portal.respondant.respondantStatus) >=0) {
+			if (decline) $('#addnewreference').removeClass('hidden');
+			if ((portal.respondantStatus == 12) || (portal.respondantStatus == 32)) $('#waveminimum').removeClass('hidden');
+		}
 		$('#references').removeClass('hidden');	
 	}
 }
@@ -909,7 +917,6 @@ clientPortal.prototype.showReferenceResponses = function(td) {
     var myrow = this.rReferences.row( tr );
 	var count = 0;
 	var grader = myrow.data();
-	console.log(grader);
 	var table = $('<table />',{'class' : 'table table-condensed'});
 	for (var i in grader.grades) {
 		for (var j in grader.criteria) {
@@ -968,8 +975,34 @@ clientPortal.prototype.showReferenceResponses = function(td) {
     myrow.child(table.wrap("<div />").parent().html()).show();
 }
 
+clientPortal.prototype.remindRespondant = function(respondantId) {
+	var thePortal = this;
+	$.when(sendInviteReminder(respondantId)).done(function () {
+		$('#confirmheader').text('Remind Candidate');
+		$('#confirmbody').html('A reminder has been sent');
+	    $('#modalconfirm').hide();
+	    $('#modaldismiss').text('Ok');
+	    $('#modaldismiss').show();
+		var resp;
+		if (thePortal.rTable) resp = thePortal.rTable.row('#'+respondantId).data();
+		if (resp) {
+			if (resp.respondantStatus < 6) resp.respondantStatus = 6;
+			if ((resp.respondantStatus > 20) && (resp.respondantStatus < 26)) resp.respondantStatus = 26;
+			thePortal.rTable.row('#'+respondantId).data(resp).draw();		
+		} else if (thePortal.brTable) {
+			resp = thePortal.brTable.row('#'+respondantId).data();	
+			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
+			if ((resp.respondantStatus > 20) && (resp.respondantStatus < 26)) resp.respondantStatus = 26;
+			thePortal.brTable.row('#'+respondantId).data(resp).draw();	
+		}
+		if (thePortal.respondant.id == respondantId) {
+			thePortal.renderApplicantDetails();
+		}
+	});
+}
+
 clientPortal.prototype.remindReference = function (referenceId) {
-	remindeEmailGrader(referenceId);
+	remindEmailGrader(referenceId);
 	$('#confirmheader').text('Remind Reference');
 	$('#confirmbody').html('A reminder has been sent');
     $('#modalconfirm').hide();
@@ -1000,6 +1033,47 @@ clientPortal.prototype.ignoreReferenceComplete = function (data) {
 	}
 	this.showRespondantReferences();
 	$('#confirm').modal('hide');
+}
+
+
+clientPortal.prototype.addNewReference = function() {
+	var thePortal = this;
+	var fields = $('#newgrader').serializeArray();
+	var ngr = {};
+	for (var i=0;i<fields.length;i++) {
+		ngr[fields[i].name] = fields[i].value;
+	}
+	ngr.respondantId = this.respondant.id;
+	//reset form. slide toggle it away.
+	$.when(addNewRespondantReference(thePortal, ngr)).done(function () {
+		$('#newreferenceform').slideUp();
+		$('#confirmheader').text('New Reference');
+		$('#confirmbody').html('A request has been sent to ' + ngr.email);
+	    $('#modalconfirm').hide();
+	    $('#modaldismiss').text('Ok');
+	    $('#modaldismiss').show();
+		$('#modaldismiss').attr('onClick', 'portal.showRespondantReferences();');
+		$('#confirm').modal('show');
+	});
+}
+
+clientPortal.prototype.confirmWaveMinimum = function() {
+	$('#confirmheader').text('Are you sure?');
+	$('#confirmbody').html('References scores will be calculated, and open references closed.');
+	$('#modalconfirm').attr('onClick', 'portal.waveMinimum('+this.respondant.id+');');
+    $('#modalconfirm').text('Confirm');
+    $('#modalconfirm').show();
+    $('#modaldismiss').text('Cancel');
+    $('#modaldismiss').show();
+}
+
+clientPortal.prototype.waveMinimum = function(respondantId) {
+	$('#confirmbody').empty();
+	$('#confirmbody').append($('<i />',{'class':'fa fa-spin fa-spinner fa-3x'}));
+	$.when(waveMinGraders(respondantId)).done(function () {
+		$('#confirm').modal('hide');
+		$('#waveminimum').addClass('hidden');		
+	})
 }
 
 clientPortal.prototype.initDisplayResponses = function() {
@@ -1300,7 +1374,13 @@ clientPortal.prototype.initRespondantsTable = function() {
 		        		  }
 		          },
 		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person',
-		        	  render : function ( data, type, row ) { return data.firstName + ' ' + data.lastName; }},
+		        	  render : function ( data, type, row ) {
+		        		  var link = $('<a />',{
+		        			  'onClick' : 'portal.setRespondantTo('+row.id+');portal.showComponent("candidate_detail")',
+		        			  'text' : data.firstName + ' ' + data.lastName
+		        		  });
+		        	  	  return $(link).wrap('<div>').parent().html();
+		        	  }},
 			      { responsivePriority: 8, className: 'text-left', title: 'Status', data: 'respondantStatus',
 			        	  render : function ( data, type, row ) { return thePortal.getStatusText(data);}},
 		          { responsivePriority: 9, className: 'text-left', title: 'Position', data: 'positionId', 
@@ -1332,14 +1412,14 @@ clientPortal.prototype.getStatusText = function (status) {
 	if ((status == 5) || (status == 5)) return 'Incomplete';
 	if ((status == 10) || (status == 30)) return 'Submitted';
 	if ((status == 11) || (status == 31)) return 'Needs Input';
-	if ((status == 15) || (status == 35))return 'Scored';
-	if ((status == 19) || (status == 89) || (status == 99))return 'Not Hired';
+	if ((status == 15) || (status == 35)) return 'Scored';
+	if ((status == 19) || (status == 89) || (status == 99)) return 'Not Hired';
 	if (status == 100) return 'Hired';
 	return 'In Process';
 }
 
 clientPortal.prototype.renderRespondantActions = function(respondant) {
-	var cell = $('<td />');
+	var cell = $('<td />',{'class':'text-center'});
 	var thePortal = this;
 	switch (respondant.respondantStatus) {
 		case -20:  // created but not pre-screened
@@ -1352,7 +1432,9 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 			cell.append($('<button />',{
 				'class':'btn btn-primary btn-xs',
 				'text':'Remind',
-				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
+				'data-toggle' : 'modal',
+				'data-target' : '#confirm',
+				'onClick' : 'portal.remindRespondant('+respondant.id+');'
 			}));
 			break;
 		case 6: // reminded already, but not finished
@@ -1360,17 +1442,21 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 			cell.append($('<button />',{
 				'class':'btn btn-primary btn-xs',
 				'text':'Remind Again',
-				'onClick' : 'portal.sendApplicantReminder('+respondant.id+');'
+				'data-toggle' : 'modal',
+				'data-target' : '#confirm',
+				'onClick' : 'portal.remindRespondant('+respondant.id+');'
 			}));
 			break;
 		default:
-			if (respondant.type != 1) break; // only view candidates
-			cell.append($('<button />',{
-				'class':'btn btn-primary btn-xs',
-				'text':'View Detail',
-				'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.showComponent("candidate_detail");'
-			}));
 			break;
+			//remove the button for view detail. instead set elsewhere
+			//if (respondant.type != 1) break; // only view candidates
+			//cell.append($('<button />',{
+			//	'class':'btn btn-primary btn-xs',
+			//	'text':'View Detail',
+			//	'onClick' : 'portal.setRespondantTo('+respondant.id+');portal.showComponent("candidate_detail");'
+			//}));
+			//break;
 	}
 	return cell;
 }
@@ -1432,24 +1518,6 @@ clientPortal.prototype.updateRespondantsTable = function() {
 
 clientPortal.prototype.setRespondantTo = function(respondantId) {
 	this.respondant = this.rTable.row('#'+respondantId).data();
-}
-
-clientPortal.prototype.sendApplicantReminder = function(respondantId) {
-	var thePortal = this;
-	$.when(sendInviteReminder(respondantId)).done(function () {
-		var resp;
-		if (thePortal.rTable) resp = thePortal.rTable.row('#'+respondantId).data();
-		if (resp) {
-			if (resp.respondantStatus < 6) resp.respondantStatus = 6;
-			if ((resp.respondantStatus > 20) && (resp.respondantStatus < 26)) resp.respondantStatus = 26;
-			thePortal.rTable.row('#'+respondantId).data(resp).draw();		
-		} else {
-			resp = thePortal.brTable.row('#'+respondantId).data();
-			if (resp.respondantStatus < 6) resp.respondantStatus = 6;	
-			if ((resp.respondantStatus > 20) && (resp.respondantStatus < 26)) resp.respondantStatus = 26;
-			thePortal.brTable.row('#'+respondantId).data(resp).draw();	
-		}
-	})
 }
 
 //Section for looking at / manipulating assessments
@@ -1576,7 +1644,7 @@ clientPortal.prototype.showBenchmarkRespondants = function() {
 			          { responsivePriority: 11, className: 'text-left', title: 'Email', data: 'person.email'},		        	  
 			      { responsivePriority: 8, className: 'text-left', title: 'Status', data: 'respondantStatus',
 			        	  render : function ( data, type, row ) { return thePortal.getStatusText(data);}},
-		          { responsivePriority: 5, className: 'text-left', title: 'Actions', data: 'respondantStatus', 
+		          { responsivePriority: 5, className: 'text-center', title: 'Actions', data: 'respondantStatus', 
 		        	  render : function ( data, type, row ) { return thePortal.renderRespondantActions(row).html();}}
 		         ]
 	});
@@ -1699,13 +1767,19 @@ clientPortal.prototype.renderApplicantDetails = function() {
 	$('#applicantscore').append($('<div>',{'class':'pull-right'}).append(composite));
 	$('#applicantscore').append($('<div>',{'class':'text-center'}).append(profile.labels[0]));
 
+	var reminderStatus = [1,5,6,21,25,26];
+	if (reminderStatus.indexOf(this.respondant.respondantStatus)>=0) {
+		var row = $('<tr />');
+		row.append($('<td />').append($('<i />',{'class':'fa fa-paper-plane'})));
+		row.append(this.renderRespondantActions(this.respondant));	
+		$('#applicantdetailtable').append(row);	
+	}
 	this.addApplicantDetail('Address','fa fa-home', this.respondant.person.address);
 	this.addApplicantDetail('E-mail','fa fa-envelope', this.respondant.person.email);
 	this.addApplicantDetail('Phone Number','fa fa-phone',this.respondant.person.phone);
 	this.addApplicantDetail('Position','fa fa-briefcase',this.getPositionBy(this.respondant.positionId).positionName);
 	this.addApplicantDetail('Location','fa fa-map-marker',this.getLocationBy(this.respondant.locationId).locationName);
 	this.addApplicantDetail('Look-up ID','fa fa-id-badge', this.respondant.payrollId);
-
 }
 
 clientPortal.prototype.addApplicantDetail = function(label, icon, value) {

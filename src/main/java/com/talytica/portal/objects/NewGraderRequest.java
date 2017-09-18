@@ -15,7 +15,6 @@ public class NewGraderRequest {
 	@NonNull String firstName;
 	String lastName;
 	@NonNull String email;
-	@NonNull Long questionId;
 	@NonNull Long respondantId;
 
 }

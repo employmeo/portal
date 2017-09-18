@@ -547,7 +547,7 @@ function submitIgnoreReference(graderId, thePortal) {
 }
 
 
-function remindeEmailGrader(graderId) {
+function remindEmailGrader(graderId) {
 	return $.ajax({
 		type: "POST",
 		async: true,
@@ -555,6 +555,35 @@ function remindeEmailGrader(graderId) {
 		processData: false,
 		success: function() {
 			// do nothing.
+		}
+	});
+}
+
+function addNewRespondantReference(thePortal, newgrader) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/newgrader",
+	    headers: { 
+	        'Accept': 'application/json',
+	        'Content-Type': 'application/json' 
+	    },
+	    dataType: 'json',
+		data: JSON.stringify(newgrader),
+		success: function(data) {
+			thePortal.respondant.graders.push(data);
+		}
+	});
+}
+
+function waveMinGraders(respondantId) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/wavemin/"+respondantId,
+		processData: false,
+		success: function() {
+			console.log('Waved');
 		}
 	});
 }

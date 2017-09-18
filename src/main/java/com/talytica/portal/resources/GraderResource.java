@@ -195,7 +195,15 @@ public class GraderResource {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Requested new grader: {}", ngr);
 
-		Question question = questionService.getQuestionById(ngr.getQuestionId());
+		Long questionId = null;
+		List<Grader> graders = graderService.getGradersByRespondantId(ngr.getRespondantId());
+		for (Grader grader : graders) if (grader.getType() == Grader.TYPE_PERSON) {
+			questionId = grader.getQuestionId();
+			break;
+		}
+		
+		log.debug("Requested new grader: {}", ngr);
+		Question question = questionService.getQuestionById(questionId);
 		Respondant respondant = respondantService.getRespondantById(ngr.getRespondantId());
 		Person person = new Person();
 		person.setFirstName(ngr.getFirstName());
@@ -207,7 +215,7 @@ public class GraderResource {
 		grader.setAccountId(user.getUserAccountId());
 		grader.setPerson(savedPerson);
 		grader.setPersonId(savedPerson.getId());
-		grader.setQuestionId(ngr.getQuestionId());
+		grader.setQuestionId(questionId);
 		grader.setRespondantId(ngr.getRespondantId());
 		grader.setQuestion(question);
 		grader.setRespondant(respondant);
@@ -239,6 +247,7 @@ public class GraderResource {
 		Respondant respondant = respondantService.getRespondantById(id);
 		respondant.setWaveGraderMin(true);
 		respondantService.save(respondant);
+		log.debug("User {} waved minimum for respondant {}", user.getEmail(), respondant.getId());
 		return;
 	}
 	
