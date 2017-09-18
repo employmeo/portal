@@ -826,6 +826,23 @@ clientPortal.prototype.initRespondantReferences = function() {
 		order: [[ 0, 'desc' ]],
 		rowId: 'id',
 		columns: [
+	          	  { responsivePriority: 1, className: 'text-left', title: '', data: 'status',
+	          		  render: function (data,type,row) {
+	          			  var cell = $('<td />');
+	          			  switch (data) {
+	          			  case 20:
+	          				  cell.append($('<i />',{'class': 'fa fa-minus-square-o','title':'Declined / Ingored'}));
+	          				  break;
+	          			  case 10:
+	          				  cell.append($('<i />',{'class': 'fa fa-check-square-o','title':'Complete'}));
+	          				  break;
+	          			  default:
+	          				  cell.append($('<i />',{'class': 'fa fa-square-o','title':'Incomplete'}));
+	          				  break;
+	          			  }
+	          			  return cell.html();
+	          		  }
+	          	  },
 		          { responsivePriority: 1, className: 'text-left', title: 'Reference Name', data: 'person' ,
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
 		          { responsivePriority: 5, className: 'text-left', title: 'Relationship', data: 'relationship'},
@@ -906,7 +923,9 @@ clientPortal.prototype.showRespondantReferences = function() {
 		var ungradedStatus = [11,12,31,32];
 		if (ungradedStatus.indexOf(portal.respondant.respondantStatus) >=0) {
 			if (decline) $('#addnewreference').removeClass('hidden');
-			if ((portal.respondantStatus == 12) || (portal.respondantStatus == 32)) $('#waveminimum').removeClass('hidden');
+			if ((portal.respondant.respondantStatus == 12) || (portal.respondant.respondantStatus == 32)) {
+				$('#waveminimum').removeClass('hidden');
+			}
 		}
 		$('#references').removeClass('hidden');	
 	}
@@ -1068,11 +1087,15 @@ clientPortal.prototype.confirmWaveMinimum = function() {
 }
 
 clientPortal.prototype.waveMinimum = function(respondantId) {
+	var thePortal = this;
 	$('#confirmbody').empty();
 	$('#confirmbody').append($('<i />',{'class':'fa fa-spin fa-spinner fa-3x'}));
 	$.when(waveMinGraders(respondantId)).done(function () {
+		if ((thePortal.respondant.respondantStatus == 12) || (thePortal.respondant.respondantStatus == 32)){
+			thePortal.respondant.respondantStatus = thePortal.respondant.respondantStatus - 1;
+		}
 		$('#confirm').modal('hide');
-		$('#waveminimum').addClass('hidden');		
+		$('#waveminimum').addClass('hidden');
 	})
 }
 
