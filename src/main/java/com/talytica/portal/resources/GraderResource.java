@@ -18,11 +18,13 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.*;
 import com.employmeo.data.service.GraderService;
+import com.employmeo.data.service.PersonService;
 import com.employmeo.data.service.QuestionService;
 import com.employmeo.data.service.RespondantService;
 import com.employmeo.data.service.UserService;
 import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.GraderParams;
+import com.talytica.portal.objects.NewGraderRequest;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
@@ -40,9 +42,13 @@ public class GraderResource {
 	@Autowired
 	RespondantService respondantService;
 	@Autowired
+	PersonService personService;
+	@Autowired
 	EmailService emailService;
 	@Autowired
 	UserService userService;
+	@Autowired
+	QuestionService questionService;
 	@Context
 	SecurityContext sc;
 
@@ -177,7 +183,73 @@ public class GraderResource {
 		return Response.status(Status.CREATED).entity(savedGrade).build();
 	}
 
+	@POST
+	@Path("/newgrader")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Adds a new grader to respondant", response = Grader.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 201, message = "Grader Saved")
+	   })
+	public Grader saveNewGrader(@ApiParam(value = "grader", type="NewGraderRequest") NewGraderRequest ngr) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		log.debug("Requested new grader: {}", ngr);
 
+		Long questionId = null;
+		List<Grader> graders = graderService.getGradersByRespondantId(ngr.getRespondantId());
+		for (Grader grader : graders) if (grader.getType() == Grader.TYPE_PERSON) {
+			questionId = grader.getQuestionId();
+			break;
+		}
+		
+		log.debug("Requested new grader: {}", ngr);
+		Question question = questionService.getQuestionById(questionId);
+		Respondant respondant = respondantService.getRespondantById(ngr.getRespondantId());
+		Person person = new Person();
+		person.setFirstName(ngr.getFirstName());
+		person.setLastName(ngr.getLastName());
+		person.setEmail(ngr.getEmail());
+		Person savedPerson = personService.save(person);
+		Grader grader = new Grader();
+		grader.setAccount(user.getAccount());
+		grader.setAccountId(user.getUserAccountId());
+		grader.setPerson(savedPerson);
+		grader.setPersonId(savedPerson.getId());
+		grader.setQuestionId(questionId);
+		grader.setRespondantId(ngr.getRespondantId());
+		grader.setQuestion(question);
+		grader.setRespondant(respondant);
+		grader.setStatus(Grader.STATUS_NEW);
+		grader.setType(Grader.TYPE_PERSON);
+		Grader savedGrader = graderService.save(grader);
+		log.debug("Saved grade {}", savedGrader);
+		emailService.sendReferenceRequest(savedGrader);
+		if (respondant.getRespondantStatus() == Respondant.STATUS_INSUFFICIENT_GRADERS) {
+			respondant.setRespondantStatus(Respondant.STATUS_UNGRADED);
+			respondantService.save(respondant);
+		} else if (respondant.getRespondantStatus() == Respondant.STATUS_INSUFFICIENT_ADVGRADERS) {
+			respondant.setRespondantStatus(Respondant.STATUS_ADVUNGRADED);
+			respondantService.save(respondant);
+		}
+		return savedGrader;
+		
+	}
+	
+	@POST
+	@Path("/wavemin/{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Waves the minimum grader requirement for a respondant")
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 200, message = "waved")
+	   })
+	public void waveMinimum(@ApiParam(value = "respondantId") @PathParam("id") Long id) {
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		Respondant respondant = respondantService.getRespondantById(id);
+		respondant.setWaveGraderMin(true);
+		respondantService.save(respondant);
+		log.debug("User {} waved minimum for respondant {}", user.getEmail(), respondant.getId());
+		return;
+	}
 	
 	@POST
 	@Path("/{id}/status")

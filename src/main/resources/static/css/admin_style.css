@@ -17,6 +17,7 @@ audio {
 video {
 	width: 320px;
 }
+
 .table-condensed>tbody>tr>td {
 	vertical-align: middle;
 }
@@ -312,6 +313,18 @@ video {
     padding: 0px;
 }
 
+
+/**
+ * Overrides of gentella presentation
+ */
+ 
+ul.top_profiles li {
+	cursor: pointer
+}
+a {
+	cursor: pointer
+}
+	
 /**
  * Rating Question Types
  * ----------------------------------------------------------------------------

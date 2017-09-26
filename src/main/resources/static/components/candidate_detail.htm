@@ -126,11 +126,29 @@
 					<div class="clearfix"></div>
 				</div>
 				<div class="x_content">
-					<div id="referencewarning" class="alert alert-danger" style="display:none;">
-						<h2><i class="fa fa-exclamation-circle pull-left"></i><span id='warningtext'>Problem</span></h2>
+					<div id="referencewarning" class="alert alert-danger lead" style="display:none;">
+						<i class="fa fa-exclamation-circle"></i>&nbsp;<span id='warningtext'>Problem</span>
 					</div>
 					<div>
 						<table id='referencetable' class='table table-hover table-condensed' width='100%'></table>
+						
+						<div id='addnewreference' class='accordion panel hidden'>
+							<a class='panel-heading text-center' onclick="$('#newreferenceform').slideToggle();">
+								One or more references declined - Add Another?
+							</a>
+							<div id='newreferenceform' class='panel-collapse' style='display:none;'>
+								<form id="newgrader" action="javascript:portal.addNewReference();" class="form panel-body">
+									<div class="form-control-group col-xs-12 col-sm-4"><input class="form-control" name="firstName" required placeholder="first name"></div>
+									<div class="form-control-group col-xs-12 col-sm-4"><input class="form-control" name="lastName" required placeholder="last name"></div>
+									<div class="form-control-group col-xs-12 col-sm-4"><input class="form-control" name="email" required type="email" placeholder="email"></div>
+									<div class="form-control-group col-xs-12 text-center"><br><button type="submit" class="btn btn-xs btn-primary">Request Reference</button></div>
+								</form>
+							</div>
+						</div>
+						<div id='waveminimum' class='alert alert-warning hidden'>
+							<span>Candidate Will Not Minimum Reference Requirement</span>
+							<button type="button" data-toggle="modal" data-target="#confirm" class="btn btn-xs btn-primary pull-right" onClick='javascript:portal.confirmWaveMinimum();'>Wave Minimum</button>
+						</div>
 						<hr>
 					    <h4>Reference Scores</h4>
 						<table class='table table-hover'>
