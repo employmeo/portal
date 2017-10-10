@@ -937,20 +937,20 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 	var count = 0;
 	var grader = myrow.data();
 	var table = $('<table />',{'class' : 'table table-condensed'});
-	for (var i in grader.grades) {
-		for (var j in grader.criteria) {
+	for (var i=0;i<grader.grades.length;i++) {
+		for (var j=0;j<grader.criteria.length;j++) {
 			if (grader.criteria[j].questionId == grader.grades[i].questionId) grader.grades[i].sequence = j;
 		}
 	}
 	grader.grades.sort(function(a,b) {
-		if (a.questionId == b.questionId) return a.graderId - b.graderId;
+		if (a.sequence == b.sequence) return b.id - a.id;
 		return a.sequence - b.sequence;
 	});
 
+	var lastGrade = null;
 	for (var key in grader.grades) {
-		var lastGrade = null;
 		var grade = grader.grades[key];
-		if (grade.questionId == lastGrade) continue;
+		if (grade.sequence == lastGrade) continue;
 		count++;
 		var row = $('<tr />');
 		row.append($('<td />',{'text': count + ". " }));
@@ -961,7 +961,7 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 			row.append($('<td />',{'class' : 'text-right', 'html': this.getStars(grade.gradeValue, false) }));
 		}
 		table.append(row);
-		lastGrade = grade.questionId;
+		lastGrade = grade.sequence;
 	}
 	if (grader.status != 10) {
 		var row = $('<tr />');
