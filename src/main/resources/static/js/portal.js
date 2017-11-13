@@ -1797,6 +1797,7 @@ clientPortal.prototype.renderApplicantDetails = function() {
 		row.append(this.renderRespondantActions(this.respondant));	
 		$('#applicantdetailtable').append(row);	
 	}
+    this.addApplicantDetail('Assessment','fa fa-clipboard',this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
 	this.addApplicantDetail('Address','fa fa-home', this.respondant.person.address);
 	this.addApplicantDetail('E-mail','fa fa-envelope', this.respondant.person.email);
 	this.addApplicantDetail('Phone Number','fa fa-phone',this.respondant.person.phone);
@@ -2222,6 +2223,7 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 		
 		var value = scores[key].value;
 		var corefactor = this.getCorefactorBy(scores[key].corefactorId);
+        if ('Hidden' == corefactor.displayGroup) continue;
 		if (detail) {
 			if (excludeGroups.indexOf(corefactor.displayGroup) != -1) continue;
 			if (corefactor.parentId != null) continue;
@@ -2242,12 +2244,10 @@ clientPortal.prototype.renderAssessmentScore = function(detail) {
 	}
 
 	resultsDiv.append(this.getLegend());
-	if ((counter == 0) && detail){
-		$('#assessmentscores').addClass('hidden');
-		return;
-	}
-
+    if ((counter == 0) && detail) $('#assessmentscores').addClass('hidden');
+    if ((counter == 0) && !detail) $('#criticaltraitscores').addClass('hidden');
 }
+
 clientPortal.prototype.renderAudioAnalytics = function() {
 	var counter = 0;
 	var scores = this.respondant.respondantScores;
