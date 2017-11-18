@@ -2914,6 +2914,10 @@ clientPortal.prototype.readyLeftNav = function() {
     this.sidebar = $('#sidebar-menu');
     this.sidebar_footer = $('.sidebar-footer');
     if (this.user.account.accountType < 100) $('#benchmarkingmenu').addClass('hidden');
+    if ((this.user) && (this.user.userType == 100)) {
+    	console.log(this.sidebar.find('li').filter('[data-restrict="100"]'));
+    	this.sidebar.find('li').filter('[data-restrict="100"]').remove();
+    }
     this.sidebar.find('li ul').slideUp();
     this.sidebar.find('li').removeClass('active');
     this.sidebar.find('li').on('click', function(ev) {
