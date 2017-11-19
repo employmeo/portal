@@ -845,6 +845,7 @@ clientPortal.prototype.initRespondantReferences = function() {
 	          	  },
 		          { responsivePriority: 1, className: 'text-left', title: 'Reference Name', data: 'person' ,
 		        	  render : function ( data, type, row ) {return data.firstName + ' ' + data.lastName;}},
+			      { responsivePriority: 2, className: 'text-left', title: 'Email', data: 'person.email'},
 		          { responsivePriority: 5, className: 'text-left', title: 'Relationship', data: 'relationship'},
 		          { responsivePriority: 6, className: 'text-left', title: 'Overall Score', data: 'summaryScore', render :
 		        	  function (data,type,row) {if (row.status == 10) return thePortal.getStars(data, false);return '';}},
@@ -978,6 +979,7 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 				'onClick' : 'portal.remindReference('+ grader.id +');',
 				'class' : 'btn btn-xs btn-primary'
 			});
+			if (grader.status == 2) remind.text('remind again');
 			var ignore = $('<button />', {
 				'text' : 'ignore',
 				'data-toggle' : 'modal',
@@ -2914,6 +2916,10 @@ clientPortal.prototype.readyLeftNav = function() {
     this.sidebar = $('#sidebar-menu');
     this.sidebar_footer = $('.sidebar-footer');
     if (this.user.account.accountType < 100) $('#benchmarkingmenu').addClass('hidden');
+    if ((this.user) && (this.user.userType == 100)) {
+    	console.log(this.sidebar.find('li').filter('[data-restrict="100"]'));
+    	this.sidebar.find('li').filter('[data-restrict="100"]').remove();
+    }
     this.sidebar.find('li ul').slideUp();
     this.sidebar.find('li').removeClass('active');
     this.sidebar.find('li').on('click', function(ev) {
