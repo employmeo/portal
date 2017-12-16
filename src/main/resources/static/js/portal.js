@@ -1425,16 +1425,24 @@ clientPortal.prototype.initRespondantsTable = function() {
 		var drp = $('#reportrange').data('daterangepicker');
 		drp.setStartDate(moment(this.respParams.fromdate));
 		drp.setEndDate(moment(this.respParams.todate));
+		$('#fromdate').val(drp.startDate.format('YYYY-MM-DD'));
+		$('#todate').val(drp.endDate.format('YYYY-MM-DD'))
 		$('#reportrange span').html(drp.startDate.format('MMMM D, YYYY') + ' - ' + drp.endDate.format('MMMM D, YYYY'));
 		$('#locationId').val(this.respParams.locationId);
 		$('#positionId').val(this.respParams.positionId);
+		$('#statusLow').val(this.respParams.statusLow);
+		$('#statusHigh').val(this.respParams.statusHigh);
+		if ((this.respParams.statusLow == "1") && (this.respParams.statusHigh == "14")) this.toggleSearchStatus($('#searchInc'));
+		if ((this.respParams.statusLow == "1") && (this.respParams.statusHigh == "50")) this.toggleSearchStatus($('#searchBoth'));
+		if ((this.respParams.statusLow == "15") && (this.respParams.statusHigh == "50")) this.toggleSearchStatus($('#searchComp'));
 		this.updateRespondantsTable();
 	}
 }
 
 clientPortal.prototype.getStatusText = function (status) {
-	if (status == 0) return 'Created';
-	if ((status == 5) || (status == 5)) return 'Incomplete';
+	if ((status == 0) || (status == 20)) return 'Created';
+	if ((status == 1) || (status == 21)) return 'Invited';
+	if ((status == 5) || (status == 6) || (status == 25) || (status == 26)) return 'Incomplete';
 	if ((status == 10) || (status == 30)) return 'Submitted';
 	if ((status == 11) || (status == 31)) return 'Needs Input';
 	if ((status == 15) || (status == 35)) return 'Scored';
@@ -1487,6 +1495,15 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 }
 
 
+clientPortal.prototype.toggleSearchStatus = function(button) {
+	$('#buttonBar').children().removeClass('btn-primary');
+	$('#buttonBar').children().addClass('btn-default');
+	$(button).removeClass('btn-default');
+	$(button).addClass('btn-primary');
+	$('#statusLow').val($(button).data('min'));
+	$('#statusHigh').val($(button).data('max'));
+}
+
 clientPortal.prototype.searchRespondants = function() {
 	var thePortal = this;
 	var fields = $('#refinequery').serializeArray();
@@ -1497,14 +1514,32 @@ clientPortal.prototype.searchRespondants = function() {
 	for (var i=0;i<fields.length;i++) {
 		this.respParams[fields[i].name] = fields[i].value;
 	}
-	
+	$('#tablewait').removeClass('hidden');
 	submitRespondantSearchRequest(this.respParams, function(data) {
 		thePortal.searchResults = data;
 		thePortal.updateRespondantsTable();
+		$('#tablewait').addClass('hidden');
 	});
 }
 
-clientPortal.prototype.updateRespondantsTable = function() {	
+clientPortal.prototype.searchRespondantsExtend = function() {
+	var thePortal = this;
+	if (this.searchResults.last) return;
+	$('#tablewait').removeClass('hidden');
+	this.respParams.pagenum++;
+	submitRespondantSearchRequest(this.respParams, function(data) {
+		thePortal.searchResults.content = thePortal.searchResults.content.concat(data.content);
+		thePortal.searchResults.last = data.last;
+		if (!data.last) {
+			thePortal.searchRespondantsExtend();
+		} else {
+			thePortal.updateRespondantsTable();
+			$('#tablewait').addClass('hidden');
+		}
+	});	
+}
+
+clientPortal.prototype.updateRespondantsTable = function() {
 	var thePortal = this;
 	if (!this.searchResults.content) return;
 	$('#respondants').dataTable().fnClearTable();
@@ -1538,6 +1573,12 @@ clientPortal.prototype.updateRespondantsTable = function() {
             } );
 		});
 		
+	}
+	if (this.searchResults.last) {
+		$('#extendsearch').addClass('hidden');
+	} else {
+		$('#extendsearch').removeClass('hidden');
+		$('#additionalentries').text('Retrieve ' + (this.searchResults.totalElements - this.searchResults.size) + ' additional entries');
 	}
 }
 
@@ -2917,7 +2958,6 @@ clientPortal.prototype.readyLeftNav = function() {
     this.sidebar_footer = $('.sidebar-footer');
     if (this.user.account.accountType < 100) $('#benchmarkingmenu').addClass('hidden');
     if ((this.user) && (this.user.userType == 100)) {
-    	console.log(this.sidebar.find('li').filter('[data-restrict="100"]'));
     	this.sidebar.find('li').filter('[data-restrict="100"]').remove();
     }
     this.sidebar.find('li ul').slideUp();

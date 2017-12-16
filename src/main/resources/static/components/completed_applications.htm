@@ -2,10 +2,10 @@
 	<div class="col-xs-12 col-sm-3 col-md-3">
 		<h3>Candidate Search</h3>
 	</div>
-	<div class="col-md-9 col-sm-9 col-xs-12 pull-right">
+	<div class="col-md-9 col-sm-9 col-xs-12 pull-right text-right">
 		<form class="form-inline pull-right" id='refinequery'>
-			<input type="hidden" name="statusLow" value="1">
-			<input type="hidden" name="statusHigh" value="100">
+			<input type="hidden" id="statusLow" name="statusLow" value="1">
+            <input type="hidden" id="statusHigh" name="statusHigh" value="50">
 			<div class="form-group">
 				<div id="reportrange" class="form-control"
 					style="line-height: 1.42857143;">
@@ -27,6 +27,13 @@
 					<option value=-1>all positions</option>
 				</select>
 			</div>
+			<div class="form-group">
+			<label class='control-label small'>Status:</label>
+			<div class="btn-group" id='buttonBar'>
+					<button type="button" id="searchInc" onclick='portal.toggleSearchStatus(this);portal.searchRespondants();' data-min='1' data-max='14' class="btn btn-xs btn-default">Incomplete</button>
+					<button type="button" id="searchBoth" onclick='portal.toggleSearchStatus(this);portal.searchRespondants();' data-min='1' data-max='50'  class="btn btn-xs btn-primary">Any</button>					
+					<button type="button" id="searchComp" onclick='portal.toggleSearchStatus(this);portal.searchRespondants();'data-min='15' data-max='50'  class="btn btn-xs btn-default">Scored</button>
+			</div></div>
 		</form>
 	</div>
 </div>
@@ -37,9 +44,14 @@
 				<i class="fa fa-spinner fa-spin"></i>
 			</div>
 			<div class="x_title">
-				<h4>Scored Candidates</h4>
+				<h4>Scored Candidates<span id='extendsearch' class="pull-right label label-warning" title="search limited to 500 results">
+					<a id="additionalentries" href="#" onclick="portal.searchRespondantsExtend();">Retrieve 0 additional entries</a>
+				</span></h4>
 			</div>
 			<div class="x_content" id="respondant_list">
+				<div id="tablewait" class="text-center hidden" style="height: 100%;width:100%;position: absolute;background: black;opacity: .5;z-index: 99;">
+					<i class="fa fa-spinner fa-5x fa-spin" style="padding: 20%;"></i>
+				</div>	
 				<table id="respondants" class="table display table-condensed" width='100%'>
 				    <thead>
 				      <tr id='filters' class='hidden-md hidden-sm hidden-xs'><td>Filter:</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
