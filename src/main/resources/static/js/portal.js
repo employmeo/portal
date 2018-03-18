@@ -988,8 +988,16 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 				'onClick' : 'portal.confirmIgnoreReference('+ grader.id +');',
 				'class' : 'btn btn-xs btn-danger'		
 			});
+			var history = $('<button />',{
+				'class':'btn btn-default btn-xs',
+				'text':'history',
+				'data-displayed':0,
+				'data-direction':'emailhistoryleft',
+				'onClick' : 'portal.displayEmailHistory(this,"'+this.respondant.person.email+'");'
+			});
 			cell.append(remind);
 			cell.append(ignore);
+			cell.append(history);
 			row.append(cell);
 		}
 		table.append(row);
@@ -1840,8 +1848,10 @@ clientPortal.prototype.renderApplicantDetails = function() {
 		row.append($('<td />').append($('<i />',{'class':'fa fa-paper-plane'})));
 		var cell = this.renderRespondantActions(this.respondant);
 		cell.append($('<button />',{
-			'class':'btn btn-primary btn-xs',
-			'text':'history',
+			'class':'btn btn-default btn-xs',
+			'text':'History',
+			'data-direction':'emailhistory',
+			'data-displayed':0,
 			'onClick' : 'portal.displayEmailHistory(this,"'+this.respondant.person.email+'");'
 		}));
 
@@ -1858,25 +1868,42 @@ clientPortal.prototype.renderApplicantDetails = function() {
 	this.addApplicantDetail('Look-up ID','fa fa-id-badge', this.respondant.payrollId);
 }
 
-clientPortal.prototype.createViewHistoryButton = function(email) {
-
-	
-	
-	
-}
-
-clientPortal.prototype.displayEmailHistory = function(div, email) {
+clientPortal.prototype.displayEmailHistory = function(button, email) {
+	email='sri@talytica.com';
 	if (!this.emailHistories[email]) {
 		var thePortal = this;
-		$.when(getEmailHistory(thePortal,email)).done(function () {thePortal.showEmailHistory(div,email);});
+		$.when(getEmailHistory(thePortal,email)).done(function () {thePortal.showEmailHistory(button,email);});
 	} else {
-		this.showEmailHistory(div,email);
+		this.showEmailHistory(button,email);
 	}
 }
 
-clientPortal.prototype.showEmailHistory = function(div,email) {
-	var items = this.emailHistories[email];
-	console.log(email, items);
+clientPortal.prototype.showEmailHistory = function(button,email) {
+	var showing = $(button).attr('data-displayed');
+	var divclass = $(button).attr('data-direction');
+	if (showing == 0) {
+		var	history = $('<div />',{'class':divclass});
+		history.append($('<div />',{'class':'emailhistorytitle','text':'History: ' + email}));
+		var table = $('<table />',{'class':'table table-hover table-condensed'});
+		var items = this.emailHistories[email];
+		var header = $('<tr />');
+		header.append($('<th />',{'text': 'Event' }));
+		header.append($('<th />',{'text': 'Timestamp' }));
+		table.append($('<thead />').append(header));
+		for (i in items) {
+			var row = $('<tr />');
+			row.append($('<td />',{'class' : 'text-left', 'html': items[i].event }));
+			row.append($('<td />',{'class' : 'text-right', 'html': moment(items[i].timestamp).format("MMM DD, hh:mma") }));
+			table.append(row);
+		}
+		history.append(table);
+		$(button).append(history);
+		$(button).attr('data-displayed',showing+1);
+	} else {
+		$(button).empty();
+		$(button).text('history');	
+		$(button).attr('data-displayed',0);
+	}
 }
 
 clientPortal.prototype.addApplicantDetail = function(label, icon, value) {

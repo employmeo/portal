@@ -312,7 +312,27 @@ video {
     line-height: 22px;
     padding: 0px;
 }
-
+.emailhistory, .emailhistoryleft {
+	color: black;
+	border: gray solid 1px;
+	background: white;
+    border-radius: 5px;
+    min-width: 150px;
+    max-height: 300px;
+    overflow-y: scroll;
+    position: absolute;
+    z-index: 99;
+}
+.emailhistory {
+    left: 200px;
+}
+.emailhistoryleft {
+    right: 100px;
+}
+.emailhistorytitle {
+	background: lightgray;
+	border-bottom: gray solid 1px;
+}
 
 /**
  * Overrides of gentella presentation
