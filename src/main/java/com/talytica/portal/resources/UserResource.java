@@ -84,43 +84,4 @@ public class UserResource {
 		}
 	}	
 	
-	@POST
-	@Deprecated
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Persists the provided user", response = User.class)
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 201, message = "User saved"),
-	   })	
-	public Response saveUser(User saveUser) {
-		log.warn("deprecated resource accessed");
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
-		log.debug("Requested user save: {}", saveUser);
-		
-		User savedUser = userService.save(saveUser);
-		log.debug("Saved user {}", savedUser);
-		
-		return Response.status(Status.CREATED).entity(savedUser).build();
-	}
-	
-	@PUT
-	@Deprecated
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Updates the provided user", response = User.class)
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 201, message = "User saved"),
-	   })	
-	public Response updateUser(User updateUser) {
-		log.warn("deprecated resource accessed");
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
-		log.debug("Requested user save: {}", updateUser);
-		
-		User savedUser = userService.save(updateUser);
-		log.debug("Saved user {}", savedUser);
-		
-		return Response.status(Status.CREATED).entity(savedUser).build();
-	}
-		
-	
 }

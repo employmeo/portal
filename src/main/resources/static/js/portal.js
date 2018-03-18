@@ -17,6 +17,7 @@ function clientPortal(version) {
 	this.benchmarkList = [];
 	this.corefactors = [];
 	this.profiles = [];
+	this.emailHistories = {};
 
 	// data search params
 	this.respParams = {};
@@ -1837,16 +1838,45 @@ clientPortal.prototype.renderApplicantDetails = function() {
 	if (reminderStatus.indexOf(this.respondant.respondantStatus)>=0) {
 		var row = $('<tr />');
 		row.append($('<td />').append($('<i />',{'class':'fa fa-paper-plane'})));
-		row.append(this.renderRespondantActions(this.respondant));	
+		var cell = this.renderRespondantActions(this.respondant);
+		cell.append($('<button />',{
+			'class':'btn btn-primary btn-xs',
+			'text':'history',
+			'onClick' : 'portal.displayEmailHistory(this,"'+this.respondant.person.email+'");'
+		}));
+
+		row.append(cell);
 		$('#applicantdetailtable').append(row);	
 	}
     this.addApplicantDetail('Assessment','fa fa-clipboard',this.getAssessmentBy(this.respondant.accountSurveyId).displayName);
 	this.addApplicantDetail('Address','fa fa-home', this.respondant.person.address);
 	this.addApplicantDetail('E-mail','fa fa-envelope', this.respondant.person.email);
+	if (this.respondant.respondantStatus <10) this.addApplicantDetail('Link','fa fa-link', this.keys.assessmentPrefix + this.respondant.respondantUuid);
 	this.addApplicantDetail('Phone Number','fa fa-phone',this.respondant.person.phone);
 	this.addApplicantDetail('Position','fa fa-briefcase',this.getPositionBy(this.respondant.positionId).positionName);
 	this.addApplicantDetail('Location','fa fa-map-marker',this.getLocationBy(this.respondant.locationId).locationName);
 	this.addApplicantDetail('Look-up ID','fa fa-id-badge', this.respondant.payrollId);
+}
+
+clientPortal.prototype.createViewHistoryButton = function(email) {
+
+	
+	
+	
+}
+
+clientPortal.prototype.displayEmailHistory = function(div, email) {
+	if (!this.emailHistories[email]) {
+		var thePortal = this;
+		$.when(getEmailHistory(thePortal,email)).done(function () {thePortal.showEmailHistory(div,email);});
+	} else {
+		this.showEmailHistory(div,email);
+	}
+}
+
+clientPortal.prototype.showEmailHistory = function(div,email) {
+	var items = this.emailHistories[email];
+	console.log(email, items);
 }
 
 clientPortal.prototype.addApplicantDetail = function(label, icon, value) {
