@@ -1869,7 +1869,6 @@ clientPortal.prototype.renderApplicantDetails = function() {
 }
 
 clientPortal.prototype.displayEmailHistory = function(button, email) {
-	email='sri@talytica.com';
 	if (!this.emailHistories[email]) {
 		var thePortal = this;
 		$.when(getEmailHistory(thePortal,email)).done(function () {thePortal.showEmailHistory(button,email);});
