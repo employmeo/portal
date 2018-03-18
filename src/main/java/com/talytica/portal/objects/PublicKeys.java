@@ -12,5 +12,6 @@ import lombok.ToString;
 public class PublicKeys {
 	
 	String stripe;
+	String assessmentPrefix;
 
 }

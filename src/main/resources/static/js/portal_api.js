@@ -628,6 +628,18 @@ function sendInvitation(thePortal) {
 	});
 }
 
+function getEmailHistory(thePortal, email) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "respondant/emailhistory/"+email,
+		dataType: 'json',
+		success: function(data) {
+			thePortal.emailHistories[email]=data;
+		}
+	});	
+}
+
 function forgotPass() {
 	var fpr = {};
 	var fields = $('#forgotpassform').serializeArray();

@@ -33,6 +33,7 @@ import com.employmeo.data.service.AccountService;
 import com.employmeo.data.service.AccountSurveyService;
 import com.employmeo.data.service.UserService;
 import com.talytica.common.service.BillingService;
+import com.talytica.common.service.ExternalLinksService;
 import com.talytica.portal.objects.ApplicantDataPoint;
 import com.talytica.portal.objects.PublicKeys;
 import com.employmeo.data.model.ProfileDefaults;
@@ -59,6 +60,8 @@ public class AccountResource {
 	BillingService billingService;
 	@Autowired
 	private AccountSurveyService accountSurveyService;
+	@Autowired
+	ExternalLinksService externalLinksService;
 	@Autowired
 	private UserService userService;
 	@Context
@@ -355,6 +358,7 @@ public class AccountResource {
 	public PublicKeys getKeys() {
 		PublicKeys keys = new PublicKeys();
 		keys.setStripe(billingService.getStripePK());
+		keys.setAssessmentPrefix(externalLinksService.getAssessmentLinkBase());
 		return keys;
 	}
 }

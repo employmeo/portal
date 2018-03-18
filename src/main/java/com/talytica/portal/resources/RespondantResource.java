@@ -25,7 +25,9 @@ import org.springframework.stereotype.Component;
 
 import com.employmeo.data.model.Respondant;
 import com.employmeo.data.model.RespondantNVP;
+import com.employmeo.data.model.SendGridEmailEvent;
 import com.employmeo.data.model.User;
+import com.employmeo.data.service.PersonService;
 import com.employmeo.data.service.RespondantService;
 import com.employmeo.data.service.UserService;
 import com.talytica.portal.objects.RespondantSearchParams;
@@ -49,6 +51,8 @@ public class RespondantResource {
 	
 	@Autowired
 	private RespondantService respondantService;
+	@Autowired
+	private PersonService personService;
 	@Autowired
 	private UserService userService;
 	@Context
@@ -156,5 +160,39 @@ public class RespondantResource {
 		
 		return respondantService.getBySearchParams(search.accountId, search.statusLow, search.statusHigh, locationIds, search.positionId, search.type, from, to);
 
+	}
+	
+	@GET
+	@Path("/personemailhistory/{personId}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Searches for respondants", response = Respondant.class, responseContainer = "List")
+	   @ApiResponses(value = {
+			     @ApiResponse(code = 200, message = "Respondant found"),
+			     @ApiResponse(code = 404, message = "No such Respondant found")
+			   })	
+	public Iterable<SendGridEmailEvent> getPersonEmailHistory(
+			@PathParam(value = "personId") String personId){
+		
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		log.debug("Fetching email history for personId {}", personId);
+
+		return personService.getPersonEmailEvents(personId);
+	}
+	
+	@GET
+	@Path("/emailhistory/{email}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Searches for respondants", response = Respondant.class, responseContainer = "List")
+	   @ApiResponses(value = {
+			     @ApiResponse(code = 200, message = "Respondant found"),
+			     @ApiResponse(code = 404, message = "No such Respondant found")
+			   })	
+	public Iterable<SendGridEmailEvent> getEmailHistory(
+			@PathParam(value = "email") String email){
+		
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		log.debug("Fetching email history for email {}", email);
+
+		return personService.getEmailEvents(email);
 	}
 }
