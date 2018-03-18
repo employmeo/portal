@@ -993,7 +993,7 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 				'text':'history',
 				'data-displayed':0,
 				'data-direction':'emailhistoryleft',
-				'onClick' : 'portal.displayEmailHistory(this,"'+this.respondant.person.email+'");'
+				'onClick' : 'portal.displayEmailHistory(this,"'+grader.person.email+'");'
 			});
 			cell.append(remind);
 			cell.append(ignore);
