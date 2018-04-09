@@ -993,7 +993,7 @@ clientPortal.prototype.showReferenceResponses = function(td) {
 				'text':'history',
 				'data-displayed':0,
 				'data-direction':'emailhistoryleft',
-				'onClick' : 'portal.displayEmailHistory(this,"'+this.respondant.person.email+'");'
+				'onClick' : 'portal.displayEmailHistory(this,"'+grader.person.email+'");'
 			});
 			cell.append(remind);
 			cell.append(ignore);
@@ -1869,7 +1869,6 @@ clientPortal.prototype.renderApplicantDetails = function() {
 }
 
 clientPortal.prototype.displayEmailHistory = function(button, email) {
-	email='sri@talytica.com';
 	if (!this.emailHistories[email]) {
 		var thePortal = this;
 		$.when(getEmailHistory(thePortal,email)).done(function () {thePortal.showEmailHistory(button,email);});
