@@ -22,7 +22,7 @@ public class PortalUserDetailsService implements UserDetailsService {
     @Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     	log.debug("User Lookup Attempt for: {}", email);
-		User user = userRepository.findByEmail(email);
+		User user = userRepository.findByEmailIgnoreCase(email);
 		if (user != null) {
 	    	log.debug("Found User: {}", user);
 			return new UserPrincipal(user);
