@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 
-import jersey.repackaged.com.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,64 +66,6 @@ public class AccountResource {
 	private UserService userService;
 	@Context
 	SecurityContext sc;
-
-	
-	@GET
-	@Deprecated // nobody should be calling this!
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the list of all Accounts", response = Account.class, responseContainer = "List")
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Accounts found"),
-	     @ApiResponse(code = 404, message = "Accounts not found")
-	   })	
-	public Iterable<Account> getAllAccounts() {
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
-		log.warn("deprecated method called");
-		return accountService.getAllAccounts();
-	}
-	
-	@GET
-	@Deprecated // nobody should be calling this!
-	@Path("/{id}")
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Gets the account by provided Id", response = Account.class)
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 200, message = "Account found"),
-	     @ApiResponse(code = 404, message = "No such Account found")
-	   })	
-	public Response getAccount(@ApiParam(value = "account id") @PathParam("id") @NotNull Long id) {
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
-		log.warn("deprecated method called");
-		log.debug("Requested account by id {}", id);
-		
-		Account account = accountService.getAccountById(id);
-		log.debug("Returning account by id {} as {}", id, account);
-		
-		if(null != account) {
-			return Response.status(Status.OK).entity(account).build();
-		} else {
-			return Response.status(Status.NOT_FOUND).build();
-		}
-	}
-	
-	@POST
-	@Deprecated
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@ApiOperation(value = "Persists the provided account", response = Account.class)
-	   @ApiResponses(value = {
-	     @ApiResponse(code = 201, message = "Account saved"),
-	   })	
-	public Response saveAccount(Account account) {
-		log.warn("deprecated method called");
-		User user = userService.getUserByEmail(sc.getUserPrincipal().getName()); 
-		log.debug("Requested account save: {}", account);
-		
-		Account savedAccount = accountService.save(account);
-		log.debug("Saved account {}", savedAccount);
-		
-		return Response.status(Status.CREATED).entity(savedAccount).build();
-	}
 
 	@PUT
 	@Consumes(MediaType.APPLICATION_JSON)
