@@ -761,12 +761,16 @@ clientPortal.prototype.renderAudioDetail = function(respondant, responses) {
 	titles.append($('<th />',{ 'text' : 'Question'}));
 	titles.append($('<th />',{ 'text' : 'Response'}));	
 	table.append(titles);
-		
+	
+	responses.sort(function(a,b) {
+		return a.id - b.id;
+	});
+	
 	for (var i=0;i<responses.length;i++) {
 		response = responses[i];
 		var ques = this.getQuestionFor(response.questionId, respondant.accountSurveyId);
 		var row = $('<tr />');
-		row.append($('<td />',{ 'text' : ques.questionText}));
+		row.append($('<td />',{ 'text' : (i+1)+'. '+ques.questionText}));
 		if (ques.questionType == 28) { row.append($('<td />').append(this.renderVideoLink(response, response.responseMedia))); }
 		else {row.append($('<td />').append(this.renderAudioLink(response, response.responseMedia)));}
 		table.append(row);
