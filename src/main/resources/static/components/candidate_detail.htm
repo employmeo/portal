@@ -4,6 +4,8 @@
 			<h3 id='candidatename'></h3>
 		</div>
 		<div class="title_right">
+			<button id='saveAsPDF' class="btn btn-default pull-right" title="download pdf" type="button" onClick='portal.saveCandidatePDF();'>
+				<i class='fa fa-download'></i></button>
 			<button id='backtosearch' class="btn btn-default hidden pull-right" type="button" onClick='portal.showComponent("completed_applications");'>
 				Back to Search Results</button>
 		</div>
@@ -16,7 +18,7 @@
 				<h3>Application Details <a class="collapse-link pull-right small"><i class="fa fa-chevron-up"></i></a></h3>
 				</div>
 				<div class="x_content">
-						<div id='applicantscore' style="height:44px;font-size:20px;"></div>
+						<div id='applicantscore'></div>
 						<table id='applicantdetailtable' class="table table-hover"></table>
 				</div>
 			</div>
