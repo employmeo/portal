@@ -11,7 +11,7 @@ body.coverpage {
 }
 
 audio {
-	width: 160px;
+	width: 240px;
 }
 
 video {
@@ -564,6 +564,23 @@ input.cleanradio:checked+label.cleanradio:before {
 	content: "\f071";
     color: #dd4444;
 }
+
+/***
+ *
+ *  Styles for printing to pdf
+ *
+ */
+
+div .topdf {
+    width: 8.5in;
+    padding-left: 0.5in!important;
+    padding-right: 0.5in!important;
+}
+
+.topdf h1,.topdf h2 ,.topdf h3 ,.topdf h4  {font-size:18px}
+.topdf .lead {font-size:16px}
+.topdf h5 {font-size: 14px}
+.topdf h6 {font-size:9px}
 
 /***
  *

@@ -1843,8 +1843,8 @@ clientPortal.prototype.renderApplicantDetails = function() {
 	$('#applicantdetailtable').empty();
 	$('#applicantscore').empty();
 	$('#applicantscore').append($('<div>',{'class':'pull-left'}).append(portal.getProfileBadge(profile)));
-	$('#applicantscore').append($('<div>',{'class':'pull-right'}).append(composite));
-	$('#applicantscore').append($('<div>',{'class':'text-center'}).append(profile.labels[0]));
+	$('#applicantscore').append($('<div>',{'class':'pull-right lead'}).append(composite));
+	$('#applicantscore').append($('<div>',{'class':'text-center lead'}).append(profile.labels[0]));
 
 	var reminderStatus = [1,5,6,21,25,26];
 	if (reminderStatus.indexOf(this.respondant.respondantStatus)>=0) {
@@ -3008,6 +3008,25 @@ clientPortal.prototype.clearFileUpload = function(tablename) {
 		$('#'+tablename).dataTable().fnDestroy();
 		$('#'+tablename).empty();
 	}
+}
+
+// jpPDF function
+clientPortal.prototype.saveCandidatePDF = function () {
+	var filename = portal.respondant.person.firstName + " " + portal.respondant.person.lastName + ".pdf";
+	this.savePDF(filename,"#mainpanel");
+}
+
+clientPortal.prototype.savePDF = function (filename, divId) {
+	var pdf = new jsPDF('p', 'in', 'letter');
+	pdf.internal.scaleFactor=96;
+	$(divId).addClass('topdf');
+	$('#wait').removeClass('hidden');
+	pdf.addHTML($(divId), 0,0, {pagesplit:true}, function()
+	{
+		pdf.save(filename);
+		$(divId).removeClass('topdf');
+		$('#wait').addClass('hidden');
+	});
 }
 
 // Navigation and UI functions.
