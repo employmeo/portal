@@ -9,5 +9,6 @@ public class SignUpRequest {
 	public Long surveyId;
 	public Double lat;
 	public Double lng;
+	public String promo;
 
 }

@@ -32,6 +32,9 @@ import com.employmeo.data.service.PredictionConfigurationService;
 import com.employmeo.data.service.PredictionModelService;
 import com.employmeo.data.service.SurveyService;
 import com.employmeo.data.service.UserService;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.talytica.common.service.BillingService;
 import com.talytica.common.service.EmailService;
 import com.talytica.common.service.ExternalLinksService;
 import com.talytica.portal.PortalPasswordEncoder;
@@ -54,6 +57,8 @@ public class SignUpResource {
 	
 	private static final int DEFAULT_ACCOUNT_TYPE = Account.TYPE_TRIAL_SMB;
 	private static final int DEFAULT_ACCOUNT_STATUS = Account.STATUS_NEW;
+	private static final int DEFAULT_TRIAL_PERIOD = 30;
+	private static final String DEFAULT_PLAN_ID = "prod_BUiK0HPHtBdprr";
 	private static final String DEFAULT_ADDRESS = "Main Location";
 	private static final String DEFAULT_POSITION = "Employee";
 	private static final String POSITION_DESCRIPTION = "Employee - Please update position details in account settings.";
@@ -73,6 +78,8 @@ public class SignUpResource {
 			"<h4>THANK YOU</h4><p>Thank you for completing the assessment. Please click the &ldquo;Submit&rdquo; button, " +
 	        "below.</p><p>If requested to confirm your participation, you can provide this code: [CONFIRMATION_CODE].</p>";
 	
+	private static final String DEFAULT_AUDIO_PREAMBLE = "https://s3.amazonaws.com/talytica/media/audio/SMBOffering-5-20-17/Direct-2.0_5-19.wav";
+	private static final String DEFAULT_AUDIO_THANKYOU = "https://s3.amazonaws.com/talytica/media/audio/SMBOffering-5-20-17/Goodbyedirections-5-19.wav";
 	private static final String DEFAULT_STATIC_VIEW = "newresp.htm";
 	private static final Response USER_EXISTS = Response.status(Status.CONFLICT).entity("User already exists.").build();
 	private static final Response ACCOUNT_EXISTS = Response.status(Status.CONFLICT).entity("Account with that name already exists.").build();
@@ -100,7 +107,10 @@ public class SignUpResource {
 
 	@Autowired
 	PredictionConfigurationService predictionConfigurationService; 
-		
+
+	@Autowired
+	BillingService billingService;
+	
 	@POST
 	@Path("/withbm")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -165,8 +175,6 @@ public class SignUpResource {
 		
 		return Response.status(Status.CREATED).entity(savedUser).build();
 	}
-
-	
 	
 	@POST
 	@Path("/fromwebsmb")
@@ -216,6 +224,7 @@ public class SignUpResource {
 		account.setAccountName(request.accountName);
 		account.setAccountStatus(Account.STATUS_NEW);
 		account.setAccountType(Account.TYPE_TRIAL_SMB);
+		if (request.promo != null) account.setPromo(request.promo);
 		Account savedAccount = accountService.save(account);
 		
 		Location defaultLocation = new Location();
@@ -255,7 +264,7 @@ public class SignUpResource {
 		
 		User savedUser = userService.save(user);
 		savedUser.setAccount(updatedAccount);
-		log.debug("Created new account {} for user {}", savedAccount, savedUser);
+		log.error("Created new account {} for user {}", savedAccount, savedUser);// better than notifications?
 
 		emailService.sendVerifyAccount(savedUser);
 		
@@ -283,7 +292,15 @@ public class SignUpResource {
 		accountSurvey.setAccountId(account.getId());
 		accountSurvey.setSurveyId(survey.getId());
 		accountSurvey.setSurvey(survey);
-		accountSurvey.setPreambleText(DEFAULT_PREAMBLE);
+		if (null == survey.getDefaultPreamble()) {
+			accountSurvey.setPreambleText(DEFAULT_PREAMBLE);
+		} else {
+			accountSurvey.setPreambleText(survey.getDefaultPreamble());			
+		}
+		if (survey.getSurveyType() != Survey.TYPE_WEB) {
+			accountSurvey.setPreambleMedia(DEFAULT_AUDIO_PREAMBLE);
+			accountSurvey.setThankyouMedia(DEFAULT_AUDIO_THANKYOU);
+		}
 		accountSurvey.setThankyouText(DEFAULT_THANKYOU);
 		accountSurvey.setType(AccountSurvey.TYPE_APPLICANT);
 		accountSurvey.setStaticLinkView(DEFAULT_STATIC_VIEW);
@@ -320,6 +337,15 @@ public class SignUpResource {
 		}
 		
 		accountService.save(account);
+		
+		try {
+			Customer stripeCustomer = billingService.createCustomerFor(account);
+			String planId = survey.getStripePlanId();
+			if (null == planId) planId = DEFAULT_PLAN_ID;
+			billingService.subscribeCustomerToPlan(stripeCustomer.getId(), planId, 1, DEFAULT_TRIAL_PERIOD, account.getPromo());
+		} catch (StripeException se) {
+			log.error("Failed to connect customer {} to stripe plan for survey {}", account, survey);
+		}
 		
 		return Response.status(Status.ACCEPTED).entity(updatedSurvey).build();
 	}
