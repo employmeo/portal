@@ -192,7 +192,7 @@ function configureSMBAssessment(thePortal) {
 		data: JSON.stringify(thePortal.signupRequest),
 		success: function(data)
 		{
-			thePortal.user.account.defaultAsId = data.id
+			thePortal.user.account.defaultAsId = data.id;
   			thePortal.assessmentList.push(data);
 		}
 	});
