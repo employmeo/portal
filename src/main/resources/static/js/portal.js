@@ -1411,7 +1411,7 @@ clientPortal.prototype.initRespondantsTable = function() {
 		        		    return badge + scorediv;
 		        		  }
 		          },
-		          { responsivePriority: 2, className: 'text-left', title: 'First Name', data: 'person',
+		          { responsivePriority: 2, className: 'text-left', title: 'Name', data: 'person',
 		        	  render : function ( data, type, row ) {
 		        		  var link = $('<a />',{
 		        			  'onClick' : 'portal.setRespondantTo('+row.id+');portal.showComponent("candidate_detail")',
@@ -1566,7 +1566,7 @@ clientPortal.prototype.updateRespondantsTable = function() {
 			thePortal.renderAssessmentScore(false);
 		});
 		
-		this.rTable.columns([1,2,3,4]).every( function () {
+		this.rTable.columns([2,3,4]).every( function () {
             var column = this;
             var cell = $('#filters').children()[this[0][0]];
             var select = $('<select style="width:100%;"><option value=""></option></select>')
