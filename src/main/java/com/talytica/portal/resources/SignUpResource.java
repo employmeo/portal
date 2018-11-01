@@ -223,7 +223,7 @@ public class SignUpResource {
 	   })
 	public Response signUpSMB(SignUpRequest request) {
 		
-		log.info("New SMB Sign Up Request by {}", request.email);
+		log.debug("New SMB Sign Up Request by {}", request.email);
 		User user = userService.getUserByEmail(request.email);
 		log.debug("Looked for {} and found {}", request.email, user);
 		if (user != null) return USER_EXISTS;
@@ -286,7 +286,7 @@ public class SignUpResource {
 			log.error("Failed to connect user/account {}/{} to Stripe", savedUser.getEmail(), updatedAccount.getAccountName(), se);
 		}
 		emailService.sendVerifyAccount(savedUser);
-		log.info("Created new user/account {}/{}, in Stripe: () - NOT A SEVERE ERROR",
+		log.info("Created new user/account {}/{}, in Stripe: ()",
 				savedUser.getEmail(),
 				updatedAccount.getAccountName(),
 				updatedAccount.getStripeId());
