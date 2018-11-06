@@ -1402,14 +1402,20 @@ clientPortal.prototype.initRespondantsTable = function() {
 		columns: [
 		          { responsivePriority: 1, className: 'text-left', title: 'Score', data: 'compositeScore', 
 		        	  render : function ( data, type, row ) { 
-		        		    var badge = '<div style="display:inline-block;">' + 
-		        		      thePortal.getProfileBadge(thePortal.getProfile(row.profileRecommendation)).wrap("<div />").parent().html() + '</div>';
-		        		    var score = 'N/A';
-		        		    if (data != null) score = data.toFixed(0);
-		        		    var scorediv = '<div style="display:inline-block;font-size:26px;line-height:30px;float:right;">' +
-		        		      score + '</div>';
-		        		    return badge + scorediv;
+		        		  switch (type) {
+			        		  case 'display':
+				        		    var badge = '<div style="display:inline-block;">' + 
+				        		      thePortal.getProfileBadge(thePortal.getProfile(row.profileRecommendation)).wrap("<div />").parent().html() + '</div>';
+				        		    var score = 'N/A';
+				        		    if (data != null) score = data.toFixed(0);
+				        		    var scorediv = '<div style="display:inline-block;font-size:26px;line-height:30px;float:right;">' +
+				        		      score + '</div>';
+				        		    return badge + scorediv;
+			        		  case 'sort':
+			        			  default:
+			        				  return data;
 		        		  }
+	        		  }
 		          },
 		          { responsivePriority: 2, className: 'text-left', title: 'Name', data: 'person',
 		        	  render : function ( data, type, row ) {
@@ -1419,6 +1425,16 @@ clientPortal.prototype.initRespondantsTable = function() {
 		        		  });
 		        	  	  return $(link).wrap('<div>').parent().html();
 		        	  }},
+			      { responsivePriority: 3, className: 'text-left', title: 'Date', data: 'createdDate', render: 
+		        	    function ( data, type, row) {
+			        		switch (type) {
+				        		case 'display':
+				        			return moment(data).format('MM-DD-YY');
+				        		default:
+				        			return data;
+			        		}
+		        		} 
+			      },
 			      { responsivePriority: 8, className: 'text-left', title: 'Status', data: 'respondantStatus',
 			        	  render : function ( data, type, row ) { return thePortal.getStatusText(data);}},
 		          { responsivePriority: 9, className: 'text-left', title: 'Position', data: 'positionId', 
@@ -1566,7 +1582,7 @@ clientPortal.prototype.updateRespondantsTable = function() {
 			thePortal.renderAssessmentScore(false);
 		});
 		
-		this.rTable.columns([2,3,4]).every( function () {
+		this.rTable.columns([3,4,5]).every( function () {
             var column = this;
             var cell = $('#filters').children()[this[0][0]];
             var select = $('<select style="width:100%;"><option value=""></option></select>')
