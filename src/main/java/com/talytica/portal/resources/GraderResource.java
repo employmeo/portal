@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -322,6 +323,36 @@ public class GraderResource {
 			return null;
 		}
 	}
+	
+	@POST
+	@Path("/respondant/{id}/remind")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ApiOperation(value = "Updates the status of specified grader", response = Grader.class)
+	   @ApiResponses(value = {
+	     @ApiResponse(code = 202, message = "Status update accepted"),
+	   })
+	public List<Grader> remindAllGraders(@ApiParam(value = "grader id") @PathParam("id") Long respondantId) {
+		log.debug("Requested remind all graders for respondant id: {}", respondantId);
+		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
+		List<Grader> graders = graderService.getGradersByRespondantId(respondantId);
+		List<Grader> reminded = Lists.newArrayList();
+		for (Grader grader : graders) {
+		if ((grader != null) && (grader.getStatus() <= Grader.STATUS_COMPLETED)){
+			if (grader.getType() == Grader.TYPE_PERSON) {
+				emailService.sendReferenceRequestReminder(grader);
+			} else {
+				emailService.sendGraderReminder(grader);
+			}
+			grader.setStatus(Grader.STATUS_REMINDED);
+			reminded.add(graderService.save(grader));
+		}
+
+		}
+		return reminded;
+	}
+	
+	
 	
 	@POST
 	@Path("/search")

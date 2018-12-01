@@ -1035,6 +1035,18 @@ clientPortal.prototype.remindRespondant = function(respondantId) {
 	});
 }
 
+
+clientPortal.prototype.remindRespondantReferences = function(respondantId) {
+	var thePortal = this;
+	$.when(sendReferenceReminders(respondantId)).done(function () {
+		$('#confirmheader').text('Reference Reminder(s)');
+		$('#confirmbody').html('Reminders have been sent');
+	    $('#modalconfirm').hide();
+	    $('#modaldismiss').text('Ok');
+	    $('#modaldismiss').show();
+	});
+}
+
 clientPortal.prototype.remindReference = function (referenceId) {
 	remindEmailGrader(referenceId);
 	$('#confirmheader').text('Remind Reference');
@@ -1398,6 +1410,7 @@ clientPortal.prototype.initRespondantsTable = function() {
 	this.rTable = $('#respondants').DataTable( {
 		responsive: true,
 		order: [[ 0, 'desc' ]],
+		bStateSave: true,
 		rowId: 'id',
 		columns: [
 		          { responsivePriority: 1, className: 'text-left', title: 'Score', data: 'compositeScore', 
@@ -1420,7 +1433,8 @@ clientPortal.prototype.initRespondantsTable = function() {
 		          { responsivePriority: 2, className: 'text-left', title: 'Name', data: 'person',
 		        	  render : function ( data, type, row ) {
 		        		  var link = $('<a />',{
-		        			  'onClick' : 'portal.setRespondantTo('+row.id+');portal.showComponent("candidate_detail")',
+		        			  'href' : '/?&component=candidate_detail&respondantUuid=' + row.respondantUuid,
+		        			  'onClick' : 'portal.setRespondantTo('+row.id+');return portal.showComponent("candidate_detail")',
 		        			  'text' : data.firstName + ' ' + data.lastName
 		        		  });
 		        	  	  return $(link).wrap('<div>').parent().html();
@@ -1507,6 +1521,16 @@ clientPortal.prototype.renderRespondantActions = function(respondant) {
 				'data-toggle' : 'modal',
 				'data-target' : '#confirm',
 				'onClick' : 'portal.remindRespondant('+respondant.id+');'
+			}));
+			break;
+		case 11:
+		case 31: // May Need Reference Input
+			cell.append($('<button />',{
+				'class':'btn btn-primary btn-xs',
+				'text':'Remind Ref(s)',
+				'data-toggle' : 'modal',
+				'data-target' : '#confirm',
+				'onClick' : 'portal.remindRespondantReferences('+respondant.id+');'
 			}));
 			break;
 		default:
@@ -3120,13 +3144,15 @@ clientPortal.prototype.showComponent = function(component) {
     }
     
     var thePortal = this;
+    window.location.hash = '#'+ component;
 	$('#mainpanel').load('/components/'+component+'.htm?version='+this.version, function(){thePortal.showNotifications(notifications);});
+	
 	
 	this.sidebar.find("a[data-component='" + component + "']").parent('li').addClass('current-page');
     this.sidebar.find('a').filter(function () {
         return $(this).data('component') == component;
     }).parent('li').addClass('current-page').parent('ul').slideDown(0).parent().addClass('active'); 
-    
+    return false;
 }
 
 clientPortal.prototype.showNotifications = function(notifications) {
@@ -3134,7 +3160,7 @@ clientPortal.prototype.showNotifications = function(notifications) {
 		notification = notifications[key];
 		var notifydiv = $('<div />', {'id' : 'notification-' + notification.id, 'class': 'alert lead text-center col-xs-12 bg-info'});
 		notifydiv.append($('<span>', {text : notification.text}));
-		notifydiv.append($('<a />', { text : notification.link, href : '#', onclick : 'portal.showComponent("'+notification.component+'");'}));
+		notifydiv.append($('<a />', { text : notification.link, href : '#', onclick : 'return portal.showComponent("'+notification.component+'");'}));
 		$('#mainpanel').prepend(notifydiv);
 	}
 }
