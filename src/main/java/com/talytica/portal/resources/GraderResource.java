@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response.Status;
 
-import org.assertj.core.util.Lists;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -23,6 +23,7 @@ import com.employmeo.data.service.PersonService;
 import com.employmeo.data.service.QuestionService;
 import com.employmeo.data.service.RespondantService;
 import com.employmeo.data.service.UserService;
+import com.google.common.collect.Lists;
 import com.talytica.common.service.EmailService;
 import com.talytica.portal.objects.GraderParams;
 import com.talytica.portal.objects.NewGraderRequest;
