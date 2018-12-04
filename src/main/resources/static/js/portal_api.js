@@ -559,6 +559,18 @@ function remindEmailGrader(graderId) {
 	});
 }
 
+function sendReferenceReminders(respondantId) {
+	return $.ajax({
+		type: "POST",
+		async: true,
+		url: servicePath + "grader/respondant/"+respondantId+"/remind",
+		processData: false,
+		success: function(data) {
+			// data is the graders that were reminded
+		}
+	});
+}
+
 function addNewRespondantReference(thePortal, newgrader) {
 	return $.ajax({
 		type: "POST",
