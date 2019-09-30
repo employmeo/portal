@@ -150,7 +150,7 @@ public class GraderResource {
 	public Response getCriteriaByGraderId(@ApiParam(value = "grader id") @PathParam("id") @NotNull Long graderId) {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		List<Question> questions = graderService.getSummaryCriteriaByGraderId(graderId);
-		log.debug("Requested {} criteria by grader id {}", questions.size(), graderId);
+		log.debug("Retrieved {} criteria by grader id {}", questions.size(), graderId);
 		return Response.status(Status.OK).entity(questions).build();
 	}
 	
@@ -164,7 +164,7 @@ public class GraderResource {
 	public Response getResponsesByGraderId(@ApiParam(value = "respondant id") @PathParam("id") @NotNull Long respondantId) {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Set<com.employmeo.data.model.Response> responses = respondantService.getGradeableResponses(respondantId);
-		log.debug("Requested {} criteria by grader id {}", responses.size(),respondantId);
+		log.debug("Retrieved {} responses by grader id {}", responses.size(),respondantId);
 		return Response.status(Status.OK).entity(responses).build();
 	}
 	

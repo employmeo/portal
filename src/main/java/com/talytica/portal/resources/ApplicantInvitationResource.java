@@ -90,6 +90,9 @@ public class ApplicantInvitationResource {
 		if ((invitation.sample != null) && (invitation.sample)) {
 			respondant.setType(Respondant.TYPE_SAMPLE); // allow for "sample" invites.
 		}
+		if ((invitation.notifyme != null) && (invitation.notifyme)) {
+			respondant.setEmailRecipient(user.getEmail()); // send email notice
+ 		}
 		
 		respondant.setLocationId(as.getAccount().getDefaultLocationId());
 		if (invitation.locationId != null) respondant.setLocationId(invitation.locationId);

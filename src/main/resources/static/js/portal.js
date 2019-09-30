@@ -653,7 +653,7 @@ clientPortal.prototype.initGradersTable = function(){
 clientPortal.prototype.searchGraders = function() {
 	this.graderParams ={};
 	this.graderParams.userId = this.user.id;
-	this.graderParams.status = [1,5];
+	this.graderParams.status = [1,2,5];
 	if ($('#statusall').prop('checked')) this.graderParams.status.push(10);
 	this.graderParams.fromdate = $('#fromdate').val();
 	this.graderParams.todate = $('#todate').val();
