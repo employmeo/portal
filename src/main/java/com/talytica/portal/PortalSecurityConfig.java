@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.employmeo.data.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.talytica.portal.objects.UserPrincipal;
 import com.talytica.portal.service.PortalUserDetailsService;
@@ -33,6 +34,10 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	    @Autowired
 	    private PortalUserDetailsService userCredentialService;
+
+	    @Autowired
+	    private UserService userService;
+
 	    
 	    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 	        auth
@@ -84,10 +89,11 @@ public class PortalSecurityConfig extends WebSecurityConfigurerAdapter {
 			return new AuthenticationSuccessHandler() {
 			    @Override
 			    public void onAuthenticationSuccess(HttpServletRequest rqst, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-			    	  UserPrincipal user = (UserPrincipal) authentication.getPrincipal();			    	  
+			    	  UserPrincipal user = (UserPrincipal) authentication.getPrincipal();	
 			    	  ObjectMapper mapper = new ObjectMapper();
 			    	  response.getWriter().append(mapper.writeValueAsString(user.getUser()));
 			          response.setStatus(202);
+			    	  userService.updateLastLogin(user.getUser());
 			    }
 			};
 		}
