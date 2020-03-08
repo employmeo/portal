@@ -248,6 +248,10 @@ public class GraderResource {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Respondant respondant = respondantService.getRespondantById(id);
 		respondant.setWaveGraderMin(true);
+		Integer status = respondant.getRespondantStatus();
+		if (status == 12 || status == 32) {
+			respondant.setRespondantStatus(status -1 );
+		}
 		respondantService.save(respondant);
 		log.debug("User {} waved minimum for respondant {}", user.getEmail(), respondant.getId());
 		return;

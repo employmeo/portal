@@ -930,7 +930,7 @@ clientPortal.prototype.showRespondantReferences = function() {
 		if (ungradedStatus.indexOf(portal.respondant.respondantStatus) >=0) {
 			if (decline) $('#addnewreference').removeClass('hidden');
 			if ((portal.respondant.respondantStatus == 12) || (portal.respondant.respondantStatus == 32)) {
-				$('#waveminimum').removeClass('hidden');
+				if (!portal.respondant.waveGraderMin) $('#waveminimum').removeClass('hidden');
 			}
 		}
 		$('#references').removeClass('hidden');	
@@ -1121,6 +1121,7 @@ clientPortal.prototype.waveMinimum = function(respondantId) {
 		if ((thePortal.respondant.respondantStatus == 12) || (thePortal.respondant.respondantStatus == 32)){
 			thePortal.respondant.respondantStatus = thePortal.respondant.respondantStatus - 1;
 		}
+		thePortal.respondant.waveGraderMin = true;
 		$('#confirm').modal('hide');
 		$('#waveminimum').addClass('hidden');
 	})
