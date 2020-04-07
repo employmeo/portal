@@ -12,11 +12,11 @@
 	<artifactId>portal</artifactId>
 	<name>portal</name>
 	<description>Talytica Customer Portal Components</description>
-	<version>0.0.44</version>
+	<version>0.0.45-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
-		<persistence-unit.version>0.2.6</persistence-unit.version>
+		<persistence-unit.version>0.2.7-SNAPSHOT</persistence-unit.version>
 		<start-class>com.talytica.portal.PortalApplication</start-class>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -118,7 +118,6 @@
 		<dependency>
 		    <groupId>com.sendgrid</groupId>
 		    <artifactId>sendgrid-java</artifactId>
-		    <version>${sendgrid.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.im4java</groupId>
@@ -128,7 +127,6 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>${org-json.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>

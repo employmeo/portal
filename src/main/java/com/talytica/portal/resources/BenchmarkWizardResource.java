@@ -92,7 +92,7 @@ public class BenchmarkWizardResource {
 	private String SIMPLE_VIEW; 
 	@Value("topperformer.htm")
 	private String TOP_PERFORMER_VIEW; 
-	@Value("4701d03f-ee00-4c13-86a6-3b26107e0b05")
+	@Value("6be95451-24c7-41bb-8e20-1b0016aa84a6")
 	private String BENCHMARK_EMAIL_TEMPLATE_ID;
 	
 	@Context
