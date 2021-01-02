@@ -11,8 +11,8 @@
 	<groupId>com.talytica</groupId>
 	<artifactId>portal</artifactId>
 	<name>portal</name>
-	<description>Talytica Customer Portal Components</description>
-	<version>0.0.45</version>
+	<description>Talytica Customer Portal</description>
+	<version>0.0.46</version>
 	<packaging>jar</packaging>
 
 	<properties>
