@@ -652,14 +652,14 @@ function getEmailHistory(thePortal, email) {
 	});	
 }
 
-function getEmailHistory(thePortal, grader) {
+function getPersonEmailHistory(thePortal, email, personId) {
 	return $.ajax({
 		type: "GET",
 		async: true,
-		url: servicePath + "respondant/personemailhistory/"+grader.personId,
+		url: servicePath + "respondant/personemailhistory/"+personId,
 		dataType: 'json',
 		success: function(data) {
-			thePortal.emailHistories[grader.person.email]=data;
+			thePortal.emailHistories[email]=data;
 		}
 	});	
 }
