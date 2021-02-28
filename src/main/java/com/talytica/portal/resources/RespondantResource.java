@@ -171,7 +171,7 @@ public class RespondantResource {
 			     @ApiResponse(code = 404, message = "No such Respondant found")
 			   })	
 	public Iterable<SendGridEmailEvent> getPersonEmailHistory(
-			@PathParam(value = "personId") String personId){
+			@PathParam(value = "personId") Long personId){
 		
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		log.debug("Fetching email history for personId {}", personId);

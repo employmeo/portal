@@ -1897,7 +1897,8 @@ clientPortal.prototype.renderApplicantDetails = function() {
 			'text':'History',
 			'data-direction':'emailhistory',
 			'data-displayed':0,
-			'onClick' : 'portal.displayEmailHistory(this,"'+this.respondant.person.email+'");'
+//			'onClick' : 'portal.displayEmailHistory(this,"'+this.respondant.person.email+'");'
+			'onClick' : 'portal.displayPersonEmailHistory(this,"'+this.respondant.person.email+'",'+this.respondant.person.id+');'
 		}));
 
 		row.append(cell);
@@ -1917,6 +1918,15 @@ clientPortal.prototype.displayEmailHistory = function(button, email) {
 	if (!this.emailHistories[email]) {
 		var thePortal = this;
 		$.when(getEmailHistory(thePortal,email)).done(function () {thePortal.showEmailHistory(button,email);});
+	} else {
+		this.showEmailHistory(button,email);
+	}
+}
+
+clientPortal.prototype.displayPersonEmailHistory = function(button, email, personId) {
+	if (!this.emailHistories[email]) {
+		var thePortal = this;
+		$.when(getPersonEmailHistory(thePortal,email,personId)).done(function () {thePortal.showEmailHistory(button,email);});
 	} else {
 		this.showEmailHistory(button,email);
 	}

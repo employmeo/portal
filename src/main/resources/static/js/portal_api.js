@@ -652,6 +652,18 @@ function getEmailHistory(thePortal, email) {
 	});	
 }
 
+function getPersonEmailHistory(thePortal, email, personId) {
+	return $.ajax({
+		type: "GET",
+		async: true,
+		url: servicePath + "respondant/personemailhistory/"+personId,
+		dataType: 'json',
+		success: function(data) {
+			thePortal.emailHistories[email]=data;
+		}
+	});	
+}
+
 function forgotPass() {
 	var fpr = {};
 	var fields = $('#forgotpassform').serializeArray();
