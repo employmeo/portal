@@ -12,7 +12,7 @@
 	<artifactId>portal</artifactId>
 	<name>portal</name>
 	<description>Talytica Customer Portal</description>
-	<version>0.0.46</version>
+	<version>0.0.47</version>
 	<packaging>jar</packaging>
 
 	<properties>
