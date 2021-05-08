@@ -512,7 +512,7 @@ clientPortal.prototype.renderStripeDetails = function () {
 	var sub;
 	var period;
 	if (!this.stripeCustomer) return;
-	if (this.stripeCustomer.subscriptions.totalCount > 0) {
+	if (this.stripeCustomer.subscriptions.data.length > 0) {
 		for (var i in this.stripeCustomer.subscriptions.data) {
 			sub = this.stripeCustomer.subscriptions.data[i];
 			if ((status == "active") || (status == "trialing")) break;
@@ -522,9 +522,9 @@ clientPortal.prototype.renderStripeDetails = function () {
 		$('#accountproblemsmessage').removeClass('hidden');
 	} else {
 		$('#accountbillingstatus').removeClass('hidden');
-		$('#accounttype').text(sub.plan.name);
+		$('#accounttype').text(sub.items.data[0].plan.id);
 		$('#accountstatus').text(sub.status);	
-		$('#billingplan').text(sub.plan.name);
+		$('#billingplan').text(sub.items.data[0].plan.id);
 		$('#billingstatus').text(sub.status);
 		period = moment(1000*sub.currentPeriodStart).format('MMM-DD') + ' to ' + moment(1000*sub.currentPeriodEnd).format('MMM-DD');
 		$('#billingperiod').text(period);
@@ -533,7 +533,7 @@ clientPortal.prototype.renderStripeDetails = function () {
 			$('#accounttrialdaysleft').text(Math.floor((sub.trialEnd*1000 - new Date()) / (24*3600*1000)));
 		}
 	}
-	if (this.stripeCustomer.sources.totalCount > 0) {
+	if (this.stripeCustomer.sources.data.length > 0) {
 		for (var i in this.stripeCustomer.sources.data) {
 			source = this.stripeCustomer.sources.data[i];
 			if (source.object == "card") {
@@ -579,7 +579,7 @@ clientPortal.prototype.showInvoiceDetails = function() {
 		    language: { emptyTable: "No invoice history" },
 			columns: [
 				{ responsivePriority: 1, className: 'text-left', title: 'ID', data: 'receiptNumber'},
-				{ responsivePriority: 1, className: 'text-left', title: 'Date', data: 'date',
+				{ responsivePriority: 1, className: 'text-left', title: 'Date', data: 'created',
 				  render: function ( data, type, row) { return moment(1000*data).format('MMMM DD, YYYY'); }},
 				{ responsivePriority: 2, className: 'text-left', title: 'Period', data: 'periodStart',
 				  render: function ( data, type, row) { 
@@ -593,7 +593,7 @@ clientPortal.prototype.showInvoiceDetails = function() {
 		$('#invoicehistory').addClass('hidden');
 	}
 	if (this.nextInvoice) {
-		$('#nextbilldue').text(moment(this.nextInvoice.date*1000).format('MMMM DD, YYYY'));
+		$('#nextbilldue').text(moment(this.nextInvoice.dueDate*1000).format('MMMM DD, YYYY'));
 		$('#nextbillamt').text('$ ' + this.nextInvoice.amountDue/100);
 	}
 }
