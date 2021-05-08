@@ -20,6 +20,8 @@ import com.employmeo.data.service.UserService;
 import com.stripe.model.Card;
 import com.stripe.model.Customer;
 import com.stripe.model.Invoice;
+import com.stripe.model.Subscription;
+import com.stripe.model.SubscriptionCollection;
 import com.talytica.common.service.BillingService;
 import com.employmeo.data.model.User;
 
@@ -57,6 +59,10 @@ public class BillingResource {
 		User user = userService.getUserByEmail(sc.getUserPrincipal().getName());
 		Account account = user.getAccount();
 		Customer customer = billingService.getStripeCustomer(account);
+		List<Subscription> subs = billingService.getCustomerSubscriptions(customer.getId());
+		SubscriptionCollection subCollection = new SubscriptionCollection();
+		subCollection.setData(subs);
+		customer.setSubscriptions(subCollection);
 		log.debug("Got {} for user {}", customer, user);
 		return customer;
 	}
@@ -74,7 +80,13 @@ public class BillingResource {
 		Account account = user.getAccount();
 		Card card = billingService.addCardToCustomer(stripeToken, account);
 		log.debug("Created card {} for user {}", card, user);
-		return billingService.getStripeCustomer(account);
+		Customer customer = billingService.getStripeCustomer(account);
+		
+		List<Subscription> subs = billingService.getCustomerSubscriptions(customer.getId());
+		SubscriptionCollection subCollection = new SubscriptionCollection();
+		subCollection.setData(subs);
+		customer.setSubscriptions(subCollection);
+		return customer;
 	}
 	
 	@GET
